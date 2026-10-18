@@ -1,7 +1,7 @@
 # Statystyki ładunku: żule, paczki, kupy
 
 obszar: strefy
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: shared/types.ts (addytywnie), sim/game.ts (zliczanie przy podniesieniu bonusu), ui/hud.ts, ui/hudModel.ts
 
