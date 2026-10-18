@@ -1,7 +1,7 @@
 # Synchronizacja stanu klient-serwer i rozłączenia
 
 obszar: siec
-kto: -
+kto: Pawel
 zależy od: 018
 ścieżki: net/, server/
 
