@@ -125,9 +125,9 @@ się z zielenią smrodu ani przy najczęstszych typach daltonizmu.
 | 2 | pomarańczowy | `#EE7F1E` |
 | 3 | magenta | `#C8357A` |
 | 4 | żółty | `#E5BC1F` |
-| 5 | turkusowy | `#1FA9C9` |
+| 5 | liliowy | `#C9A0DC` |
 | 6 | karminowy | `#A3203A` |
-| 7 | granatowy | `#1E2F7A` |
+| 7 | śliwkowy | `#5B2A6E` |
 | 8 | grafitowy | `#3C3F4A` |
 
 Zarezerwowane, nie dla graczy: zieleń smrodu `#8CC846`, plamy `#6F7A2E`, wyświetlacz `#FFB000`,

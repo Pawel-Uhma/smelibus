@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import { BUS_LENGTH, BUS_WIDTH } from '../shared/config';
 import type { Bus, Player, PlayerId, World } from '../shared/types';
-
-const BUS_HEIGHT = 1.2;
+import { createBusModel, type BusModel } from './models/bus';
 
 /** Placeholder render: flat ground, buses as plain boxes. Cards 003/004 replace it with voxels. */
 export function createScene(canvas: HTMLCanvasElement, world: World) {
@@ -29,24 +27,17 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   grid.position.set(s / 2, 0.01, s / 2);
   scene.add(grid);
 
-  const busGeo = new THREE.BoxGeometry(BUS_WIDTH, BUS_HEIGHT, BUS_LENGTH);
-  busGeo.translate(0, BUS_HEIGHT / 2, 0);
-  const frontGeo = new THREE.BoxGeometry(BUS_WIDTH * 0.8, BUS_HEIGHT * 0.4, 0.1);
-  frontGeo.translate(0, BUS_HEIGHT * 0.7, BUS_LENGTH / 2);
-  const frontMat = new THREE.MeshLambertMaterial({ color: 0x223344 });
-  const meshes = new Map<number, { group: THREE.Group; mat: THREE.MeshLambertMaterial }>();
+  const meshes = new Map<number, BusModel>();
 
   function syncBus(bus: Bus, color: number) {
     let m = meshes.get(bus.id);
     if (!m) {
-      const mat = new THREE.MeshLambertMaterial();
-      const group = new THREE.Group();
-      group.add(new THREE.Mesh(busGeo, mat), new THREE.Mesh(frontGeo, frontMat));
-      scene.add(group);
-      m = { group, mat };
+      m = createBusModel(color);
+      scene.add(m.group);
       meshes.set(bus.id, m);
     }
-    m.mat.color.setHex(color);
+    m.setColor(color);
+    m.setStink(bus.stink);
     m.group.position.set(bus.x, 0, bus.z);
     m.group.rotation.y = bus.angle;
   }

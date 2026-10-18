@@ -36,6 +36,8 @@ export const RAM_STINK_LOSS = 0.3;
 export const RAM_MIN_SPEED = 4;
 
 export const STINK_MAX = 100;
+/** Upper bounds of the clean and smelly look stages; above the last one the bus is filthy. */
+export const STINK_STAGE_LIMITS = [30, 70] as const;
 
 // Stink bonuses (GAME_DESIGN: Bonusy smrodu). Amounts are stink points, times in seconds.
 /** Stink lost per second while driving around. */
@@ -74,7 +76,7 @@ export const BONUS_STINK = {
 export const BONUS_WEIGHTS = { kebab: 5, dog: 3, fan: 2, herring: 3, durian: 1 } as const;
 
 export const PLAYER_COLORS = [
-  0x2f6bd6, 0xee7f1e, 0xc8357a, 0xe5bc1f, 0x1fa9c9, 0xa3203a, 0x1e2f7a, 0x3c3f4a,
+  0x2f6bd6, 0xee7f1e, 0xc8357a, 0xe5bc1f, 0xc9a0dc, 0xa3203a, 0x5b2a6e, 0x3c3f4a,
 ];
 export const NEUTRAL_COLOR = 0xd9d4c7;
 
