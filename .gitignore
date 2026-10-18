@@ -1,2 +1,4 @@
 .vercel
 .env*
+brain/
+node_modules/
