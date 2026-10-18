@@ -24,8 +24,8 @@ describe('stickToInput', () => {
 });
 
 describe('mergeInputs', () => {
-  it('adds axes with a clamp and sums the use counters', () => {
-    expect(mergeInputs({ throttle: 1, steer: -0.5, use: 2 }, { throttle: 1, steer: 0.2, use: 3 }))
-      .toEqual({ throttle: 1, steer: expect.closeTo(-0.3), use: 5, jump: 0 });
+  it('adds axes with a clamp and sums the use, jump and horn counters', () => {
+    expect(mergeInputs({ throttle: 1, steer: -0.5, use: 2, horn: 1 }, { throttle: 1, steer: 0.2, use: 3 }))
+      .toEqual({ throttle: 1, steer: expect.closeTo(-0.3), use: 5, jump: 0, horn: 1 });
   });
 });

@@ -19,7 +19,7 @@ Dźwięki odpalane z różnic między snapshotami (render tylko czyta stan); kla
 
 ## Gotowe, gdy
 
-- [ ] wszystkie efekty z listy słychać w grze online
-- [ ] klakson innego gracza słychać tylko w pobliżu
-- [ ] przycisk wyciszenia w HUD, zapamiętany w `localStorage`
-- [ ] AudioContext startuje po pierwszym kliknięciu (polityka autoplay)
+- [x] wszystkie efekty z listy słychać w grze online
+- [x] klakson innego gracza słychać tylko w pobliżu
+- [x] przycisk wyciszenia w HUD, zapamiętany w `localStorage`
+- [x] AudioContext startuje po pierwszym kliknięciu (polityka autoplay)

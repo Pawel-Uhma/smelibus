@@ -1,4 +1,5 @@
 import './style.css';
+import { createSounds } from './audio/sounds';
 import { createKeyboard } from './input/keyboard';
 import { createTouch, mergeInputs } from './input/touch';
 import { createBonusesRender } from './render/bonuses';
@@ -31,6 +32,9 @@ const hud = createHud(ui, party.code, party.playerId);
 const minimap = createMinimap(ui, party.playerId);
 const keyboard = createKeyboard();
 const touch = createTouch();
+const sounds = createSounds(party.world, party.playerId);
+ui.querySelector('.hud .party')?.append(sounds.muteButton());
+let lastHorn = 0;
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
 
 // Own bus is predicted locally (instant controls) and replayed on top of each server snapshot.
@@ -44,6 +48,8 @@ function frame(now: number) {
   const snap = party.latest();
   const me = snap.players.find((p) => p.id === party.playerId);
   const input = mergeInputs(keyboard.read(me?.busId === null), touch.read());
+  if ((input.horn ?? 0) > lastHorn) sounds.honk();
+  lastHorn = input.horn ?? 0;
   const serverBus = snap.buses.find((b) => b.id === me?.busId);
   if (!serverBus) predictor = null;
   else if (!predictor || predictor.bus.id !== serverBus.id) predictor = createBusPredictor(serverBus, party.world.size, party.world);
@@ -73,6 +79,7 @@ function frame(now: number) {
   scene.render(buses, snap.players, ownBus ?? onFoot, dt, snap.time);
   // Stink pops rise from just above the own bus.
   const ownScreen = ownBus ? scene.toScreen(ownBus.x, 2.6, ownBus.z) : null;
+  sounds.update(snap, ownBus ?? onFoot, dt);
   hud.update({ time: snap.time, players: snap.players, buses, tiles: party.world.tiles, winnerId: snap.winnerId, ownScreen });
   minimap.update({ world: party.world, players: snap.players, buses, weather: snap.weather ?? [], toScreen: scene.toScreen });
   requestAnimationFrame(frame);

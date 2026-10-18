@@ -29,6 +29,7 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 - Pieszy: chodzi wszędzie (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest pusty.
 - Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja dalej hamuje). Prędkość pieszego: 5,2 kafelka/s.
 - Kierowca: steruje autobusem, `E` = wysiada obok autobusu.
+- `H` = klakson (pieszy i kierowca). Słyszą go gracze w pobliżu, ciszej im dalej (`SOUND_HORN_RANGE`). Na telefonie mały przycisk `H` obok `E`.
 - **Eliminacja:** gracz z 0 kafelków nie odpada. Dalej chodzi, jeździ, kradnie autobusy,
   taranuje i potrąca, ale nie może rosnąć (nie ma strefy, do której mógłby wjechać).
 
@@ -94,6 +95,18 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 - Tylko wygląd: symulacja i balans się nie zmieniają.
 - `?noc` w adresie albo klawisz N wymusza noc (N jeszcze raz wraca do cyklu), a `?noc=0` zostawia
   sam dzień. Liczby w `config.ts` (`DAY_NIGHT_*`, `NIGHT_*`).
+
+## Dźwięk
+
+- Same efekty, bez muzyki w tle. Wszystko generowane w kodzie przez Web Audio (oscylatory i szum),
+  bez plików dźwiękowych, tak jak voxele.
+- Klakson (`H`): dwutonowy, przez sieć. Własny słychać od razu, cudzy w zasięgu `SOUND_HORN_RANGE`.
+- Skok: rosnący akord, im więcej przejętych kafelków, tym wyżej i pełniej. Własny skok zawsze głośno.
+- Taran: głuche „bum”. Bonus: krótkie „blup”. Kontroler biletów: smutne „bzzt”.
+- Pod chmurą: szum deszczu albo brzęk puszek Harnasia, tym mocniej, im głębiej pod chmurą.
+- Pozostałe efekty słychać w zasięgu `SOUND_RANGE`, ciszej z odległością.
+- Przycisk „Dźwięk” w HUD wycisza grę, wybór jest zapamiętany w przeglądarce. Dźwięk rusza po
+  pierwszym kliknięciu albo klawiszu (polityka autoplay przeglądarek).
 
 ## Strefy i mapa
 

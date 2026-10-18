@@ -235,3 +235,21 @@ export const NIGHT_TAILLIGHT_GLOW = 0.45;
 export const NIGHT_ZABKA_INTENSITY = 6;
 export const NIGHT_ZABKA_RANGE = 7;
 export const NIGHT_ZABKA_LIGHTS_MAX = 8;
+
+// Sound effects (audio/), all generated with Web Audio.
+/** Other players' horns are heard up to this far, tiles; volume falls with distance. */
+export const SOUND_HORN_RANGE = 26;
+/** Other sound effects (pickups, rams, captures) are heard up to this far, tiles. */
+export const SOUND_RANGE = 18;
+/** Closer than this, a sound plays at full volume, tiles. */
+export const SOUND_FULL_DIST = 3;
+/** A bus knocked sideways at least this fast (tiles/s) in one snapshot makes a "bum". */
+export const SOUND_RAM_PUSH = 3;
+/** Tile gains bigger than this aren't a jump (game start, join zones) and stay silent. */
+export const SOUND_CAPTURE_MAX_TILES = 300;
+/** Captures of this many tiles or more get the highest jump chord. */
+export const SOUND_CAPTURE_TOP_TILES = 150;
+/** Harnaś can clinks per second at full exposure under the cloud. */
+export const SOUND_CLINKS_PER_S = 7;
+/** Master volume, 0..1. */
+export const SOUND_VOLUME = 0.6;

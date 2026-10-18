@@ -123,6 +123,11 @@ body.touch-on .hud .help-touch { display: block; }
   width: 76px; height: 76px; padding: 0; border-radius: 50%; font-size: 30px; font-weight: 900; background: #f4a300; box-shadow: 3px 3px 0 #1b1b1b; touch-action: none;
 }
 .touch-use.pressed { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #1b1b1b; background: #ffb829; }
+.touch-horn {
+  position: absolute; right: calc(118px + env(safe-area-inset-right)); bottom: calc(28px + env(safe-area-inset-bottom));
+  width: 54px; height: 54px; padding: 0; border-radius: 50%; font-size: 22px; font-weight: 900; background: #e5bc1f; box-shadow: 3px 3px 0 #1b1b1b; touch-action: none;
+}
+.touch-horn.pressed { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #1b1b1b; background: #f2d04a; }
 /* The thumbs own the bottom corners: stink bar and clock go to the top right. */
 body.touch-on .hud { max-width: calc(100vw - 24px - min(170px, 38vw) - 8px); }
 body.touch-on .hud-stink { left: auto; right: 12px; top: 12px; bottom: auto; width: min(170px, 38vw); }

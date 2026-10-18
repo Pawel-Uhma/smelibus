@@ -131,7 +131,7 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
     interpolatedBuses: (now) => buffer.buses(now, INTERP_DELAY_MS),
     sendInput(input) {
       // Send on change, plus a keepalive so a lost message can't leave the bus stuck.
-      const key = `${input.throttle},${input.steer},${input.seq},${input.use},${input.jump}`;
+      const key = `${input.throttle},${input.steer},${input.seq},${input.use},${input.jump},${input.horn}`;
       const now = performance.now();
       if (key === lastSent && now - lastSentAt < 250) return;
       lastSent = key;

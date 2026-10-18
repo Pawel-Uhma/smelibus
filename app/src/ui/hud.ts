@@ -29,8 +29,8 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
     <div class="hud">
       <div class="party">Party <b>${code}</b> <button id="copy">Kopiuj link</button></div>
       <ul id="players"></ul>
-      <div class="help">WASD / strzałki: jazda i chodzenie · spacja: hamulec · E: wsiądź / wysiądź</div>
-      <div class="help help-touch">Lewy kciuk: jazda i chodzenie · E: wsiądź / wysiądź</div>
+      <div class="help">WASD / strzałki: jazda i chodzenie · spacja: hamulec · E: wsiądź / wysiądź · H: klakson</div>
+      <div class="help help-touch">Lewy kciuk: jazda i chodzenie · E: wsiądź / wysiądź · H: klakson</div>
     </div>
     <div class="hud-clock">
       <div id="clock" class="time">0:00</div>

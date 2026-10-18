@@ -24,6 +24,7 @@ export function mergeInputs(a: BusInput, b: BusInput): BusInput {
     steer: clamp1(a.steer + b.steer),
     use: (a.use ?? 0) + (b.use ?? 0),
     jump: (a.jump ?? 0) + (b.jump ?? 0),
+    horn: (a.horn ?? 0) + (b.horn ?? 0),
   };
 }
 
@@ -32,7 +33,7 @@ export const isTouchDevice = () =>
 
 /**
  * On-screen controls for phones: a floating stick on the left part of the screen (it appears
- * under the thumb) and an E button on the right. Hidden until the device is a touch one.
+ * under the thumb), an E button and a smaller horn button on the right. Hidden until the device is a touch one.
  */
 export function createTouch(): { read(): BusInput } {
   const layer = document.createElement('div');
@@ -41,13 +42,15 @@ export function createTouch(): { read(): BusInput } {
   layer.innerHTML = `
     <div class="touch-zone"></div>
     <div class="touch-stick"><div class="touch-knob"></div></div>
-    <button class="touch-use" type="button" aria-label="Wsiądź / wysiądź">E</button>`;
+    <button class="touch-use" type="button" aria-label="Wsiądź / wysiądź">E</button>
+    <button class="touch-horn" type="button" aria-label="Klakson">H</button>`;
   // Under #ui, so the HUD and the win screen stay clickable on top of it.
   document.body.insertBefore(layer, document.getElementById('ui'));
   const zone = layer.querySelector<HTMLDivElement>('.touch-zone')!;
   const stick = layer.querySelector<HTMLDivElement>('.touch-stick')!;
   const knob = layer.querySelector<HTMLDivElement>('.touch-knob')!;
   const useBtn = layer.querySelector<HTMLButtonElement>('.touch-use')!;
+  const hornBtn = layer.querySelector<HTMLButtonElement>('.touch-horn')!;
 
   const show = () => {
     layer.hidden = false;
@@ -58,6 +61,7 @@ export function createTouch(): { read(): BusInput } {
 
   let axes = { throttle: 0, steer: 0 };
   let use = 0;
+  let horn = 0;
   let pointer: number | null = null;
   let ox = 0, oy = 0;
 
@@ -97,16 +101,20 @@ export function createTouch(): { read(): BusInput } {
     });
   }
 
-  useBtn.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    use++;
-    useBtn.classList.add('pressed');
-  });
-  for (const type of ['pointerup', 'pointercancel', 'pointerleave'] as const) {
-    useBtn.addEventListener(type, () => useBtn.classList.remove('pressed'));
-  }
+  const button = (btn: HTMLButtonElement, press: () => void) => {
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      press();
+      btn.classList.add('pressed');
+    });
+    for (const type of ['pointerup', 'pointercancel', 'pointerleave'] as const) {
+      btn.addEventListener(type, () => btn.classList.remove('pressed'));
+    }
+  };
+  button(useBtn, () => use++);
+  button(hornBtn, () => horn++);
   layer.addEventListener('contextmenu', (e) => e.preventDefault());
   addEventListener('blur', release);
 
-  return { read: () => ({ ...axes, use }) };
+  return { read: () => ({ ...axes, use, horn }) };
 }

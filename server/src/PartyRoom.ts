@@ -49,6 +49,10 @@ export class PartyRoom extends Room {
       const use = Number.isFinite(input.use) ? Number(input.use) : undefined;
       const jump = Number.isFinite(input.jump) ? Number(input.jump) : undefined;
       this.busInputs.set(client.sessionId, { throttle: input.throttle, steer: input.steer, use, jump });
+      // Horn counter goes straight into the player, so every snapshot relays it (card 029).
+      const horn = Number(input.horn);
+      const player = this.game.players.find((p) => p.id === client.sessionId);
+      if (player && Number.isFinite(horn)) player.horn = horn;
       // Keepalives repeat the same seq; only a new one restarts the tick count.
       const seq = Number(input.seq);
       if (Number.isFinite(seq) && this.acks.get(client.sessionId)?.seq !== seq) {

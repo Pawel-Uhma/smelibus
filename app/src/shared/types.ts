@@ -13,6 +13,8 @@ export interface BusInput {
   use?: number;
   /** Jump key (Space) press counter, like `use`: a change means one jump (on foot only). */
   jump?: number;
+  /** Horn key (H) press counter, like `use`: the server mirrors it into Player.horn. */
+  horn?: number;
 }
 
 /** Last input seq the server got from a player and for how many sim ticks it has run it. */
@@ -55,6 +57,8 @@ export interface Player {
   jumpAt?: number;
   /** Last `BusInput.jump` counter the sim has acted on. */
   jumpSeen?: number;
+  /** Last BusInput.horn counter from this player (server relays it); a rise = one honk. */
+  horn?: number;
   connected: boolean;
 }
 
