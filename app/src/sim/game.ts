@@ -1,7 +1,7 @@
 import { EXTRA_BUSES, MAX_PLAYERS, PLAYER_COLORS } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types';
 import { dropStink, spawnBonuses, updateBonuses } from './bonus';
-import { collideBuses, NO_INPUT, updateBus } from './bus';
+import { collideBuses, NO_INPUT, parkBus, updateBus } from './bus';
 import { hitPedestrians, updatePlayers } from './player';
 import { updateWeather } from './weather';
 import { collideZabkas, spawnZabkas, updateZabkas } from './zabka';
@@ -25,7 +25,9 @@ function spawnBus(state: GameState): Bus {
   const r = state.world.size * 0.3;
   const c = state.world.size / 2;
   const { x, z } = nearestDrivable(state.world, c + Math.sin(angle) * r, c + Math.cos(angle) * r);
-  return { id, x, z, angle, speed: 0, driverId: null, stink: 0 };
+  const bus: Bus = { id, x, z, angle, speed: 0, driverId: null, stink: 0 };
+  parkBus(bus, state.world, x, z);
+  return bus;
 }
 
 export function addPlayer(state: GameState, id: PlayerId, name: string): Player {
@@ -56,10 +58,10 @@ export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInpu
   updatePlayers(state, inputs, dt);
   for (const bus of state.buses) {
     const input = (bus.driverId && inputs.get(bus.driverId)) || NO_INPUT;
-    updateBus(bus, input, dt, state.world.size);
+    updateBus(bus, input, dt, state.world.size, state.world);
     collideZabkas(bus, state.world.zabkas);
   }
-  for (const d of collideBuses(state.buses, state.world.size)) dropStink(state, d.x, d.z, d.amount);
+  for (const d of collideBuses(state.buses, state.world.size, state.world)) dropStink(state, d.x, d.z, d.amount);
   hitPedestrians(state);
   updateZabkas(state);
   updateBonuses(state, dt);

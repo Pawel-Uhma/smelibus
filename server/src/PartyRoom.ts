@@ -5,6 +5,7 @@ import type {
 } from '../../app/src/shared/types';
 import { createTileTracker } from '../../app/src/net/tiles';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
+import { parkBus } from '../../app/src/sim/bus';
 import { nearestDrivable } from '../../app/src/sim/world';
 import { assignStartZones, startPoint } from '../../app/src/sim/zones';
 
@@ -122,8 +123,7 @@ export class PartyRoom extends Room {
       if (!bus) return;
       const p0 = startPoint(world.size, k, players.length);
       const at = nearestDrivable(world, p0.x, p0.z);
-      bus.x = at.x;
-      bus.z = at.z;
+      parkBus(bus, world, at.x, at.z);
       bus.speed = 0;
     });
     this.lobby.started = true;

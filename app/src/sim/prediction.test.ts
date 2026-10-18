@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { SIM_DT } from '../shared/config';
-import type { Bus, BusInput, InputAck } from '../shared/types';
+import { BUS_LENGTH, SIM_DT } from '../shared/config';
+import type { Bus, BusInput, InputAck, World } from '../shared/types';
 import { NO_INPUT, updateBus } from './bus';
 import { createBusPredictor } from './prediction';
 
@@ -99,5 +99,13 @@ describe('createBusPredictor', () => {
       predictor.reconcile(bus({ pushX: 6 }), { seq: predictor.seq, ticks: tick + 1 });
     }
     expect(predictor.bus.pushX).toBeGreaterThan(0);
+  });
+
+  it('stops at buildings like the server does', () => {
+    const world: World = { seed: 0, size: 100, tiles: Array.from({ length: 100 * 100 }, () => ({ ownerId: null })) };
+    for (let i = 0; i < 100; i++) world.tiles[56 * 100 + i].kind = 'building';
+    const predictor = createBusPredictor(bus(), 100, world);
+    for (let tick = 0; tick < 120; tick++) predictor.step({ throttle: 1, steer: 0 }, SIM_DT);
+    expect(predictor.bus.z + BUS_LENGTH / 2).toBeLessThanOrEqual(56 + 1e-9);
   });
 });

@@ -11,7 +11,7 @@ Generator miasta (karta 002) jest za flagą `CITY_ENABLED` w `config.ts`, bo aut
 
 ## Gotowe, gdy
 
-- [ ] autobus nie wjeżdża w budynek, odbija się jak od krawędzi
-- [ ] predykcja klienta liczy to samo co serwer
-- [ ] testy Vitest: wjazd prosto i pod kątem w ścianę budynku
-- [ ] po tym można włączyć `CITY_ENABLED = true` (decyzja zespołu, wpis w DECISIONS)
+- [x] autobus nie wjeżdża w budynek, odbija się jak od krawędzi
+- [x] predykcja klienta liczy to samo co serwer
+- [x] testy Vitest: wjazd prosto i pod kątem w ścianę budynku
+- [x] po tym można włączyć `CITY_ENABLED = true` (decyzja zespołu, wpis w DECISIONS)

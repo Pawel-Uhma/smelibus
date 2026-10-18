@@ -1,5 +1,5 @@
 import { PREDICTION_CORRECT_RATE, PREDICTION_SNAP_DIST, SIM_DT } from '../shared/config';
-import type { Bus, BusInput, InputAck } from '../shared/types';
+import type { Bus, BusInput, InputAck, World } from '../shared/types';
 import { collideWithOthers, updateBus } from './bus';
 import { collideZabkas } from './zabka';
 
@@ -28,9 +28,7 @@ const angleDiff = (from: number, to: number) => Math.atan2(Math.sin(to - from), 
  * from the server's bus and replays the local inputs after that tick: no guessing, no drift.
  * The jump between the old and new prediction is hidden by a visual offset that fades out.
  */
-export function createBusPredictor(
-  start: Bus, mapSize: number, zabkas?: readonly { x: number; z: number }[],
-): BusPredictor {
+export function createBusPredictor(start: Bus, mapSize: number, world?: World): BusPredictor {
   const sim: Bus = { ...start };
   const bus: Bus = { ...start };
   /** Inputs of local ticks [base, tick). */
@@ -43,9 +41,10 @@ export function createBusPredictor(
   let ox = 0, oz = 0, oa = 0;
 
   const simulate = (input: BusInput, others: readonly Bus[]) => {
-    updateBus(sim, input, SIM_DT, mapSize);
-    collideZabkas(sim, zabkas);
-    collideWithOthers(sim, others, mapSize);
+    // Same buildings and shops as the server, or the own bus would keep jumping out of walls.
+    updateBus(sim, input, SIM_DT, mapSize, world);
+    collideZabkas(sim, world?.zabkas);
+    collideWithOthers(sim, others, mapSize, world);
   };
   const draw = () => {
     Object.assign(bus, sim);

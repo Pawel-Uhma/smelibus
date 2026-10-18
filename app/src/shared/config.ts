@@ -7,8 +7,8 @@ export const EXTRA_BUSES = 2;
 export const TILES_PER_PLAYER = 400;
 
 // City generator (sim/world.ts, card 002). Sizes in tiles.
-/** Streets and buildings instead of a flat field. Off until buses collide with buildings. */
-export const CITY_ENABLED = false;
+/** Streets and buildings instead of a flat field (buses bounce off buildings, card 023). */
+export const CITY_ENABLED = true;
 /** Road width; a bus is BUS_LENGTH long, so two of them can pass. */
 export const CITY_ROAD_WIDTH = 3;
 /** Blocks (without roads) are cut while a side is longer than MAX, never below MIN. */

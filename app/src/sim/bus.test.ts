@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   BUS_BOUNCE, BUS_HIT_WIDTH, BUS_LENGTH, BUS_MAX_SPEED, RAM_MIN_SPEED, RAM_STINK_LOSS,
 } from '../shared/config';
-import type { Bus } from '../shared/types';
-import { collideBuses, collideWithOthers, NO_INPUT, updateBus } from './bus';
+import type { Bus, World } from '../shared/types';
+import { collideBuses, collideWithOthers, NO_INPUT, parkBus, updateBus } from './bus';
 
 const bus = (over: Partial<Bus> = {}): Bus => ({
   id: 0, x: 20, z: 20, angle: 0, speed: 0, driverId: null, stink: 0, ...over,
@@ -273,3 +273,95 @@ describe('collideWithOthers', () => {
     for (const b of buses) expect(Math.hypot(b.x - 30, b.z - 30)).toBeLessThan(6);
   });
 });
+
+describe('buildings', () => {
+  /** 20×20 map with building tiles at the given [i, j]. */
+  const city = (buildings: [number, number][]): World => {
+    const world: World = { seed: 0, size: 20, tiles: Array.from({ length: 400 }, () => ({ ownerId: null })) };
+    for (const [i, j] of buildings) world.tiles[j * 20 + i].kind = 'building';
+    return world;
+  };
+  const row = (j: number) => Array.from({ length: 20 }, (_, i): [number, number] => [i, j]);
+  /** Does any point of the bus outline (slightly shrunk) sit in a building? */
+  const inBuilding = (b: Bus, world: World) => {
+    const fx = Math.sin(b.angle), fz = Math.cos(b.angle);
+    for (let l = -1; l <= 1; l += 0.1) {
+      for (let w = -1; w <= 1; w += 0.1) {
+        const x = b.x + fx * l * (BUS_LENGTH / 2 - 1e-3) + fz * w * (BUS_HIT_WIDTH / 2 - 1e-3);
+        const z = b.z + fz * l * (BUS_LENGTH / 2 - 1e-3) - fx * w * (BUS_HIT_WIDTH / 2 - 1e-3);
+        if (world.tiles[Math.floor(z) * 20 + Math.floor(x)]?.kind === 'building') return true;
+      }
+    }
+    return false;
+  };
+  const drive = (b: Bus, world: World, steer: number, seconds: number, check: (b: Bus) => void = () => {}) => {
+    for (let t = 0; t < seconds; t += 1 / 60) {
+      updateBus(b, { throttle: 1, steer }, 1 / 60, 20, world);
+      expect(inBuilding(b, world)).toBe(false);
+      check(b);
+    }
+  };
+
+  it('bounces back from a wall it drives into head-on', () => {
+    const world = city(row(10));
+    const b = bus({ x: 5.5, z: 3 });
+    let bounced = false;
+    drive(b, world, 0, 3, (x) => (bounced ||= x.speed < 0));
+    expect(bounced).toBe(true);
+    expect(b.z + BUS_LENGTH / 2).toBeLessThanOrEqual(10 + 1e-9);
+  });
+
+  it('keeps most of its speed when it scrapes a wall at a shallow angle', () => {
+    const world = city(row(10));
+    // 17° to the wall, heading +x; the front corner reaches it within a few ticks.
+    const b = bus({ x: 3, z: 9, angle: Math.PI / 2 - 0.3, speed: 10 });
+    let hit = false;
+    drive(b, world, 0, 0.3, (x) => (hit ||= x.z < 9 + 0.3 * (x.x - 3) - 1e-6));
+    expect(hit).toBe(true);
+    expect(b.speed).toBeGreaterThan(8);
+    expect(b.x).toBeGreaterThan(5);
+  });
+
+  it('does not catch on the seams of a wall made of many tiles', () => {
+    const world = city(row(10));
+    // Driving along +x, the right side rubbing the wall.
+    const b = bus({ x: 2, z: 10 - BUS_HIT_WIDTH / 2 - 1e-4, angle: Math.PI / 2, speed: 10 });
+    drive(b, world, 0, 0.8);
+    expect(b.speed).toBeGreaterThan(10);
+    expect(b.z).toBeCloseTo(10 - BUS_HIT_WIDTH / 2, 3);
+  });
+
+  it('never cuts a corner of a lone building', () => {
+    const world = city([[10, 10]]);
+    for (const angle of [0.6, -0.6, 0.2, Math.PI / 4]) {
+      drive(bus({ x: 10.5 - Math.sin(angle) * 5, z: 10.5 - Math.cos(angle) * 5, angle }), world, 0, 2);
+    }
+  });
+
+  it('does not go through a one tile thick wall at full speed', () => {
+    const world = city(row(10));
+    const b = bus({ x: 5.5, z: 6, speed: BUS_MAX_SPEED });
+    drive(b, world, 0, 2);
+    expect(b.z).toBeLessThan(10);
+  });
+
+  it('parks a bus lined up with a narrow street, clear of the buildings', () => {
+    // A street one tile wide along z at i = 10; everything else is buildings.
+    const all: [number, number][] = [];
+    for (let j = 0; j < 20; j++) for (let i = 0; i < 20; i++) if (i !== 10) all.push([i, j]);
+    const world = city(all);
+    const b = bus({ angle: 1 });
+    parkBus(b, world, 10.5, 10.5);
+    expect(inBuilding(b, world)).toBe(false);
+    expect(Math.abs(Math.sin(b.angle))).toBeLessThan(1e-9);
+    updateBus(b, NO_INPUT, 1 / 60, 20, world);
+    expect(b).toMatchObject({ x: 10.5, z: 10.5 });
+  });
+
+  it('ignores buildings without a world (flat map)', () => {
+    const b = bus({ x: 5.5, z: 8, speed: 10 });
+    updateBus(b, NO_INPUT, 1 / 60, 20);
+    expect(b.speed).toBeGreaterThan(9);
+  });
+});
+
