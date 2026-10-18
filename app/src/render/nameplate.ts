@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 
 const FONT_PX = 48;
-const PAD_PX = 14;
 /** World height of the label; width follows the text. */
-const WORLD_HEIGHT = 0.7;
+const WORLD_HEIGHT = 0.9;
 
 export interface Nameplate {
   sprite: THREE.Sprite;
@@ -17,10 +16,7 @@ export interface Nameplate {
 
 /** Player nick drawn on a canvas sprite, always facing the camera and never hidden behind buildings. */
 export function createNameplate(): Nameplate {
-  const canvas = document.createElement('canvas');
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
+  const material = new THREE.SpriteMaterial({ depthTest: false, transparent: true });
   const sprite = new THREE.Sprite(material);
   sprite.renderOrder = 10;
   let key = '';
@@ -33,11 +29,16 @@ export function createNameplate(): Nameplate {
       const next = `${name}|${color}`;
       if (next === key) return;
       key = next;
+      // A fresh canvas and texture each time: the nick length changes with stink, and three.js
+      // keeps a texture's GPU storage at its first size, so resizing one in place smears it.
+      const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       const font = `bold ${FONT_PX}px system-ui, sans-serif`;
       ctx.font = font;
-      const w = Math.ceil(ctx.measureText(name).width) + PAD_PX * 2;
-      const h = FONT_PX + PAD_PX;
+      // Extra height so accents over capitals (Ć, Ÿ) and tails (ą, ę) stay inside the pill;
+      // side padding as wide as the rounded ends, so they never cut the first or last letter.
+      const h = Math.ceil(FONT_PX * 1.6);
+      const w = Math.ceil(ctx.measureText(name).width) + h;
       canvas.width = w;
       canvas.height = h;
       ctx.font = font;
@@ -49,11 +50,15 @@ export function createNameplate(): Nameplate {
       ctx.textBaseline = 'middle';
       ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
       ctx.fillText(name, w / 2, h / 2 + 2);
-      texture.needsUpdate = true;
+      material.map?.dispose();
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      material.map = texture;
+      material.needsUpdate = true;
       sprite.scale.set((WORLD_HEIGHT * w) / h, WORLD_HEIGHT, 1);
     },
     dispose() {
-      texture.dispose();
+      material.map?.dispose();
       material.dispose();
     },
   };
