@@ -1,7 +1,11 @@
 import type { PlayerId } from '../shared/types';
 import { buildHudModel, formatClock, type HudView } from './hudModel';
+import { createStinkPops } from './stinkPops';
 
 export type { HudView } from './hudModel';
+
+/** Stink cloud with three wavy fumes, colored by the pop's CSS (currentColor). */
+const STINK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="#1b1b1b" stroke-width="1.5" d="M6 20a4 4 0 0 1-.6-8 5 5 0 0 1 9.6-1.5A4 4 0 1 1 18 20z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 7c-1-1 1-2 0-4M12 6c-1-1 1-2 0-4M16 7c-1-1 1-2 0-4"/></svg>`;
 
 /**
  * In-game HUD over the canvas: party code, map share per player, clock with sudden death,
@@ -21,6 +25,7 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
     <div class="hud-stink">
       <div class="label">Smród <b id="stink-val">0</b></div>
       <div class="bar"><div id="stink-bar"></div></div>
+      <div id="stink-pops" class="stink-pops"></div>
     </div>
     <div id="win" class="win" hidden>
       <div class="card">
@@ -39,6 +44,9 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
   const stinkVal = $('stink-val');
   const stinkBar = $('stink-bar');
   const win = $('win');
+  const popsBox = $('stink-pops');
+  const pops = createStinkPops();
+  let lastUpdate = performance.now();
   copy.onclick = async () => {
     try {
       await navigator.clipboard.writeText(location.href);
@@ -59,6 +67,18 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
   let lastSudden = '';
   let lastStink = -1;
   let shownWinner: PlayerId | null = null;
+
+  /** A small stink icon with "+N" / "−N" that floats up off the stink bar and fades. */
+  function showPop(delta: number) {
+    const el = document.createElement('div');
+    el.className = 'stink-pop ' + (delta > 0 ? 'plus' : 'minus');
+    el.style.left = `${10 + Math.random() * 60}%`;
+    el.innerHTML = STINK_ICON;
+    el.append(`${delta > 0 ? '+' : '−'}${Math.abs(delta)}`);
+    el.addEventListener('animationend', () => el.remove());
+    popsBox.append(el);
+    while (popsBox.childElementCount > 8) popsBox.firstElementChild!.remove();
+  }
 
   return {
     update(view: HudView) {
@@ -98,6 +118,10 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
         sudden.hidden = !suddenText;
         sudden.classList.toggle('on', m.multiplier > 1);
       }
+
+      const now = performance.now();
+      for (const d of pops.update(m.stink, m.busId, (now - lastUpdate) / 1000)) showPop(d);
+      lastUpdate = now;
 
       const stink = Math.round(m.stink);
       if (stink !== lastStink) {

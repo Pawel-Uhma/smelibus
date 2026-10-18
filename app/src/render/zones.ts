@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { NEUTRAL_COLOR } from '../shared/config';
 import type { Player, PlayerId, Tile, World } from '../shared/types';
+import { createCaptureFx } from './captureFx';
 
 /** Texels per tile side. More than 1 so borders are a thin line, not a whole tile. */
 export const SUB = 4;
@@ -12,6 +13,8 @@ const FILL_MIX = 0.45;
 const BORDER_DARKEN = 0.75;
 /** Peak blend toward white for a freshly taken tile. */
 const FLASH_WHITE = 0.65;
+/** A big takeover puffs stink outward over this long, seconds (first to last tile). */
+const CAPTURE_SPREAD_S = 0.5;
 
 type Rgb = [number, number, number];
 
@@ -77,6 +80,7 @@ export function createZonesRender(scene: THREE.Scene) {
   let flash = new Float32Array(0);
   let flashing = false;
   let lastColors = '';
+  const capture = createCaptureFx(scene);
 
   function rebuild(newSize: number) {
     if (mesh) {
@@ -115,14 +119,27 @@ export function createZonesRender(scene: THREE.Scene) {
 
       const first = lastOwner.length !== tiles.length;
       let changed = first || colorKey !== lastColors;
+      const taken: number[] = [];
       for (let idx = 0; idx < tiles.length; idx++) {
         const owner = tiles[idx].ownerId;
         if (!first && lastOwner[idx] === owner) continue;
         // Initial split doesn't glow; later changes (jumps, join carve, neutralized) do.
-        if (!first && owner) { flash[idx] = 1; flashing = true; }
+        if (!first && owner) { flash[idx] = 1; flashing = true; taken.push(idx); }
         lastOwner[idx] = owner;
         changed = true;
       }
+      // Taken tiles leave green stink. A jump claims the tiles nearest the entry, so ripple
+      // the puffs outward from the middle of the taken blob.
+      if (taken.length) {
+        let cx = 0, cz = 0;
+        for (const idx of taken) { cx += idx % size; cz += Math.floor(idx / size); }
+        cx /= taken.length;
+        cz /= taken.length;
+        const dist = taken.map((idx) => Math.hypot(idx % size - cx, Math.floor(idx / size) - cz));
+        const far = dist.reduce((a, b) => Math.max(a, b), 1);
+        taken.forEach((idx, k) => capture.spawnTile(idx % size, Math.floor(idx / size), (dist[k] / far) * CAPTURE_SPREAD_S));
+      }
+      capture.update(dt);
       if (flashing) {
         flashing = false;
         const decay = dt / FLASH_SECONDS;

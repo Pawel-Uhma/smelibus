@@ -28,6 +28,8 @@ export interface HudModel {
   /** Own bus stink, 0..STINK_MAX (0 when on foot). */
   stink: number;
   stinkMax: number;
+  /** Bus the player drives, null on foot. */
+  busId: number | null;
   /** Current sudden death multiplier, 1 before 8 min. */
   multiplier: number;
   /** Seconds until the next multiplier step, or null when there is none left. */
@@ -67,6 +69,7 @@ export function buildHudModel(view: HudView, me: PlayerId): HudModel {
     clock: formatClock(view.time),
     stink: Math.max(0, Math.min(STINK_MAX, ownBus?.stink ?? 0)),
     stinkMax: STINK_MAX,
+    busId: ownBus?.id ?? null,
     multiplier: suddenDeathMultiplier(view.time),
     nextStepIn: next ? next.after - view.time : null,
     winner: winP ? { id: winP.id, name: winP.name, color: cssColor(winP.color), me: winP.id === me } : null,
