@@ -11,4 +11,4 @@ Spawn bonusów na przystankach i na mapie, odnawianie po czasie, śmietniki (+sm
 
 ## Gotowe, gdy
 
-- [ ] testy Vitest: zbieranie podnosi `stink`, wietrzenie obniża, limit 100
+- [x] testy Vitest: zbieranie podnosi `stink`, wietrzenie obniża, limit 100

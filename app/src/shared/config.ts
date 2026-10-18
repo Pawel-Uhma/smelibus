@@ -37,6 +37,42 @@ export const RAM_MIN_SPEED = 4;
 
 export const STINK_MAX = 100;
 
+// Stink bonuses (GAME_DESIGN: Bonusy smrodu). Amounts are stink points, times in seconds.
+/** Stink lost per second while driving around. */
+export const STINK_DECAY_PER_S = 0.5;
+/** Decay multiplier while a picked-up drunk ("żul") is sitting in the bus. */
+export const ZUL_DECAY_MULT = 0.5;
+export const ZUL_SIT_SECONDS = 20;
+/** Pickup circle radius of a bonus; a bus collects it when the circles touch. */
+export const BONUS_RADIUS = 0.6;
+export const BONUS_RESPAWN_S = 15;
+export const TRASH_RESPAWN_S = 20;
+export const CONTROLLER_RESPAWN_S = 15;
+/** Knocked-out stink lying on the ground vanishes after this long. */
+export const DROPPED_STINK_TTL_S = 20;
+/** Knocked-out stink can't be picked up for this long, so the two buses that crashed don't
+ *  instantly swallow it back at the contact point. */
+export const DROPPED_STINK_PICKUP_DELAY_S = 1;
+/** Spawn spots per map tile (×size², at least 1 each). */
+export const BUS_STOPS_PER_TILE = 1 / 150;
+export const MAP_BONUS_SPOTS_PER_TILE = 1 / 60;
+export const TRASH_CANS_PER_TILE = 1 / 120;
+export const CONTROLLERS_PER_TILE = 1 / 400;
+/** Bus stops hold a drunk this often, otherwise a regular bonus. */
+export const STOP_ZUL_CHANCE = 0.5;
+export const BONUS_STINK = {
+  zul: 25,
+  kebab: 10,
+  dog: 15,
+  fan: 20,
+  herring: 12,
+  durian: 40,
+  trash: 8,
+  controller: -20,
+} as const;
+/** Spawn weights for regular bonuses on map spots and stops (durian is rare, kebab common). */
+export const BONUS_WEIGHTS = { kebab: 5, dog: 3, fan: 2, herring: 3, durian: 1 } as const;
+
 export const PLAYER_COLORS = [
   0x2f6bd6, 0xee7f1e, 0xc8357a, 0xe5bc1f, 0x1fa9c9, 0xa3203a, 0x1e2f7a, 0x3c3f4a,
 ];

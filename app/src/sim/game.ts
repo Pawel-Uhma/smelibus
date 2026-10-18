@@ -1,5 +1,6 @@
 import { EXTRA_BUSES, MAX_PLAYERS, PLAYER_COLORS } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types';
+import { dropStink, spawnBonuses, updateBonuses } from './bonus';
 import { collideBuses, NO_INPUT, updateBus } from './bus';
 import { generateWorld } from './world';
 import { assignJoinZone, tileIndexAt, updateZones } from './zones';
@@ -9,6 +10,7 @@ export function createGame(seed: number): GameState {
   const world = generateWorld(seed, MAX_PLAYERS);
   const state: GameState = { tick: 0, time: 0, world, players: [], buses: [] };
   for (let i = 0; i < EXTRA_BUSES; i++) state.buses.push(spawnBus(state));
+  spawnBonuses(state);
   return state;
 }
 
@@ -51,7 +53,8 @@ export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInpu
     const input = (bus.driverId && inputs.get(bus.driverId)) || NO_INPUT;
     updateBus(bus, input, dt, state.world.size);
   }
-  collideBuses(state.buses);
+  for (const d of collideBuses(state.buses)) dropStink(state, d.x, d.z, d.amount);
+  updateBonuses(state, dt);
   updateZones(state, prevTiles);
   state.tick++;
   state.time += dt;

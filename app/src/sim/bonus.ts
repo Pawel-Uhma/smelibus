@@ -1,0 +1,131 @@
+import {
+  BONUS_RADIUS, BONUS_RESPAWN_S, BONUS_STINK, BONUS_WEIGHTS, BUS_RADIUS, BUS_STOPS_PER_TILE,
+  CONTROLLER_RESPAWN_S, CONTROLLERS_PER_TILE, DROPPED_STINK_PICKUP_DELAY_S, DROPPED_STINK_TTL_S,
+  MAP_BONUS_SPOTS_PER_TILE, STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
+  TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
+} from '../shared/config';
+import type { Bonus, BonusKind, BonusSpot, Bus, GameState } from '../shared/types';
+
+const clampStink = (v: number) => Math.max(0, Math.min(STINK_MAX, v));
+
+/** mulberry32 step on state.bonusRng; returns [0, 1). */
+function rand(state: GameState): number {
+  let t = (state.bonusRng = ((state.bonusRng ?? 1) + 0x6d2b79f5) | 0);
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+function pickRegular(state: GameState): BonusKind {
+  const entries = Object.entries(BONUS_WEIGHTS) as [BonusKind, number][];
+  let r = rand(state) * entries.reduce((s, [, w]) => s + w, 0);
+  for (const [kind, w] of entries) if ((r -= w) < 0) return kind;
+  return entries[0][0];
+}
+
+/** What appears on a spot when it (re)spawns. */
+function kindFor(state: GameState, spot: BonusSpot): BonusKind {
+  switch (spot) {
+    case 'stop': return rand(state) < STOP_ZUL_CHANCE ? 'zul' : pickRegular(state);
+    case 'map': return pickRegular(state);
+    case 'trash': return 'trash';
+    case 'controller': return 'controller';
+    case 'dropped': return 'dropped';
+  }
+}
+
+function respawnTime(spot: BonusSpot): number {
+  if (spot === 'trash') return TRASH_RESPAWN_S;
+  if (spot === 'controller') return CONTROLLER_RESPAWN_S;
+  return BONUS_RESPAWN_S;
+}
+
+function nextId(state: GameState): number {
+  return (state.bonuses ?? []).reduce((m, b) => Math.max(m, b.id), -1) + 1;
+}
+
+function activate(state: GameState, b: Bonus): void {
+  b.kind = kindFor(state, b.spot);
+  b.amount = b.kind === 'dropped' ? b.amount : BONUS_STINK[b.kind];
+  b.active = true;
+  b.respawnAt = 0;
+}
+
+/**
+ * Scatters bonus spots over the map: bus stops, free map spots, trash cans, ticket controllers.
+ * Counts scale with map area. Card 002 may later pass real stop positions instead.
+ */
+export function spawnBonuses(state: GameState): void {
+  state.bonusRng ??= state.world.seed ^ 0x5eed;
+  state.bonuses = [];
+  const size = state.world.size;
+  const area = size * size;
+  const margin = 2;
+  const counts: [BonusSpot, number][] = [
+    ['stop', BUS_STOPS_PER_TILE],
+    ['map', MAP_BONUS_SPOTS_PER_TILE],
+    ['trash', TRASH_CANS_PER_TILE],
+    ['controller', CONTROLLERS_PER_TILE],
+  ];
+  for (const [spot, perTile] of counts) {
+    const n = Math.max(1, Math.round(area * perTile));
+    for (let i = 0; i < n; i++) {
+      const b: Bonus = {
+        id: state.bonuses.length, spot, kind: 'kebab', amount: 0, active: false, respawnAt: 0,
+        x: margin + rand(state) * (size - 2 * margin),
+        z: margin + rand(state) * (size - 2 * margin),
+      };
+      activate(state, b);
+      state.bonuses.push(b);
+    }
+  }
+}
+
+/** Puts knocked-out stink (StinkDrop from collideBuses, card 007) on the ground as a one-off bonus. */
+export function dropStink(state: GameState, x: number, z: number, amount: number): Bonus | null {
+  if (amount <= 0) return null;
+  state.bonuses ??= [];
+  const b: Bonus = {
+    id: nextId(state), spot: 'dropped', kind: 'dropped', x, z, amount,
+    active: true, respawnAt: state.time + DROPPED_STINK_TTL_S,
+    pickableAt: state.time + DROPPED_STINK_PICKUP_DELAY_S,
+  };
+  state.bonuses.push(b);
+  return b;
+}
+
+/** Applies one bonus to a bus. */
+export function collect(state: GameState, bus: Bus, b: Bonus): void {
+  bus.stink = clampStink(bus.stink + b.amount);
+  if (b.kind === 'zul') bus.slowDecayUntil = state.time + ZUL_SIT_SECONDS;
+  b.active = false;
+  b.respawnAt = state.time + respawnTime(b.spot);
+}
+
+/** Decay, pickups and respawns. Call once per sim step after buses moved. */
+export function updateBonuses(state: GameState, dt: number): void {
+  for (const bus of state.buses) {
+    const slow = bus.slowDecayUntil !== undefined && state.time < bus.slowDecayUntil;
+    bus.stink = clampStink(bus.stink - STINK_DECAY_PER_S * (slow ? ZUL_DECAY_MULT : 1) * dt);
+  }
+
+  const bonuses = state.bonuses;
+  if (!bonuses) return;
+  const reach = BUS_RADIUS + BONUS_RADIUS;
+  for (const b of bonuses) {
+    if (!b.active) {
+      if (state.time >= b.respawnAt) activate(state, b);
+      continue;
+    }
+    if (b.pickableAt !== undefined && state.time < b.pickableAt) continue;
+    // Only driven buses pick things up; a parked empty bus doesn't hoard bonuses.
+    for (const bus of state.buses) {
+      if (bus.driverId === null) continue;
+      if (Math.hypot(bus.x - b.x, bus.z - b.z) > reach) continue;
+      collect(state, bus, b);
+      break;
+    }
+  }
+  // Dropped stink is one-off: gone once collected or expired.
+  state.bonuses = bonuses.filter((b) => b.spot !== 'dropped' || (b.active && state.time < b.respawnAt));
+}
