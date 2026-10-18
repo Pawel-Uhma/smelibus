@@ -13,6 +13,7 @@ export class PartyRoom extends Room {
   private game!: GameState;
   private busInputs = new Map<PlayerId, BusInput>();
   private tiles!: ReturnType<typeof createTileTracker>;
+  private lastBonuses = '';
 
   messages = {
     hello: (client: Client) => {
@@ -32,8 +33,14 @@ export class PartyRoom extends Room {
     this.tiles = createTileTracker(this.game.world.tiles);
     this.setSimulationInterval(() => stepGame(this.game, this.busInputs, SIM_DT), SIM_DT * 1000);
     this.clock.setInterval(() => {
+      const snap = this.snapshot();
       const tileChanges = this.tiles.diff();
-      this.broadcast('snapshot', tileChanges.length ? { ...this.snapshot(), tileChanges } : this.snapshot());
+      if (tileChanges.length) snap.tileChanges = tileChanges;
+      // Bonuses only when something changed (~100 of them; full list 20×/s would be ~200 KB/s).
+      const bonusKey = JSON.stringify(snap.bonuses);
+      if (bonusKey === this.lastBonuses) delete snap.bonuses;
+      else this.lastBonuses = bonusKey;
+      this.broadcast('snapshot', snap);
     }, SNAPSHOT_INTERVAL_MS);
   }
 
@@ -64,7 +71,7 @@ export class PartyRoom extends Room {
   }
 
   private snapshot(): Snapshot {
-    const { tick, time, players, buses } = this.game;
-    return { tick, time, players, buses };
+    const { tick, time, players, buses, winnerId, bonuses } = this.game;
+    return { tick, time, players, buses, winnerId: winnerId ?? null, bonuses: bonuses ?? [] };
   }
 }

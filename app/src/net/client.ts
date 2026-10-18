@@ -55,6 +55,7 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   room.onMessage('snapshot', (snap: Snapshot) => {
     // Changes sent before `welcome` are already in the welcome map.
     if (world) applyTileChanges(world.tiles, snap.tileChanges);
+    if (!snap.bonuses) snap.bonuses = buffer[buffer.length - 1]?.snap.bonuses ?? [];
     buffer.push({ at: performance.now(), snap });
     if (buffer.length > 30) buffer.shift();
   });

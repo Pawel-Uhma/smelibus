@@ -86,6 +86,10 @@ export interface Snapshot {
   buses: Bus[];
   /** Tiles whose owner changed since the previous snapshot. Missing = none. */
   tileChanges?: TileChange[];
+  /** Same as GameState.winnerId. */
+  winnerId?: PlayerId | null;
+  /** All bonuses (GameState.bonuses). The server omits it when unchanged; net/client fills it from the previous snapshot. */
+  bonuses?: Bonus[];
 }
 
 /** [tile index in World.tiles, new ownerId]. */
