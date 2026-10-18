@@ -46,6 +46,8 @@ export interface GameState {
   world: World;
   players: Player[];
   buses: Bus[];
+  /** Set by sim/zones.ts once a player owns 100% of the map. */
+  winnerId?: PlayerId | null;
 }
 
 /** What the server broadcasts every SNAPSHOT_INTERVAL_MS. The world is sent once on join. */

@@ -11,6 +11,6 @@ Podział startowy na tyle stref, ilu graczy (np. Voronoi od punktów startowych)
 
 ## Gotowe, gdy
 
-- [ ] testy Vitest: skok zabiera najbliższe kafelki od punktu wjazdu i zeruje smród
-- [ ] testy Vitest: gracz z 0 kafelków nie rośnie, wygrana przy 100%, mnożnik sudden death
-- [ ] testy Vitest: nowy gracz dostaje strefę wyciętą liderowi
+- [x] testy Vitest: skok zabiera najbliższe kafelki od punktu wjazdu i zeruje smród
+- [x] testy Vitest: gracz z 0 kafelków nie rośnie, wygrana przy 100%, mnożnik sudden death
+- [x] testy Vitest: nowy gracz dostaje strefę wyciętą liderowi

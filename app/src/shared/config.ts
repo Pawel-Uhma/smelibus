@@ -41,3 +41,14 @@ export const PLAYER_COLORS = [
   0x2f6bd6, 0xee7f1e, 0xc8357a, 0xe5bc1f, 0x1fa9c9, 0xa3203a, 0x1e2f7a, 0x3c3f4a,
 ];
 export const NEUTRAL_COLOR = 0xd9d4c7;
+
+// Zones (sim/zones.ts).
+/** Sudden death: from `after` seconds into the game, the jump size is multiplied by `multiplier`. */
+export const SUDDEN_DEATH = [
+  { after: 8 * 60, multiplier: 2 },
+  { after: 10 * 60, multiplier: 3 },
+];
+/** Tiles taken per point of stink on a jump (before the sudden death multiplier). */
+export const TILES_PER_STINK = 1;
+/** Start points sit on a ring this far from the center, as a fraction of map size. */
+export const START_RING = 0.3;

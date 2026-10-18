@@ -2,6 +2,7 @@ import { EXTRA_BUSES, MAX_PLAYERS, PLAYER_COLORS } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types';
 import { collideBuses, NO_INPUT, updateBus } from './bus';
 import { generateWorld } from './world';
+import { assignJoinZone, tileIndexAt, updateZones } from './zones';
 
 /** Sandbox party: the map is sized for a full party, players drop straight into a bus. */
 export function createGame(seed: number): GameState {
@@ -28,6 +29,7 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): Player 
   const color = PLAYER_COLORS.find((c) => !used.has(c)) ?? PLAYER_COLORS[state.players.length % MAX_PLAYERS];
   const player: Player = { id, name, color, busId: null, connected: true };
   state.players.push(player);
+  assignJoinZone(state, id);
   // Keep the pool at players + EXTRA_BUSES, then seat the player in a free bus.
   while (state.buses.length < state.players.length + EXTRA_BUSES) state.buses.push(spawnBus(state));
   const bus = state.buses.find((b) => b.driverId === null);
@@ -44,11 +46,13 @@ export function removePlayer(state: GameState, id: PlayerId): void {
 }
 
 export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInput>, dt: number): void {
+  const prevTiles = new Map(state.buses.map((b) => [b.id, tileIndexAt(state.world, b.x, b.z)]));
   for (const bus of state.buses) {
     const input = (bus.driverId && inputs.get(bus.driverId)) || NO_INPUT;
     updateBus(bus, input, dt, state.world.size);
   }
   collideBuses(state.buses);
+  updateZones(state, prevTiles);
   state.tick++;
   state.time += dt;
 }
