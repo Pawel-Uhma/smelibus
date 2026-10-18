@@ -1,7 +1,7 @@
 # Pieszy: chodzenie, wsiadanie i wysiadanie, przejmowanie autobusu
 
 obszar: autobus
-kto: -
+kto: Szczpan
 zależy od: 001
 ścieżki: sim/player.ts
 
