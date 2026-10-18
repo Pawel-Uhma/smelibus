@@ -84,8 +84,12 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 
 ## Strefy i mapa
 
-- **MVP: płaska mapa bez budynków i ulic.** Autobusy i piesi poruszają się wszędzie. Na mapie
-  stoją elementy: przystanki z bonusami, śmietniki, kontrolerzy.
+- **Domyślnie miasto:** ulice, kwartały z budynkami i parki. Autobusy i piesi odbijają się od
+  budynków. Przystanki stoją przy ulicach, a żaden bonus nie pojawia się w budynku.
+- **Przełącznik „Miasto / Płaska”** w poczekalni: klika tylko host, inni widzą wybór. Każde
+  przełączenie losuje nową mapę wybranego rodzaju. Płaska mapa nie ma budynków ani ulic, można
+  jeździć wszędzie.
+- Na mapie stoją elementy: przystanki z bonusami, śmietniki, kontrolerzy, Żabki.
 - Mapa to siatka kafelków generowana losowo przy starcie party. Rozmiar zależy od liczby
   graczy: ok. **400 kafelków na gracza** (np. ~56×56 przy 8). Każdy kafelek ma właściciela (`ownerId`).
 - Start: mapa dzielona na tyle stref, ilu jest graczy (np. Voronoi od punktów startowych).

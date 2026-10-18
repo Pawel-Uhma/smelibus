@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
-import { MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
+import { CITY_ENABLED, MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
 import type {
-  BusInput, GameState, InputAck, JoinOptions, LobbyInfo, PartyMetadata, PlayerId, Snapshot, Welcome,
+  BusInput, GameState, InputAck, JoinOptions, LobbyInfo, MapKind, PartyMetadata, PlayerId, Snapshot, Welcome,
 } from '../../app/src/shared/types';
 import { createTileTracker } from '../../app/src/net/tiles';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
@@ -24,7 +24,7 @@ export class PartyRoom extends Room {
   private lastBonuses = '';
   /** Room sim step (Snapshot.serverTick). */
   private serverTick = 0;
-  private lobby: LobbyInfo = { hostId: null, started: false, public: false };
+  private lobby: LobbyInfo = { hostId: null, started: false, public: false, map: CITY_ENABLED ? 'city' : 'flat' };
 
   messages = {
     hello: (client: Client) => {
@@ -36,6 +36,13 @@ export class PartyRoom extends Room {
     start: (client: Client) => {
       if (client.sessionId !== this.lobby.hostId || this.lobby.started) return;
       this.startGame();
+    },
+    map: (client: Client, kind: MapKind) => {
+      if (client.sessionId !== this.lobby.hostId || this.lobby.started) return;
+      if ((kind !== 'city' && kind !== 'flat') || kind === this.lobby.map) return;
+      this.lobby.map = kind;
+      this.newGame();
+      this.syncLobby();
     },
     input: (client: Client, input: BusInput) => {
       if (typeof input?.throttle !== 'number' || typeof input?.steer !== 'number') return;
@@ -52,7 +59,7 @@ export class PartyRoom extends Room {
 
   onCreate(options: JoinOptions) {
     this.roomId = randomCode();
-    this.game = createGame(Math.floor(Math.random() * 2 ** 31));
+    this.game = createGame(Math.floor(Math.random() * 2 ** 31), this.lobby.map === 'city');
     this.tiles = createTileTracker(this.game.world.tiles);
     // Private parties stay joinable by code, they are just not on the public list.
     this.lobby.public = options?.public === true;
@@ -113,6 +120,25 @@ export class PartyRoom extends Room {
     removePlayer(this.game, client.sessionId);
     if (this.lobby.hostId === client.sessionId) this.lobby.hostId = this.game.players[0]?.id ?? null;
     this.syncLobby();
+  }
+
+  /**
+   * Waiting room only: a new map of the lobby's kind and a fresh sim with the same players
+   * (names, colors, connection), then a new `welcome` to everyone. Clients build the scene after
+   * Start, so they just take the latest world.
+   */
+  private newGame() {
+    const old = this.game;
+    this.game = createGame(Math.floor(Math.random() * 2 ** 31), this.lobby.map === 'city');
+    for (const p of old.players) {
+      const fresh = addPlayer(this.game, p.id, p.name);
+      fresh.color = p.color;
+      fresh.connected = p.connected;
+    }
+    this.tiles = createTileTracker(this.game.world.tiles);
+    this.lastBonuses = '';
+    for (const c of this.clients) c.send('welcome', { playerId: c.sessionId, world: this.game.world } satisfies Welcome);
+    this.broadcastSnapshot();
   }
 
   /** Fresh Voronoi split for everyone in the waiting room, each bus parked on its start point. */

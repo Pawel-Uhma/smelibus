@@ -1,7 +1,7 @@
 import { Client, type Room } from '@colyseus/sdk';
 import { INTERP_DELAY_MS } from '../shared/config';
 import type {
-  Bus, BusInput, JoinOptions, LobbyInfo, PartyMetadata, PlayerId, PublicParty, Snapshot, Welcome, World,
+  Bus, BusInput, JoinOptions, LobbyInfo, MapKind, PartyMetadata, PlayerId, PublicParty, Snapshot, Welcome, World,
 } from '../shared/types';
 import { createSnapshotBuffer } from './interp';
 import { normalizePartyCode } from './partyCode';
@@ -13,8 +13,8 @@ const TOKEN_KEY = 'smelibus.reconnect';
 export interface Party {
   code: string;
   playerId: PlayerId;
-  /** Kept up to date with the server's tile owners (snapshot `tileChanges`). */
-  world: World;
+  /** Kept up to date with the server's tile owners (snapshot `tileChanges`); replaced by a new `welcome`. */
+  readonly world: World;
   /** Latest snapshot from the server. */
   latest(): Snapshot;
   /** Remote buses interpolated INTERP_DELAY_MS in the past (on the server's timeline). */
@@ -27,6 +27,8 @@ export interface Party {
   onLobby(cb: (info: LobbyInfo) => void): void;
   /** Host only: ends the waiting room. */
   start(): void;
+  /** Host only, waiting room: everyone gets a new map of this kind. */
+  setMap(kind: MapKind): void;
 }
 
 const client = new Client(SERVER_URL);
@@ -122,7 +124,9 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   return {
     code: room.roomId,
     playerId,
-    world: world!,
+    get world() {
+      return world!;
+    },
     latest: () => buffer.latest()!,
     interpolatedBuses: (now) => buffer.buses(now, INTERP_DELAY_MS),
     sendInput(input) {
@@ -142,5 +146,6 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
     lobby: () => lobby,
     onLobby: (cb) => lobbyCbs.push(cb),
     start: () => room.send('start'),
+    setMap: (kind) => room.send('map', kind),
   };
 }

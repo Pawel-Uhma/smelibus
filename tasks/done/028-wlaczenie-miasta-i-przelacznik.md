@@ -11,7 +11,9 @@ Gdy kolizje z budynkami (023) będą gotowe, miasto staje się **domyślną** ma
 
 ## Gotowe, gdy
 
-- [ ] nowe party domyślnie startuje na mieście
-- [ ] host przełącza Miasto/Płaska w poczekalni, inni widzą wybór
-- [ ] żaden bonus nie spawnuje się w budynku (test)
-- [ ] wpis w DECISIONS (koniec „MVP na płaskiej mapie”) i GAME_DESIGN (Strefy i mapa)
+- [x] nowe party domyślnie startuje na mieście
+- [x] host przełącza Miasto/Płaska w poczekalni, inni widzą wybór
+- [x] żaden bonus nie spawnuje się w budynku (test)
+- [x] wpis w DECISIONS (koniec „MVP na płaskiej mapie”) i GAME_DESIGN (Strefy i mapa)
+
+Uwaga dla 027 (@Pawel): `PartyRoom.newGame()` robi nową mapę z tymi samymi graczami i wysyła `welcome` od nowa, do użycia przy rewanżu. Scena po Starcie nie przebudowuje się sama.

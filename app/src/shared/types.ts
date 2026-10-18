@@ -194,11 +194,16 @@ export interface JoinOptions {
 }
 
 /** Party lobby state, sent as a `lobby` message on `hello` and whenever it changes. */
+/** Map the host picks in the waiting room (card 028). */
+export type MapKind = 'city' | 'flat';
+
 export interface LobbyInfo {
   hostId: PlayerId | null;
   /** false = waiting room, the sim is paused until the host clicks Start. */
   started: boolean;
   public: boolean;
+  /** Current map; the host can switch it before Start (message `map`). */
+  map?: MapKind;
 }
 
 /** Room metadata of a party, as seen on the public list. */

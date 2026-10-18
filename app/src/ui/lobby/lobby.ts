@@ -2,7 +2,7 @@ import { createMenuBackdrop, type MenuBackdrop } from '../../render/menuScene';
 import { createParty, joinParty, rejoinParty, watchPublicParties, type Party } from '../../net/client';
 import { joinErrorMessage, normalizePartyCode } from '../../net/partyCode';
 import { PLAYER_COLORS } from '../../shared/config';
-import type { Player, PublicParty } from '../../shared/types';
+import type { MapKind, Player, PublicParty } from '../../shared/types';
 import { isOldDefaultName, stinkyName } from './stinkyName';
 import './lobby.css';
 
@@ -200,6 +200,10 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
         <button id="copy">Kopiuj link</button>
       </div>
       <ul class="waiting" id="players"></ul>
+      <div class="map-pick" role="group" aria-label="Mapa">
+        <button type="button" data-map="city">Miasto</button>
+        <button type="button" data-map="flat">Płaska</button>
+      </div>
       <button id="start" hidden>Start</button>
       <p id="msg" class="msg"></p>
       </div>
@@ -222,6 +226,9 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
     start.disabled = true;
     party.start();
   };
+  // Map pick: the host switches it, everyone sees the current one.
+  const mapButtons = [...root.querySelectorAll<HTMLButtonElement>('.map-pick button')];
+  for (const b of mapButtons) b.onclick = () => party.setMap(b.dataset.map as MapKind);
 
   let lastKey = '';
   const render = () => {
@@ -233,6 +240,10 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
     lastKey = key;
     $('kind').textContent = info.public ? 'publiczne' : 'prywatne';
     start.hidden = !isHost;
+    for (const b of mapButtons) {
+      b.setAttribute('aria-pressed', String(b.dataset.map === (info.map ?? 'city')));
+      b.disabled = !isHost;
+    }
     msg.textContent = isHost
       ? players.length < 2 ? 'Możesz zacząć sam albo poczekać na innych' : ''
       : 'Czekamy, aż host kliknie Start';

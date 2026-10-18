@@ -1,4 +1,4 @@
-import { EXTRA_BUSES, MAX_PLAYERS, PLAYER_COLORS } from '../shared/config';
+import { CITY_ENABLED, EXTRA_BUSES, MAX_PLAYERS, PLAYER_COLORS } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types';
 import { dropStink, spawnBonuses, updateBonuses } from './bonus';
 import { collideBuses, NO_INPUT, parkBus, updateBus } from './bus';
@@ -10,8 +10,8 @@ import { generateWorld, nearestDrivable } from './world';
 import { assignJoinZone, tileIndexAt, updateZones } from './zones';
 
 /** Sandbox party: the map is sized for a full party, players drop straight into a bus. */
-export function createGame(seed: number): GameState {
-  const world = generateWorld(seed, MAX_PLAYERS);
+export function createGame(seed: number, city = CITY_ENABLED): GameState {
+  const world = generateWorld(seed, MAX_PLAYERS, city);
   const state: GameState = { tick: 0, time: 0, world, players: [], buses: [] };
   for (let i = 0; i < EXTRA_BUSES; i++) state.buses.push(spawnBus(state));
   spawnBonuses(state);

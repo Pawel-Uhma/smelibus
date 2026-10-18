@@ -62,6 +62,10 @@
 .lobby input:focus-visible, .lobby button:focus-visible { outline: 3px solid #2f6bd6; outline-offset: 2px; }
 .lobby .public-list { border-top: 2px dashed #1b1b1b55; padding-top: 6px; }
 .lobby .waiting li { background: #fff; }
+.lobby .map-pick { display: flex; gap: 8px; }
+.lobby .map-pick button[aria-pressed="true"] { background: #6fa82b; color: #fff; text-shadow: 1px 1px 0 #1b1b1b; }
+.lobby .map-pick button:disabled { cursor: default; }
+.lobby .map-pick button:disabled:not([aria-pressed="true"]) { opacity: .5; }
 @media (max-width: 760px) { .lobby { align-items: center; padding: 16px; } .lobby .card { box-shadow: 5px 5px 0 #1b1b1b; padding: 18px 14px 14px; } .lobby .swatch { width: 28px; height: 28px; } }
 @media (prefers-reduced-motion: reduce) { .lobby .card, .lobby .logo, .lobby .logo::before, .lobby .logo::after { animation: none; } }
 /* Join code field (card 026): 16px stops iOS from zooming in, text select must work on touch. */
