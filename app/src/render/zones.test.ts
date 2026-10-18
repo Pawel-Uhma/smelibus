@@ -47,12 +47,16 @@ describe('paintZones', () => {
     expect(px(out, size, 1, 1) & 255).toBeGreaterThan(before & 255);
   });
 
-  it('high contrast: paler fill and a thicker black border', () => {
+  it('high contrast: see-through fill and an opaque black border', () => {
     const out = new Uint8Array((size * SUB) ** 2 * 4);
-    paintZones(out, tiles, size, colorOf);
-    const normalFill = px(out, size, 0, 1);
-    paintZones(out, tiles, size, colorOf, undefined, true);
-    expect(px(out, size, 0, 1) & 255).toBeGreaterThan(normalFill & 255); // red mixed with more neutral
+    const alpha = (x: number, z: number) => out[(z * size * SUB + x) * 4 + 3];
+    const t = tiles.map((x) => ({ ...x }));
+    t[3].ownerId = null;
+    paintZones(out, t, size, colorOf, undefined, true);
+    expect(alpha(0, 1)).toBeGreaterThan(0);
+    expect(alpha(0, 1)).toBeLessThan(255);
+    expect(alpha(SUB - 1, 1)).toBe(255);
+    expect(alpha(SUB + 1, SUB + 1)).toBe(0); // unowned: the city shows through
     expect(px(out, size, SUB - 1, 1)).toBe(0); // black border
     expect(px(out, size, SUB, 1)).toBe(0);
     expect(px(out, size, SUB - 2, 1)).not.toBe(0);

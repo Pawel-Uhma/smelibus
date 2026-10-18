@@ -40,7 +40,7 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 - Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja dalej hamuje). Prędkość pieszego: 5,2 kafelka/s.
 - Kierowca: steruje autobusem, `E` = wysiada obok autobusu.
 - `H` = klakson (pieszy i kierowca). Słyszą go gracze w pobliżu, ciszej im dalej (`SOUND_HORN_RANGE`). Na telefonie mały przycisk `H` obok `E`.
-- `K` = tryb wysokiego kontrastu (też przycisk „Kontrast” w HUD, `?kontrast` w URL, domyślnie wg `prefers-contrast: more`): blade strefy z czarną granicą, nieprzezroczysty HUD, noc ciemnieje najwyżej do `HIGH_CONTRAST_NIGHT_MAX`. Wybór zostaje w przeglądarce.
+- `K` = tryb wysokiego kontrastu (też przycisk „Kontrast” w HUD, `?kontrast` w URL, domyślnie wg `prefers-contrast: more`): strefy nad ulicami miasta (półprzezroczysty kolor gracza, czarna granica), nieprzezroczysty HUD, noc ciemnieje najwyżej do `HIGH_CONTRAST_NIGHT_MAX`. Wybór zostaje w przeglądarce.
 - **Eliminacja:** gracz z 0 kafelków nie odpada. Dalej chodzi, jeździ, kradnie autobusy,
   taranuje i potrąca, ale nie może rosnąć (nie ma strefy, do której mógłby wjechać).
 

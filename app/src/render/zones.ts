@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { HIGH_CONTRAST_BORDER_TEXELS, HIGH_CONTRAST_FILL_MIX, NEUTRAL_COLOR } from '../shared/config';
+import { HIGH_CONTRAST_BORDER_TEXELS, HIGH_CONTRAST_FILL_ALPHA, HIGH_CONTRAST_FILL_MIX, NEUTRAL_COLOR } from '../shared/config';
 import type { Player, PlayerId, Tile, World } from '../shared/types';
 import { createCaptureFx } from './captureFx';
 
@@ -11,6 +11,9 @@ const FLASH_SECONDS = 0.8;
 const FILL_MIX = 0.45;
 /** Border line = player color darkened by this factor. */
 const BORDER_DARKEN = 0.75;
+/** Zone layer height: under the city ground (render/city.ts, y 0.012), or over it in high contrast. */
+const Y_UNDER_CITY = 0.005;
+const Y_OVER_CITY = 0.02;
 /** Peak blend toward white for a freshly taken tile. */
 const FLASH_WHITE = 0.65;
 /** A big takeover puffs stink outward over this long, seconds (first to last tile). */
@@ -29,13 +32,15 @@ const WHITE: Rgb = [255, 255, 255];
  * Pure painter: writes RGBA texels (size*SUB square, row = z) for the given tiles.
  * Each tile is filled with its owner's color; texels on a tile edge that touches a
  * different owner are drawn darker (the border). `flash[idx]` in 0..1 blends toward white.
- * `highContrast` (card 036): paler fill, so buses stand out, and a thicker black border.
+ * `highContrast` (card 036): a see-through fill (unowned tiles fully) and an opaque black border,
+ * for a layer drawn over the city ground.
  */
 export function paintZones(out: Uint8Array, tiles: readonly Tile[], size: number,
   colorOf: (id: PlayerId) => number | undefined, flash?: Float32Array, highContrast = false): void {
   const w = size * SUB;
   const fillMix = highContrast ? HIGH_CONTRAST_FILL_MIX : FILL_MIX;
   const bw = highContrast ? HIGH_CONTRAST_BORDER_TEXELS : 1;
+  const fillAlpha = highContrast ? Math.round(HIGH_CONTRAST_FILL_ALPHA * 255) : 255;
   const ownerAt = (i: number, j: number) => tiles[j * size + i].ownerId;
   for (let j = 0; j < size; j++) {
     for (let i = 0; i < size; i++) {
@@ -58,12 +63,13 @@ export function paintZones(out: Uint8Array, tiles: readonly Tile[], size: number
         for (let si = 0; si < SUB; si++) {
           const edge = (si < bw && diffL) || (si >= SUB - bw && diffR)
             || (sj < bw && diffD) || (sj >= SUB - bw && diffU);
-          const c = edge && owner ? border : fill;
+          const isBorder = !!(edge && owner);
+          const c = isBorder ? border : fill;
           const p = ((j * SUB + sj) * w + (i * SUB + si)) * 4;
           out[p] = c[0];
           out[p + 1] = c[1];
           out[p + 2] = c[2];
-          out[p + 3] = 255;
+          out[p + 3] = isBorder ? 255 : owner ? fillAlpha : highContrast ? 0 : 255;
         }
       }
     }
@@ -108,7 +114,7 @@ export function createZonesRender(scene: THREE.Scene) {
     const uv = geo.attributes.uv;
     for (let k = 0; k < uv.count; k++) uv.setY(k, 1 - uv.getY(k));
     mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texture }));
-    mesh.position.set(size / 2, 0.005, size / 2);
+    mesh.position.set(size / 2, Y_UNDER_CITY, size / 2);
     scene.add(mesh);
     lastOwner = [];
     flash = new Float32Array(size * size);
@@ -123,6 +129,13 @@ export function createZonesRender(scene: THREE.Scene) {
 
       const first = lastOwner.length !== tiles.length;
       let changed = first || colorKey !== lastColors || highContrast !== lastContrast;
+      if (highContrast !== lastContrast || first) {
+        const mat = mesh!.material as THREE.MeshBasicMaterial;
+        mat.transparent = highContrast;
+        mat.depthWrite = !highContrast;
+        mat.needsUpdate = true;
+        mesh!.position.y = highContrast ? Y_OVER_CITY : Y_UNDER_CITY;
+      }
       lastContrast = highContrast;
       const taken: number[] = [];
       for (let idx = 0; idx < tiles.length; idx++) {

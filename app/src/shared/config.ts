@@ -315,11 +315,12 @@ export const SOUND_VOLUME = 0.6;
 
 // High contrast mode (render/contrast.ts, card 036).
 /**
- * Zone fill = player color mixed this much with the neutral ground (normal mode uses 0.45).
- * Paler, not purer: a bus has its owner's color, so a pure fill would hide it; ownership is
- * read from the thick black border instead.
+ * In high contrast the zone layer lies over the city ground (streets, paving), not under it.
+ * Fill = player color mixed this much with the neutral ground, drawn at this opacity; the
+ * border is opaque black. See-through, so buses (in their owner's color) don't vanish on it.
  */
-export const HIGH_CONTRAST_FILL_MIX = 0.62;
+export const HIGH_CONTRAST_FILL_MIX = 0.15;
+export const HIGH_CONTRAST_FILL_ALPHA = 0.5;
 /** Zone border width in texels per side, of SUB per tile; both owners draw it, so the line is twice this. */
 export const HIGH_CONTRAST_BORDER_TEXELS = 1;
 /** Night never gets darker than this (0 day .. 1 full night). */
