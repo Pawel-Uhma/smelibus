@@ -1,7 +1,7 @@
 # Kolizje autobusu z budynkami miasta
 
 obszar: autobus
-kto: -
+kto: Szczpan
 zależy od: 002
 ścieżki: sim/bus.ts, sim/prediction.ts
 
