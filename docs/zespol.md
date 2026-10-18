@@ -9,7 +9,7 @@ Obszary to podział z myślą o pracy równoległej. Własność jest miękka: c
 | Osoba | git user.name | Obszar |
 |---|---|---|
 | Paweł | Pawel | - |
-| Szczepan | Szczpan | - |
+| Szczepan | Szczpan | autobus |
 | Janek | Jasiek | - |
 | Antek | antpop | swiat (+ pogoda) |
 
