@@ -35,6 +35,7 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 
 - Stała pula: **liczba graczy + 2** autobusy. Nie znikają i nie pojawiają się nowe.
 - Sterowanie zręcznościowe: gaz/hamulec/skręt, prosta fizyka (bez silnika fizycznego) — nie symulacja.
+- Na telefonie (dotyk): pływający joystick pod lewym kciukiem (góra = gaz, dół = hamulec/wsteczny, boki = skręt; pieszy idzie w stronę wychylenia) i okrągły przycisk `E` po prawej. Na desktopie bez zmian.
 - Autobus jest neutralny: **pusty autobus może wziąć każdy**, także zaparkowany w cudzej strefie.
   Autobusu z kierowcą nie da się przejąć.
 - Autobus jest wielokrotnego użytku: po skoku zostaje tam, gdzie kierowca wysiadł.

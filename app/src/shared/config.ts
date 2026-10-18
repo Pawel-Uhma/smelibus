@@ -168,3 +168,11 @@ export const WEATHER_LIFE_MAX_S = 45;
 export const RAIN_STINK_PER_S = 3;
 /** Stink added per second under Harnaś. */
 export const HARNAS_STINK_PER_S = 2;
+
+// Touch controls on phones (input/touch.ts).
+/** Stick radius in CSS px: a thumb this far from the centre is full throttle / full steer. */
+export const TOUCH_STICK_RADIUS = 56;
+/** Share of the radius that still counts as no input. */
+export const TOUCH_STICK_DEADZONE = 0.15;
+/** Stick values are rounded to this step, so a still thumb doesn't flood the server with inputs. */
+export const TOUCH_STICK_STEP = 0.1;

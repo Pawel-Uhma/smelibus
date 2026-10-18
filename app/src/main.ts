@@ -1,5 +1,6 @@
 import './style.css';
 import { createKeyboard } from './input/keyboard';
+import { createTouch, mergeInputs } from './input/touch';
 import { createBonusesRender } from './render/bonuses';
 import { createZulRender } from './render/zul';
 import { createScene } from './render/scene';
@@ -21,6 +22,7 @@ const zuls = createZulRender(scene.scene);
 const weather = createWeatherRender(scene.scene);
 const hud = createHud(ui, party.code, party.playerId);
 const keyboard = createKeyboard();
+const touch = createTouch();
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
 
 // Own bus is predicted locally (instant controls) and replayed on top of each server snapshot.
@@ -32,7 +34,7 @@ function frame(now: number) {
   const dt = Math.min(0.1, (now - lastFrame) / 1000);
   lastFrame = now;
   const snap = party.latest();
-  const input = keyboard.read();
+  const input = mergeInputs(keyboard.read(), touch.read());
 
   const me = snap.players.find((p) => p.id === party.playerId);
   const serverBus = snap.buses.find((b) => b.id === me?.busId);

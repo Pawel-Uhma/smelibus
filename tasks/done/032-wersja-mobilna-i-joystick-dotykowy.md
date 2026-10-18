@@ -18,8 +18,8 @@ Gra ma działać na telefonie. Na urządzeniu dotykowym (`matchMedia('(pointer: 
 
 ## Gotowe, gdy
 
-- [ ] na telefonie da się przejść cały flow: landing → lobby → gra
-- [ ] joystick steruje autobusem płynnie, przycisk E działa, oba naraz
-- [ ] na desktopie joysticka nie widać, klawiatura działa jak dotąd
-- [ ] strona nie scrolluje się ani nie zoomuje podczas gry
-- [ ] HUD i lobby mieszczą się na ekranie ~375 px szerokości
+- [x] na telefonie da się przejść cały flow: landing → lobby → gra
+- [x] joystick steruje autobusem płynnie, przycisk E działa, oba naraz
+- [x] na desktopie joysticka nie widać, klawiatura działa jak dotąd
+- [x] strona nie scrolluje się ani nie zoomuje podczas gry
+- [x] HUD i lobby mieszczą się na ekranie ~375 px szerokości
