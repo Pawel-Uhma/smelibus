@@ -23,4 +23,5 @@ Obszary to podział z myślą o pracy równoległej. Własność jest miękka: c
 | autobus | autobus i pieszy: sterowanie, jazda, wsiadanie, modele voxel | `sim/bus.ts`, `sim/player.ts`, `input/`, `render/models/` |
 | smrod | bonusy smrodu i efekt chmury | `sim/bonus.ts`, `render/stink.ts` |
 | strefy | strefy, presja, zwycięstwo, HUD i menu | `sim/zones.ts`, `render/zones.ts`, `ui/` |
+| siec | serwer Colyseus, lobby, synchronizacja stanu | `../../server/`, `net/`, `ui/lobby/` |
 | wspolne | kontrakty i punkt styku (zmiany addytywne, patrz AGENTS.md) | `shared/`, `main.ts` |

@@ -1,4 +1,4 @@
-# Open data: przystanki i ulice z OSM albo GTFS
+# Open data: przystanki i ulice z OSM albo GTFS (po MVP)
 
 obszar: swiat
 kto: -
@@ -7,7 +7,7 @@ zależy od: 002
 
 ## Cel
 
-Mapa z prawdziwego miasta. **Najpierw decyzja w `docs/DECISIONS.md`** (źródło, które miasto, czy w MVP).
+**Po MVP** — MVP jest na płaskiej losowej mapie (DECISIONS 2026-10-18). Mapa z prawdziwego miasta. **Najpierw decyzja w `docs/DECISIONS.md`** (źródło, które miasto, czy w MVP).
 
 ## Gotowe, gdy
 

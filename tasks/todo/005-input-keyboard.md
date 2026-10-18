@@ -1,4 +1,4 @@
-# Sterowanie z klawiatury, 2 graczy
+# Sterowanie z klawiatury
 
 obszar: autobus
 kto: -
@@ -7,9 +7,9 @@ zależy od: 001
 
 ## Cel
 
-Input z klawiatury (2 graczy na jednej klawiaturze) zamieniany na akcje (gaz, hamulec, skręt, `E`).
+Input z klawiatury jednego gracza (WASD/strzałki, `E`) zamieniany na akcje (gaz, hamulec, skręt, wsiądź/wysiądź). Akcje idą do serwera (karta sieci), lokalnie do `sim/` w trybie offline.
 
 ## Gotowe, gdy
 
-- [ ] dwóch graczy steruje niezależnie (np. WASD+E i strzałki+Enter)
-- [ ] `sim/` dostaje akcje, nie zdarzenia klawiatury
+- [ ] jeden gracz steruje WASD i strzałkami, `E` wsiada/wysiada
+- [ ] `sim/` i sieć dostają akcje, nie zdarzenia klawiatury

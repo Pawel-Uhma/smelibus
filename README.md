@@ -12,10 +12,11 @@ Pełny opis mechanik: [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md)
 - **TypeScript + Vite** — build i dev server
 - **Three.js** — render 3D (voxele jako `InstancedMesh`)
 - **Vitest** — testy logiki gry (`src/sim`)
+- **Colyseus** (Node.js) — serwer gry online w `server/`, hostowany na Railway
 
 ## Uruchomienie
 
-Kod gry jest w `app/`, deploy na Vercel (smelibus.vercel.app).
+Klient jest w `app/` (deploy na Vercel, smelibus.vercel.app), serwer gry w `server/` (Railway).
 
 ```bash
 cd app
@@ -37,7 +38,7 @@ app/src/
   render/      # Three.js: voxele, kamera, efekty smrodu
   input/       # klawiatura / gamepad -> akcje gracza
   ui/          # HUD, menu, ekran zwycięstwa (HTML/CSS nad canvasem)
-brain/         # lokalnie, poza gitem: PRD, wymagania (patrz CLAUDE.md)
+brain/         # mózg projektu: PRD, transkrypty spotkań, wnioski (patrz brain/CLAUDE.md)
 docs/
   GAME_DESIGN.md   # mechaniki gry
   DECISIONS.md     # log decyzji

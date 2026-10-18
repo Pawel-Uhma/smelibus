@@ -7,8 +7,9 @@ zależy od: 001
 
 ## Cel
 
-Chodzenie, `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli wolny; `E` w autobusie = wysiada obok. Wsiadając do pustego autobusu przeciwnika, przejmujesz go z całym smrodem (GAME_DESIGN).
+Chodzenie, `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli wolny; `E` w autobusie = wysiada obok. Pusty autobus może wziąć każdy, także zaparkowany w cudzej strefie (GAME_DESIGN). Potrącony przez autobus pieszy jest ogłuszony na `STUN_SECONDS` (~3 s): nie chodzi i nie wsiada.
 
 ## Gotowe, gdy
 
 - [ ] testy Vitest: wsiadanie, wysiadanie, przejęcie autobusu przeciwnika
+- [ ] testy Vitest: potrącenie ogłusza pieszego, po czasie wraca ruch

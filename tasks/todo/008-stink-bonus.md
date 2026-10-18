@@ -7,7 +7,7 @@ zależy od: 001
 
 ## Cel
 
-Spawn bonusów na przystankach i ulicach (tabela w GAME_DESIGN), zbieranie przejazdem, `stink` 0–100, wietrzenie (np. −0.5/s). Wartości w `config.ts`.
+Spawn bonusów na przystankach i na mapie, odnawianie po czasie, śmietniki (+smród, przewracają się), kontroler biletów (−smród), wytrącony smród po taranowaniu (tabela w GAME_DESIGN), zbieranie przejazdem, `stink` 0–100, wietrzenie (np. −0.5/s). Wartości w `config.ts`.
 
 ## Gotowe, gdy
 

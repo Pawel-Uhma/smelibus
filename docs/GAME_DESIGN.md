@@ -6,32 +6,45 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 
 ## Pętla rozgrywki
 
-1. Każdy gracz zaczyna jako pieszy w swojej **zajezdni**, w swojej strefie.
-2. Podchodzi do wolnego autobusu i wsiada.
-3. Jeździ po mieście i zgarnia **bonusy smrodu** — autobus śmierdzi coraz bardziej.
-4. Śmierdzące autobusy gracza generują **presję**, która przesuwa granicę jego strefy.
-5. Strefa rośnie kosztem sąsiadów. Kto przejmie 100% mapy — wygrywa.
+1. Każdy gracz zaczyna jako pieszy w swojej strefie.
+2. Podchodzi do pustego autobusu i wsiada. Kamera przechodzi w widok z góry.
+3. Jeździ po mapie i zgarnia **bonusy smrodu** — autobus śmierdzi coraz bardziej.
+4. Wjeżdża autobusem przez granicę do swojej strefy: cały smród autobusu zamienia się
+   w przejęte pola (**skok**), a smród spada do 0.
+5. Wraca po kolejne bonusy. Kto przejmie 100% mapy — wygrywa.
 
-## Gracze
+## Gracze i party
 
-- 2–4 graczy, każdy ma kolor i strefę.
-- Gracz jest albo **pieszym**, albo **kierowcą** autobusu.
-- Pieszy: chodzi (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest wolny.
+- Gra online w przeglądarce na komputerze, do **8 graczy** w party. Jeden gracz na komputer.
+- Host tworzy party i dostaje link z kodem (`/p/ABCD`). Bez kont: nick i kolor.
+  Party może być **publiczne** — wtedy widać je na liście na stronie głównej.
+- **Dołączanie w trakcie gry** (do 8): nowy gracz dostaje strefę startową wyciętą z terenu lidera.
+  Mapa nie rośnie.
+- Rozłączenie: 60 s na powrót, potem strefa zostaje na mapie jako neutralna (do przejęcia).
+- Gracz jest albo **pieszym**, albo **kierowcą**.
+- Pieszy: chodzi wszędzie (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest pusty.
 - Kierowca: steruje autobusem, `E` = wysiada obok autobusu.
-- Gracz, którego strefa spadnie do 0 kafelków, odpada.
+- **Eliminacja:** gracz z 0 kafelków nie odpada. Dalej chodzi, jeździ, kradnie autobusy,
+  taranuje i potrąca, ale nie może rosnąć (nie ma strefy, do której mógłby wjechać).
 
 ## Autobusy
 
-- Na mapie jest kilka autobusów (np. 2 na gracza), startują w zajezdniach.
+- Stała pula: **liczba graczy + 2** autobusy. Nie znikają i nie pojawiają się nowe.
 - Sterowanie zręcznościowe: gaz/hamulec/skręt, prosta fizyka (bez silnika fizycznego) — nie symulacja.
-- Autobus **należy do gracza, który ostatnio nim kierował**. Wsiadając do pustego autobusu
-  przeciwnika, przejmujesz go razem z całym jego smrodem.
+- Autobus jest neutralny: **pusty autobus może wziąć każdy**, także zaparkowany w cudzej strefie.
+  Autobusu z kierowcą nie da się przejąć.
+- Autobus jest wielokrotnego użytku: po skoku zostaje tam, gdzie kierowca wysiadł.
+  Kradzież zabiera pojazd, nie teren.
 - Każdy autobus ma **poziom smrodu** `stink` (0–100).
 - Smród powoli wietrzeje (np. −0.5/s), więc trzeba ciągle zbierać bonusy.
+- **Taranowanie:** uderzenie autobusem w inny autobus wytrąca mu część smrodu. Wytrącony smród
+  wypada na ziemię jako bonus do zebrania.
+- **Potrącenie pieszego:** pieszy jest ogłuszony na ~3 s (nie chodzi, nie wsiada).
 
 ## Bonusy smrodu
 
-Pojawiają się na przystankach i ulicach, zbiera się je przejeżdżając autobusem.
+Leżą na przystankach i na mapie, zbiera się je przejeżdżając autobusem. Po zebraniu
+miejsce odnawia się po czasie (np. 15 s).
 
 | Bonus | Smród | Uwagi |
 |---|---|---|
@@ -41,9 +54,12 @@ Pojawiają się na przystankach i ulicach, zbiera się je przejeżdżając autob
 | Kibic po meczu | +20 | |
 | Śledź w occie | +12 | |
 | Durian | +40 | rzadki |
+| Śmietnik | +8 | wjechanie przewraca śmietnik, wraca po czasie |
+| Kontroler biletów | −20 | bonus negatywny, trzeba go omijać |
+| Wytrącony smród | ile wypadło | zostaje po taranowaniu |
 
-Pomysły na później: **Choinka zapachowa** (pułapka — obniża smród), pasażerowie wysiadający
-gdy smród > 90 (chaos), widoczna zielona chmura wokół autobusu skalowana smrodem.
+Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),
+widoczna zielona chmura wokół autobusu skalowana smrodem.
 
 ## Pogoda
 
@@ -54,31 +70,41 @@ gdy smród > 90 (chaos), widoczna zielona chmura wokół autobusu skalowana smro
 
 ## Strefy i mapa
 
-- Mapa to siatka kafelków (np. 64×64). Każdy kafelek ma właściciela (`ownerId`).
-- Start: mapa dzielona na N stref (Voronoi od zajezdni, lub połówki/ćwiartki).
-- Co tick strefowy (np. 1 s) każdy gracz dostaje **presję** = suma `stink` jego autobusów.
-- Presja się akumuluje; za każde `PRESSURE_PER_TILE` punktów gracz przejmuje jeden kafelek
-  sąsiadujący z jego strefą — preferowany kafelek najbliżej jego najbardziej śmierdzącego autobusu.
+- **MVP: płaska mapa bez budynków i ulic.** Autobusy i piesi poruszają się wszędzie. Na mapie
+  stoją elementy: przystanki z bonusami, śmietniki, kontrolerzy.
+- Mapa to siatka kafelków generowana losowo przy starcie party. Rozmiar zależy od liczby
+  graczy: ok. **400 kafelków na gracza** (np. ~56×56 przy 8). Każdy kafelek ma właściciela (`ownerId`).
+- Start: mapa dzielona na tyle stref, ilu jest graczy (np. Voronoi od punktów startowych).
+- **Skok:** gdy autobus z kierowcą przekroczy granicę strefy kierowcy (wjedzie do niej z cudzego
+  albo neutralnego terenu), gracz przejmuje **N = stink** kafelków (× mnożnik sudden death).
+  Kafelki są brane od punktu przekroczenia granicy na zewnątrz, najbliższe pierwsze, niezależnie
+  od tego, czyje są. Smród autobusu spada do 0.
+- O tym, komu zabierasz teren, decydujesz tym, z której strony wjeżdżasz.
 - Przejęte kafelki zmieniają kolor (render podświetla granicę).
-
-**Do przetestowania (wariant):** zamiast presji globalnej — „chmura smrodu" o promieniu zależnym
-od `stink`; kafelki w chmurze przechodzą na właściciela autobusu. Daje więcej taktyki
-(wjeżdżasz śmierdzielem na teren wroga). Decyzja po pierwszym grywalnym prototypie.
 
 ## Warunek zwycięstwa
 
-- Gracz posiada 100% kafelków → wygrywa.
-- (Opcjonalnie) limit czasu np. 10 min → wygrywa największa strefa.
+- Gracz posiada 100% kafelków → wygrywa. Nie ma wygranej na punkty.
+- **Sudden death:** po 8 min bonusy dają ×2 smrodu, po 10 min ×3, żeby gra się rozstrzygnęła.
 
 ## Grafika
 
-- Wszystko z voxeli: autobusy, ludziki, budynki, przystanki. Low-poly, czytelne kolory graczy.
-- Kamera z góry pod kątem (izometryczna/3rd person nad autobusem).
+- Proste modele 3D w stylu voxel, **generowane w kodzie** z prostopadłościanów (bez plików
+  `.vox`). Wszystkie kolory z jednej palety, kolory graczy to jej podmiana.
+- Modele z MagicaVoxel dla autobusu i ludzika — dopiero gdy pętla gry działa.
+- Kamera: pieszy z góry pod kątem, kierowca — widok z góry.
 - Voxele renderowane przez `InstancedMesh` / merge geometrii — nie jeden `Mesh` na voxel.
+- Tryb wysokiego kontrastu: **nie w MVP** (był prośbą ze spotkania 1, odłożony).
+
+## Po MVP
+
+- Siatka ulic i budynki, autobus jeździ tylko po ulicach.
+- **Open data:** układ ulic z OpenStreetMap, przystanki z GTFS (np. Warszawa). Hackathon jest
+  o otwartych danych, więc to pierwszy kandydat po MVP.
+- Tryb wysokiego kontrastu (wzory stref i symbole graczy, nie tylko kolory).
+- Telefony (dotykowy joystick).
 
 ## Otwarte pytania
 
-- **Multiplayer:** lokalny (jedna klawiatura + gamepady, split-screen lub wspólna kamera) czy online
-  (WebSocket)? Domyślnie MVP = lokalny, ale `sim/` piszemy tak, by dało się go uruchomić na serwerze.
-- **Open data:** hackathon jest o otwartych danych — np. układ ulic z OpenStreetMap, przystanki
-  z GTFS lokalnego przewoźnika. Do ustalenia, czy MVP używa prawdziwego miasta, czy generowanej mapy.
+- Wartości balansu: ile smrodu wytrąca taranowanie, czasy odnowienia bonusów, 400 kafelków na gracza.
+- Czy wietrzenie smrodu zostaje przy modelu skoku (decyzja po pierwszym grywalnym prototypie).

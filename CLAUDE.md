@@ -3,10 +3,10 @@
 Przeglądarkowa gra multiplayer o śmierdzących autobusach przejmujących mapę.
 
 - `app/` — kod gry. Deploy na Vercel (projekt `smelibus`, smelibus.vercel.app).
-- `brain/` — mózg projektu: wymagania, decyzje, transkrypty. Wpisany do `.gitignore`,
-  nie trafia do gita ani na Vercel. Zacznij od `brain/CLAUDE.md` i `brain/index.md`;
-  wymagania gry są w `brain/20-product/prd.md`. Grep/ripgrep słuchają `.gitignore`,
-  więc ścieżkę `brain/` podajesz im wprost.
+- `server/` — serwer gry online (Colyseus), deploy na Railway.
+- `brain/` — mózg projektu: PRD, transkrypty spotkań, wnioski. Jest w gicie. Zacznij od
+  `brain/CLAUDE.md` i `brain/index.md`. Mechaniki i decyzje wiążące dla zespołu są w
+  `docs/GAME_DESIGN.md` i `docs/DECISIONS.md` — przy rozbieżności wygrywa `docs/`.
 
 Zasady współpracy (workflow git, podział kodu, zasady dla agentów):
 

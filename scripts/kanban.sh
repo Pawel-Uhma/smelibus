@@ -45,7 +45,7 @@ case "${1:-tablica}" in
     area="${2:?podaj obszar}"; t="${3:?podaj tytuł}"
     last="$(ls tasks/*/ 2>/dev/null | grep -oE '^[0-9]+' | sort -n | tail -1 || true)"
     n="$(printf '%03d' $((10#${last:-0} + 1)))"
-    slug="$(echo "$t" | iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null | tr 'A-Z' 'a-z' | tr -cs 'a-z0-9' '-' | sed 's/^-//; s/-$//' | cut -c1-40)"
+    slug="$(echo "$t" | { iconv -f utf-8 -t ascii//TRANSLIT 2>/dev/null || true; } | tr 'A-Z' 'a-z' | tr -cs 'a-z0-9' '-' | sed 's/^-//; s/-$//' | cut -c1-40)"
     f="tasks/todo/$n-${slug:-zadanie}.md"
     printf '# %s\n\nobszar: %s\nkto: -\nzależy od: -\nścieżki: -\n\n## Cel\n\n## Gotowe, gdy\n\n- [ ] \n' "$t" "$area" > "$f"
     echo "$f"
