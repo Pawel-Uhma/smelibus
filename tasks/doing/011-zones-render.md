@@ -1,7 +1,7 @@
 # Render stref: kolory kafelków i granice
 
 obszar: strefy
-kto: -
+kto: Pawel
 zależy od: 001
 ścieżki: render/zones.ts
 
