@@ -29,6 +29,10 @@ export interface Party {
   start(): void;
   /** Host only, waiting room: everyone gets a new map of this kind. */
   setMap(kind: MapKind): void;
+  /** Host only, after a win: same room, new map, back to the waiting room (card 027). */
+  rematch(): void;
+  /** The game went back to the waiting room (a rematch); a new `welcome` follows. */
+  onRematch(cb: () => void): void;
 }
 
 const client = new Client(SERVER_URL);
@@ -95,9 +99,12 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   const buffer = createSnapshotBuffer();
   let lobby: LobbyInfo = { hostId: null, started: true, public: false };
   const lobbyCbs: ((info: LobbyInfo) => void)[] = [];
+  const rematchCbs: (() => void)[] = [];
   room.onMessage('lobby', (info: LobbyInfo) => {
+    const rematch = lobby.started && !info.started && world !== null;
     lobby = info;
     lobbyCbs.forEach((cb) => cb(info));
+    if (rematch) rematchCbs.forEach((cb) => cb());
   });
   let world: World | null = null;
   const welcome = new Promise<Welcome>((resolve) =>
@@ -147,5 +154,7 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
     onLobby: (cb) => lobbyCbs.push(cb),
     start: () => room.send('start'),
     setMap: (kind) => room.send('map', kind),
+    rematch: () => room.send('rematch'),
+    onRematch: (cb) => rematchCbs.push(cb),
   };
 }

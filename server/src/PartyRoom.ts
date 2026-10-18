@@ -3,6 +3,7 @@ import { CITY_ENABLED, MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SN
 import type {
   BusInput, GameState, InputAck, JoinOptions, LobbyInfo, MapKind, PartyMetadata, PlayerId, Snapshot, Welcome,
 } from '../../app/src/shared/types';
+import { rematchGame } from '../../app/src/net/rematch';
 import { createTileTracker } from '../../app/src/net/tiles';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
 import { parkBus } from '../../app/src/sim/bus';
@@ -43,6 +44,15 @@ export class PartyRoom extends Room {
       this.lobby.map = kind;
       this.newGame();
       this.syncLobby();
+    },
+    // Card 027: after a win the host takes everyone back to the waiting room on a new map.
+    rematch: (client: Client) => {
+      if (client.sessionId !== this.lobby.hostId || !this.lobby.started || !this.game.winnerId) return;
+      this.lobby.started = false;
+      this.busInputs.clear();
+      this.acks.clear();
+      this.syncLobby();
+      this.newGame();
     },
     input: (client: Client, input: BusInput) => {
       if (typeof input?.throttle !== 'number' || typeof input?.steer !== 'number') return;
@@ -132,13 +142,7 @@ export class PartyRoom extends Room {
    * Start, so they just take the latest world.
    */
   private newGame() {
-    const old = this.game;
-    this.game = createGame(Math.floor(Math.random() * 2 ** 31), this.lobby.map === 'city');
-    for (const p of old.players) {
-      const fresh = addPlayer(this.game, p.id, p.name);
-      fresh.color = p.color;
-      fresh.connected = p.connected;
-    }
+    this.game = rematchGame(this.game, Math.floor(Math.random() * 2 ** 31), this.lobby.map === 'city');
     this.tiles = createTileTracker(this.game.world.tiles);
     this.lastBonuses = '';
     for (const c of this.clients) c.send('welcome', { playerId: c.sessionId, world: this.game.world } satisfies Welcome);

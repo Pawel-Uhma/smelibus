@@ -11,7 +11,7 @@ Po wygranej host dostaje na ekranie zwycięzcy przycisk **„Rewanż”**. Pokó
 
 ## Gotowe, gdy
 
-- [ ] host widzi „Rewanż”, inni widzą „Czekamy na hosta…”
-- [ ] po rewanżu wszyscy są w poczekalni tego samego pokoju, z nową mapą (`welcome` od nowa)
-- [ ] zegar sudden death liczy od nowego Startu
-- [ ] wpis w GAME_DESIGN (sekcja Gracze i party)
+- [x] host widzi „Rewanż”, inni widzą „Czekamy na hosta…”
+- [x] po rewanżu wszyscy są w poczekalni tego samego pokoju, z nową mapą (`welcome` od nowa)
+- [x] zegar sudden death liczy od nowego Startu
+- [x] wpis w GAME_DESIGN (sekcja Gracze i party)

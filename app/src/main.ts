@@ -28,7 +28,10 @@ night.set(nightModeFromUrl(location.search));
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyN' && !e.repeat && !(e.target instanceof HTMLInputElement)) night.toggle();
 });
-const hud = createHud(ui, party.code, party.playerId);
+const hud = createHud(ui, party.code, party.playerId, {
+  isHost: () => party.lobby().hostId === party.playerId,
+  request: () => party.rematch(),
+});
 const minimap = createMinimap(ui, party.playerId);
 const keyboard = createKeyboard();
 const touch = createTouch();
@@ -36,6 +39,15 @@ const sounds = createSounds(party.world, party.playerId);
 ui.querySelector('.hud .party')?.append(sounds.muteButton());
 let lastHorn = 0;
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
+// Rematch (card 027): the scene is built for one map, so reload and rejoin the same seat
+// (reconnect token); the server sends the new map's `welcome` and the waiting room shows again.
+// The frame loop stops first, so render, sounds and prediction never see the new map's
+// `welcome` (sounds would diff the old tiles against it and play a bogus capture).
+let rematching = false;
+party.onRematch(() => {
+  rematching = true;
+  location.reload();
+});
 
 // Own bus is predicted locally (instant controls) and replayed on top of each server snapshot.
 let predictor: BusPredictor | null = null;
@@ -43,6 +55,7 @@ let reconciled: Snapshot | null = null;
 let lastFrame = performance.now();
 
 function frame(now: number) {
+  if (rematching) return;
   const dt = Math.min(0.1, (now - lastFrame) / 1000);
   lastFrame = now;
   const snap = party.latest();

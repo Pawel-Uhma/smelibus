@@ -25,6 +25,10 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 - **Dołączanie w trakcie gry** (do 8): nowy gracz dostaje strefę startową wyciętą z terenu lidera.
   Mapa nie rośnie.
 - Rozłączenie: 60 s na powrót, potem strefa zostaje na mapie jako neutralna (do przejęcia).
+- **Rewanż:** po wygranej host widzi na ekranie zwycięzcy przycisk „Rewanż”, a pozostali napis
+  „Czekamy na hosta…”. Party zostaje to samo (kod i link bez zmian). Serwer losuje nową mapę,
+  zeruje zegar, sudden death, autobusy i bonusy, a wszyscy wracają do poczekalni, gdzie można
+  dołączyć albo wyjść. Gra rusza znowu, gdy host kliknie Start; sudden death liczy się od tego Startu.
 - Gracz jest albo **pieszym**, albo **kierowcą**.
 - Pieszy: chodzi wszędzie (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest pusty.
 - Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja dalej hamuje). Prędkość pieszego: 5,2 kafelka/s.

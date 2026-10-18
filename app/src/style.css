@@ -98,6 +98,9 @@ button:hover { background: #ffb829; }
 .win .swatch { width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 12px; border: 2px solid #1b1b1b; }
 .win h2 { margin: 0 0 8px; font-size: clamp(28px, 7vw, 40px); }
 .win p { margin: 0 0 16px; }
+.win .rematch-wait { margin: 12px 0 0; opacity: .75; }
+.rematch-bar { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: #fff; border: 2px solid #1b1b1b; border-radius: 10px; padding: 6px 10px; }
+.rematch-bar[hidden], .rematch[hidden], .rematch-wait[hidden] { display: none; }
 .hud .help { font-size: 12px; opacity: .75; }
 .banner { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); background: #1b1b1b; color: #fff; padding: 14px 20px; border-radius: 10px; }
 @media (max-width: 640px) { .hud-clock { top: auto; bottom: 12px; left: auto; right: 12px; transform: none; align-items: flex-end; flex-direction: column-reverse; } .hud-clock .sudden { white-space: normal; max-width: 140px; text-align: right; } .hud-stink { width: calc(100vw - 174px); } }

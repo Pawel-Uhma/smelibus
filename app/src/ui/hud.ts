@@ -4,6 +4,12 @@ import { createStinkPops } from './stinkPops';
 
 export type { HudView } from './hudModel';
 
+/** Rematch controls on the win screen (card 027): the host gets the button, the rest wait. */
+export interface HudRematch {
+  isHost(): boolean;
+  request(): void;
+}
+
 /** Stink cloud with three wavy fumes, colored by the pop's CSS (currentColor). */
 const STINK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="#1b1b1b" stroke-width="1.5" d="M6 20a4 4 0 0 1-.6-8 5 5 0 0 1 9.6-1.5A4 4 0 1 1 18 20z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 7c-1-1 1-2 0-4M12 6c-1-1 1-2 0-4M16 7c-1-1 1-2 0-4"/></svg>`;
 
@@ -24,7 +30,7 @@ function stinkTier(f: number): string {
  * In-game HUD over the canvas: party code, map share per player, clock with sudden death,
  * own bus stink, and the win screen. Only reads the view passed to update().
  */
-export function createHud(root: HTMLElement, code: string, me: PlayerId) {
+export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch?: HudRematch) {
   root.innerHTML = `
     <div class="hud">
       <div class="party">Party <b>${code}</b> <button id="copy">Kopiuj link</button></div>
@@ -54,8 +60,14 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
         <div class="swatch" id="win-swatch"></div>
         <h2 id="win-title"></h2>
         <p id="win-sub"></p>
+        <button id="win-rematch" class="rematch" hidden>Rewanż</button>
         <button id="win-close">Patrz dalej</button>
+        <p class="rematch-wait" hidden>Czekamy na hosta…</p>
       </div>
+    </div>
+    <div id="rematch-bar" class="rematch-bar" hidden>
+      <button id="bar-rematch" class="rematch" hidden>Rewanż</button>
+      <span class="rematch-wait" hidden>Czekamy na hosta…</span>
     </div>
     <div id="banner" class="banner" hidden></div>`;
   const $ = <T extends HTMLElement>(id: string) => root.querySelector<T>('#' + id)!;
@@ -84,6 +96,15 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
     dismissedWinner = shownWinner;
     win.hidden = true;
   };
+
+  const rematchBar = $('rematch-bar');
+  const rematchButtons = root.querySelectorAll<HTMLButtonElement>('.rematch');
+  const rematchWaits = root.querySelectorAll<HTMLElement>('.rematch-wait');
+  rematchButtons.forEach((b) => (b.onclick = () => {
+    rematchButtons.forEach((x) => (x.disabled = true));
+    rematch?.request();
+  }));
+  let lastRematch = '';
 
   let lastRows = '';
   let lastClock = '';
@@ -179,6 +200,15 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
             : `${m.winner.name} zasmrodził całą mapę. Czas gry ${m.clock}.`;
         }
         win.hidden = !m.winner || dismissedWinner === winnerId;
+      }
+      // Host can change mid-game (the old one left), so this is re-checked every frame.
+      const host = !!rematch?.isHost();
+      const rematchKey = `${winnerId}|${win.hidden}|${host}`;
+      if (rematch && rematchKey !== lastRematch) {
+        lastRematch = rematchKey;
+        rematchBar.hidden = !winnerId || !win.hidden;
+        rematchButtons.forEach((b) => (b.hidden = !host));
+        rematchWaits.forEach((w) => (w.hidden = host));
       }
     },
     banner(text: string) {
