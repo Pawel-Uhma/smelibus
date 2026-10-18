@@ -7,3 +7,7 @@ Przeglądarkowa gra multiplayer o śmierdzących autobusach przejmujących mapę
   nie trafia do gita ani na Vercel. Zacznij od `brain/CLAUDE.md` i `brain/index.md`;
   wymagania gry są w `brain/20-product/prd.md`. Grep/ripgrep słuchają `.gitignore`,
   więc ścieżkę `brain/` podajesz im wprost.
+
+Zasady współpracy (workflow git, podział kodu, zasady dla agentów):
+
+@AGENTS.md
