@@ -22,3 +22,43 @@
 .lobby .waiting li { display: flex; align-items: center; gap: 8px; background: #fffc; border: 2px solid #1b1b1b; border-radius: 8px; padding: 8px 10px; }
 .lobby .waiting li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: var(--c); border: 1px solid #1b1b1b; }
 .lobby #start { font-size: 20px; padding: 12px 32px; }
+
+/* Start screen look: menu card over the 3D backdrop (render/menuScene.ts). */
+.menu-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.lobby { align-items: flex-start; padding: max(16px, 6vh) 16px 16px max(16px, 6vw); }
+.lobby .card {
+  width: min(440px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px;
+  background: #fffbeeee; border: 3px solid #1b1b1b; border-radius: 16px; padding: 22px 20px 18px;
+  box-shadow: 8px 8px 0 #1b1b1b; animation: card-in .45s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+@keyframes card-in { from { transform: translateY(24px) rotate(-1.5deg); opacity: 0; } }
+.lobby .logo {
+  font-size: clamp(44px, 11vw, 72px); line-height: 1; margin: 0; font-weight: 900; letter-spacing: -1px;
+  color: #6fa82b; text-shadow: 3px 3px 0 #1b1b1b; -webkit-text-stroke: 2px #1b1b1b; paint-order: stroke fill;
+  position: relative; animation: logo-wobble 2.6s ease-in-out infinite;
+}
+.lobby .logo span {
+  display: inline-block; margin-left: 4px; padding: 0 10px 4px; color: #fff; background: #f4a300;
+  border: 3px solid #1b1b1b; border-radius: 10px; -webkit-text-stroke: 2px #1b1b1b; transform: rotate(-4deg);
+}
+/* Stink rising off the logo. */
+.lobby .logo::before, .lobby .logo::after {
+  content: ''; position: absolute; width: 14px; height: 14px; background: #8bc34a; border: 2px solid #1b1b1b;
+  border-radius: 3px; left: 18%; top: -6px; opacity: 0; animation: puff 2.4s ease-out infinite;
+}
+.lobby .logo::after { left: 42%; width: 10px; height: 10px; animation-delay: 1.2s; }
+@keyframes puff { 0% { transform: translateY(0) scale(.4); opacity: 0; } 20% { opacity: .9; } 100% { transform: translateY(-34px) scale(1.2) rotate(30deg); opacity: 0; } }
+@keyframes logo-wobble { 50% { transform: rotate(-1.5deg) translateY(-2px); } }
+.lobby .tag { margin: 0 0 4px; font-weight: 600; text-align: center; }
+.lobby .card .msg { margin: -6px 0; text-align: center; }
+.lobby .card > label { width: 100%; justify-content: center; }
+.lobby #name { width: min(220px, 60vw); }
+.lobby .card button:not(.swatch) { box-shadow: 3px 3px 0 #1b1b1b; transition: transform .08s, box-shadow .08s; }
+.lobby .card button:not(.swatch):not(:disabled):active { transform: translate(3px, 3px); box-shadow: 0 0 0 #1b1b1b; }
+.lobby #create, .lobby #start { font-size: 18px; padding: 12px 22px; background: #6fa82b; color: #fff; text-shadow: 1px 1px 0 #1b1b1b; }
+.lobby #create:hover, .lobby #start:hover { background: #81bd35; }
+.lobby input:focus-visible, .lobby button:focus-visible { outline: 3px solid #2f6bd6; outline-offset: 2px; }
+.lobby .public-list { border-top: 2px dashed #1b1b1b55; padding-top: 6px; }
+.lobby .waiting li { background: #fff; }
+@media (max-width: 760px) { .lobby { align-items: center; padding: 16px; } .lobby .card { box-shadow: 5px 5px 0 #1b1b1b; padding: 18px 14px 14px; } .lobby .swatch { width: 28px; height: 28px; } }
+@media (prefers-reduced-motion: reduce) { .lobby .card, .lobby .logo, .lobby .logo::before, .lobby .logo::after { animation: none; } }
