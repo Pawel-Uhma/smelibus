@@ -1,7 +1,7 @@
 # Minimapa i strzałka do własnej strefy
 
 obszar: strefy
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: ui/minimap.ts (nowy), ui/hud.ts
 
