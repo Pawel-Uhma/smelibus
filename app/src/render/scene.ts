@@ -3,6 +3,7 @@ import type { Bus, Player, PlayerId, World } from '../shared/types';
 import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
 import { createPedestrianModel, type PedestrianModel } from './models/pedestrian';
+import { garbleName } from './garbleName';
 import { createNameplate, type Nameplate } from './nameplate';
 import { createStinkEffect } from './stink';
 import { createZabkaRender } from './zabka';
@@ -94,7 +95,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
     }
     plate.sprite.visible = !!driver;
     if (driver) {
-      plate.set(driver.name, driver.color);
+      plate.set(garbleName(driver.name, bus.stink), driver.color);
       plate.sprite.position.set(bus.x, 2.3, bus.z);
     }
   }
