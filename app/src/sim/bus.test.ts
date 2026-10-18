@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BUS_BOUNCE, BUS_MAX_SPEED, BUS_RADIUS, RAM_MIN_SPEED, RAM_STINK_LOSS,
+  BUS_BOUNCE, BUS_CAPSULE_RADIUS, BUS_LENGTH, BUS_MAX_SPEED, RAM_MIN_SPEED, RAM_STINK_LOSS,
 } from '../shared/config';
 import type { Bus } from '../shared/types';
 import { collideBuses, NO_INPUT, updateBus } from './bus';
@@ -42,8 +42,21 @@ describe('updateBus', () => {
   it('stays inside the map', () => {
     const b = bus({ x: 5, z: 5 });
     run(b, 1, 0, 10, 10);
-    expect(b.z).toBeLessThanOrEqual(10 - BUS_RADIUS);
-    expect(b.x).toBeGreaterThanOrEqual(BUS_RADIUS);
+    // The front bumper stops at the edge, not the centre.
+    expect(b.z + BUS_LENGTH / 2).toBeLessThanOrEqual(10 + 1e-9);
+    expect(b.x).toBe(5);
+  });
+
+  it('bounces back from a wall it hits head-on', () => {
+    const b = bus({ x: 5, z: 8.4, speed: 10 });
+    updateBus(b, NO_INPUT, 1 / 60, 10);
+    expect(b.speed).toBeLessThan(0);
+  });
+
+  it('keeps most of its speed when scraping along a wall', () => {
+    const b = bus({ x: 1.4, z: 5, angle: -0.2, speed: 10 });
+    updateBus(b, NO_INPUT, 1 / 60, 100);
+    expect(b.speed).toBeGreaterThan(8);
   });
 
   it('ignores missing input', () => {
@@ -54,25 +67,48 @@ describe('updateBus', () => {
 });
 
 describe('collideBuses', () => {
-  it('pushes overlapping buses apart', () => {
+  it('pushes overlapping buses apart without braking a side-by-side scrape', () => {
     const a = bus({ x: 10, speed: 8 });
     const b = bus({ x: 10.5 });
     collideBuses([a, b]);
-    expect(Math.hypot(b.x - a.x, b.z - a.z)).toBeCloseTo(BUS_RADIUS * 2);
-    expect(a.speed).toBeLessThan(8);
+    expect(Math.hypot(b.x - a.x, b.z - a.z)).toBeCloseTo(BUS_CAPSULE_RADIUS * 2);
+    expect(a.speed).toBe(8);
   });
 
-  // a drives along +z straight into b, which stands still in front of it.
+  it('lets buses park side by side closer than their length', () => {
+    const a = bus({ x: 10 });
+    const b = bus({ x: 10 + BUS_CAPSULE_RADIUS * 2 + 0.05 });
+    collideBuses([a, b]);
+    expect(b.x - a.x).toBeCloseTo(BUS_CAPSULE_RADIUS * 2 + 0.05);
+  });
+
+  it('keeps buses from overlapping nose to tail', () => {
+    const a = bus({ z: 10 });
+    const b = bus({ z: 10 + BUS_LENGTH - 0.3 });
+    collideBuses([a, b]);
+    expect(b.z - a.z).toBeCloseTo(BUS_LENGTH);
+  });
+
+  // a drives along +z straight into b, which stands still just in front of it.
   const crash = (speed: number, stink = 50) => {
     const a = bus({ id: 0, x: 10, z: 10, speed, stink: 50 });
-    const b = bus({ id: 1, x: 10, z: 11.5, stink });
+    const b = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH - 0.1, stink });
     return { a, b, drops: collideBuses([a, b]) };
   };
 
-  it('bounces the rammer back', () => {
+  it('shoves the bus in front and slows the rammer', () => {
     const { a, b } = crash(10);
-    expect(a.speed).toBeCloseTo(-10 * BUS_BOUNCE);
-    expect(b.speed).toBe(0);
+    const impulse = ((1 + BUS_BOUNCE) / 2) * 10;
+    expect(a.speed).toBeCloseTo(10 - impulse);
+    expect(b.speed).toBeCloseTo(impulse);
+  });
+
+  it('only slows down a bus hitting another one side-on', () => {
+    const a = bus({ id: 0, x: 10, z: 10, speed: 10 });
+    const b = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH / 2 + BUS_CAPSULE_RADIUS - 0.1, angle: Math.PI / 2 });
+    collideBuses([a, b]);
+    expect(a.speed).toBeLessThan(10);
+    expect(b.speed).toBeCloseTo(0);
   });
 
   it('knocks stink out of the rammed bus onto the ground', () => {
@@ -99,7 +135,7 @@ describe('collideBuses', () => {
 
   it('head-on crash knocks stink out of both buses', () => {
     const a = bus({ id: 0, x: 10, z: 10, speed: 10, stink: 40 });
-    const b = bus({ id: 1, x: 10, z: 11.5, angle: Math.PI, speed: 10, stink: 20 });
+    const b = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH - 0.1, angle: Math.PI, speed: 10, stink: 20 });
     const drops = collideBuses([a, b]);
     expect(a.stink).toBeCloseTo(40 * (1 - RAM_STINK_LOSS));
     expect(b.stink).toBeCloseTo(20 * (1 - RAM_STINK_LOSS));

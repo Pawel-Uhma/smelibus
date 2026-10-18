@@ -26,14 +26,21 @@ export const BUS_DRAG = 2.5;
 export const BUS_TURN_RATE = 2.4;
 /** Speed below which steering gets weaker (no turning in place). */
 export const BUS_TURN_FULL_SPEED = 4;
-/** Collision circle radius used for bus–bus and bus–edge checks. */
+/** Reach of a bus around its centre, used for picking up bonuses. */
 export const BUS_RADIUS = 1.1;
+/** Bus–bus and bus–edge collisions use a capsule: a segment along the bus, this radius around it. */
+export const BUS_CAPSULE_RADIUS = 0.45;
 /** Fraction of speed kept after hitting another bus or the map edge. */
 export const BUS_BOUNCE = 0.4;
 /** Fraction of a rammed bus's stink knocked onto the ground. */
 export const RAM_STINK_LOSS = 0.3;
 /** Minimum closing speed (tiles/s) for a bus–bus hit to count as ramming. */
 export const RAM_MIN_SPEED = 4;
+
+/** Own bus prediction: error to the server above this (tiles) snaps instead of easing. */
+export const PREDICTION_SNAP_DIST = 4;
+/** How fast the remaining error to the server is eased away, 1/s. */
+export const PREDICTION_CORRECT_RATE = 3;
 
 export const STINK_MAX = 100;
 /** Upper bounds of the clean and smelly look stages; above the last one the bus is filthy. */
