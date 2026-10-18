@@ -57,6 +57,8 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   }
 
   return {
+    /** Lets other render modules (render/zones.ts) add their own meshes. */
+    scene,
     render(buses: Bus[], players: Player[], follow: Bus | undefined, dt: number) {
       resize();
       const colorOf = new Map<PlayerId, number>(players.map((p) => [p.id, p.color]));

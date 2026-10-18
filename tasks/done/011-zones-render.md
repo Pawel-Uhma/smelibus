@@ -11,4 +11,4 @@ Kolorowanie kafelków albo granic według właściciela, podświetlenie przejęt
 
 ## Gotowe, gdy
 
-- [ ] zmiana właściciela kafelka od razu widoczna na mapie
+- [x] zmiana właściciela kafelka od razu widoczna na mapie (sprawdzone: drugi gracz dołącza, wycięta strefa od razu w jego kolorze u pierwszego)

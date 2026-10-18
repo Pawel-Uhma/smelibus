@@ -2,6 +2,7 @@ import './style.css';
 import { createKeyboard } from './input/keyboard';
 import { lerpAngle } from './net/client';
 import { createScene } from './render/scene';
+import { createZonesRender } from './render/zones';
 import { SIM_DT } from './shared/config';
 import type { Bus } from './shared/types';
 import { updateBus } from './sim/bus';
@@ -13,6 +14,7 @@ const canvas = document.getElementById('game') as HTMLCanvasElement;
 
 const party = await showLobby(ui);
 const scene = createScene(canvas, party.world);
+const zones = createZonesRender(scene.scene);
 const hud = createHud(ui, party.code, party.playerId);
 const keyboard = createKeyboard();
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
@@ -49,6 +51,7 @@ function frame(now: number) {
   }
 
   const buses = party.interpolatedBuses(now).map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));
+  zones.update(party.world, snap.players, dt);
   scene.render(buses, snap.players, ownBus ?? undefined, dt);
   hud.update(snap.players);
   requestAnimationFrame(frame);
