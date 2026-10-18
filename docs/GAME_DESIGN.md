@@ -82,6 +82,19 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 - Obszar chmury widać jako zabarwioną ziemię (niebieską / bursztynową) pod rzadką chmurą z voxeli.
 - Liczby w `config.ts` (`WEATHER_*`, `RAIN_STINK_PER_S`, `HARNAS_STINK_PER_S`, `HARNAS_CHANCE`).
 
+### Dzień i noc
+
+- Pora dnia zmienia się w kółko według czasu gry, więc wszyscy gracze mają tę samą: mecz zaczyna
+  się rano, cykl trwa 4 min (`DAY_NIGHT_CYCLE_S`), z czego ~35% to noc (`NIGHT_SHARE`). Zmierzch
+  i świt trwają po 12 s (`TWILIGHT_S`), niebo przechodzi przez ciepły kolor zachodu.
+- W nocy jest ciemno (księżyc i słabe światło otoczenia). Autobusy świecą reflektorami na drogę
+  przed sobą (oświetlają ziemię, strefy i budynki), a za nimi jest delikatna czerwona poświata
+  świateł tylnych. Żabki świecą na zielono: poświata przed wejściem i nad szyldem, plus światło
+  sklepu na chodniku.
+- Tylko wygląd: symulacja i balans się nie zmieniają.
+- `?noc` w adresie albo klawisz N wymusza noc (N jeszcze raz wraca do cyklu), a `?noc=0` zostawia
+  sam dzień. Liczby w `config.ts` (`DAY_NIGHT_*`, `NIGHT_*`).
+
 ## Strefy i mapa
 
 - **Domyślnie miasto:** ulice, kwartały z budynkami i parki. Autobusy i piesi odbijają się od

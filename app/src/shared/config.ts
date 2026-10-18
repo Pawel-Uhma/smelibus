@@ -212,3 +212,26 @@ export const MINIMAP_PEDESTRIAN_DOT = 0.016;
 export const MINIMAP_CLOUD_ALPHA = 0.35;
 /** The border arrow sits this many CSS px inside the screen edge. */
 export const BORDER_ARROW_MARGIN_PX = 44;
+
+// Day/night cycle (render/night.ts): looks only, the sim doesn't change. Driven by game time, so
+// every player has the same hour. `?noc` in the URL or key N forces night, `?noc=0` keeps the day.
+export const DAY_NIGHT_CYCLE = true;
+/** One full day + night, seconds of game time. The match starts in the morning. */
+export const DAY_NIGHT_CYCLE_S = 240;
+/** Share of the cycle that is night (twilights included). */
+export const NIGHT_SHARE = 0.35;
+/** Length of dusk and of dawn, seconds. */
+export const TWILIGHT_S = 12;
+/** Ambient (hemisphere) and moon (the sun light) intensity at night; day is 1.6 and 1.4. */
+export const NIGHT_AMBIENT = 0.35;
+export const NIGHT_MOON = 0.25;
+/** Bus headlight beam: SpotLight intensity, reach in tiles, cone half-angle in radians. */
+export const NIGHT_HEADLIGHT_INTENSITY = 22;
+export const NIGHT_HEADLIGHT_RANGE = 20;
+export const NIGHT_HEADLIGHT_ANGLE = 0.5;
+/** Strength (0..1) of the red taillight glow on the ground behind a bus. */
+export const NIGHT_TAILLIGHT_GLOW = 0.45;
+/** Żabka shop light: PointLight intensity and reach in tiles, at most this many shops get a real light. */
+export const NIGHT_ZABKA_INTENSITY = 6;
+export const NIGHT_ZABKA_RANGE = 7;
+export const NIGHT_ZABKA_LIGHTS_MAX = 8;

@@ -2,6 +2,7 @@ import './style.css';
 import { createKeyboard } from './input/keyboard';
 import { createTouch, mergeInputs } from './input/touch';
 import { createBonusesRender } from './render/bonuses';
+import { createNight, nightModeFromUrl } from './render/night';
 import { createZulRender } from './render/zul';
 import { createScene } from './render/scene';
 import { createWeatherRender } from './render/weather';
@@ -21,6 +22,11 @@ const zones = createZonesRender(scene.scene);
 const bonuses = createBonusesRender(scene.scene);
 const zuls = createZulRender(scene.scene);
 const weather = createWeatherRender(scene.scene);
+const night = createNight(scene.scene, party.world);
+night.set(nightModeFromUrl(location.search));
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyN' && !e.repeat && !(e.target instanceof HTMLInputElement)) night.toggle();
+});
 const hud = createHud(ui, party.code, party.playerId);
 const minimap = createMinimap(ui, party.playerId);
 const keyboard = createKeyboard();
@@ -61,6 +67,7 @@ function frame(now: number) {
   bonuses.update(snap.bonuses ?? [], dt);
   zuls.update(snap.bonuses ?? [], snap.time, dt);
   weather.update(snap.weather ?? [], snap.time, dt);
+  night.update(buses, snap.time);
   // On foot the camera follows the pedestrian (card 006).
   const onFoot = me && me.busId === null && me.x !== undefined && me.z !== undefined ? { x: me.x, z: me.z } : undefined;
   scene.render(buses, snap.players, ownBus ?? onFoot, dt, snap.time);
