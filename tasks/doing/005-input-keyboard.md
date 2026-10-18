@@ -1,7 +1,7 @@
 # Sterowanie z klawiatury
 
 obszar: autobus
-kto: -
+kto: Szczpan
 zależy od: 001
 ścieżki: input/
 
