@@ -62,7 +62,7 @@ miejsce odnawia się po czasie (np. 15 s).
 | Śmietnik | +8 | wjechanie przewraca śmietnik, wraca po czasie |
 | Kontroler biletów | −20 | bonus negatywny, trzeba go omijać |
 | Wytrącony smród | ile wypadło | zostaje po taranowaniu |
-| Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej (odstęp 30 s → 8 s, limit przy sklepie 1 → 4). Żul wychodzi drzwiami, idzie 1–2,5 kafelka w losową stronę od sklepu i się przewraca; leżący daje **+40**. Po zebraniu znika, „siedzi” jak ten z przystanku |
+| Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej (odstęp 30 s → 8 s, limit przy sklepie 1 → 4). Żul wychodzi drzwiami, idzie 1–2,5 kafelka w losową stronę od sklepu i się przewraca; leżący daje **+40**. Po zebraniu znika, „siedzi” jak ten z przystanku. Trzy wersje żula (niżej, Grafika → Żul) |
 
 Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),
 widoczna zielona chmura wokół autobusu skalowana smrodem.
@@ -158,9 +158,32 @@ szarości niczyich autobusów i kafelków (`#BBBBBB`, `#D9D4C7`). Wartości w `s
 
 ### Żabka
 
-Kiosk 6 × 6 × 6 voxeli (jeden kafelek): ściany `#F2EFE6`, zielony pas szyldu `#2E8B3A` z białym
-logo z przodu, zielony dach `#3A9A45` z białym logo widocznym z kamery od góry. Przód z drzwiami
-i szybami zwrócony do sąsiedniej ulicy (na płaskiej mapie do środka mapy). Kod: `render/zabka.ts`.
+Wybrana z 4 propozycji (obecny kiosk, z markizą, nocny pawilon, żaba na dachu), powiększona.
+Stoi na działce 2 × 2 kafelki (`ZABKA_TILES`), czyli 12 × 12 voxeli, i od tej działki liczą się
+kolizje i drzwi. Ściany `#F2EFE6` do `y8` z dwiema witrynami `#628598` (plakat `#C8443A`), podwójnymi
+drzwiami `#22303A` i oknem z każdego boku. `y9–10` zielony pas szyldu `#2E8B3A` z białym logo
+z oczkami z przodu, `y11` żwirowy dach `#BFC3BD` z zieloną obwódką `#3A9A45`. Na dachu żaba
+8 × 4 × 8 `#46A84F` z jasnym brzuchem `#E8E2C0`, czerwonym pyskiem i białymi oczami wystającymi
+do `y17`, więc z kamery od góry widać zieloną żabę z dwoma białymi oczami. Przód z drzwiami
+zwrócony do ulicy przy którymkolwiek boku działki (na płaskiej mapie do środka mapy). Działka
+musi być cała wolna (nie droga, nie budynek), w mieście przy drodze. Kod: `render/zabka.ts`,
+`sim/zabka.ts`.
+
+### Żul
+
+Wybrane 3 z 4 propozycji. Każdy żul dostaje wersję po id bonusu (`zulVariant`, ta sama u wszystkich
+klientów). Voxel bonusu (`BONUS_VOXEL_SIZE`), wspólne: siwe włosy z tyłu, zarost, czerwony nos.
+
+- **Na skrzynce:** łysy, w brązowej kurtce. Spod Żabki wychodzi ze skrzynką po piwie w rękach,
+  na miejscu siada na niej z butelką, obok leżą puste.
+- **Dres:** młodszy, ciemny dres z białymi lampasami, czapka z pomponem, papieros, reklamówka
+  z Żabki. Na miejscu przewraca się na twarz.
+- **Na kartonie:** w kaszkiecie, karton pod pachą. Na miejscu kładzie się na kartonie na plecach,
+  nogi przykryte gazetą, butelka na piersi.
+
+Żul z przystanku od razu jest w pozie „na miejscu” i nie kręci się ani nie podskakuje jak inne
+bonusy. Nad leżącym/siedzącym unosi się zielona chmurka. Kod: `render/bonusModels.ts`
+(`zulGeometry`), `render/zul.ts`, `render/bonuses.ts`.
 
 ### Smród na autobusie
 

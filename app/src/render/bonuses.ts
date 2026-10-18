@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Bonus } from '../shared/types';
-import { bonusGeometry } from './bonusModels';
+import { bonusGeometry, zulGeometry, zulVariant } from './bonusModels';
 
 const BOB_HEIGHT = 0.15;
 const BOB_SPEED = 3;
@@ -29,8 +29,15 @@ export function createBonusesRender(scene: THREE.Scene) {
         mesh.visible = b.active;
         if (!b.active) continue;
         // A bonus spot can change kind on respawn.
-        mesh.geometry = bonusGeometry(b.kind);
+        const zul = b.kind === 'zul';
+        mesh.geometry = zul ? zulGeometry(zulVariant(b.id), 'rest') : bonusGeometry(b.kind);
         const phase = b.id * 1.7;
+        if (zul) {
+          // A drunk sits or lies still (GAME_DESIGN: Żul spod Żabki), no bobbing or spinning.
+          mesh.position.set(b.x, 0, b.z);
+          mesh.rotation.y = phase;
+          continue;
+        }
         mesh.position.set(b.x, 0.05 + BOB_HEIGHT * (1 + Math.sin(t * BOB_SPEED + phase)), b.z);
         mesh.rotation.y = t * SPIN_SPEED + phase;
       }

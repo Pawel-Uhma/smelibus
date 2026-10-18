@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BONUS_STINK, BUS_LENGTH, ZABKA_SPAWN_MIN_S, ZABKA_ZUL_FALLEN_STINK, ZABKA_ZUL_WALK_MAX, ZABKA_ZULS_MAX,
+  BONUS_STINK, BUS_LENGTH, ZABKA_SPAWN_MIN_S, ZABKA_TILES, ZABKA_ZUL_FALLEN_STINK, ZABKA_ZUL_WALK_MAX, ZABKA_ZULS_MAX,
   ZABKA_ZULS_START,
 } from '../shared/config';
 import type { Bus, GameState } from '../shared/types';
@@ -44,9 +44,18 @@ describe('Żabka shops', () => {
     const kind = (x: number, z: number) => world.tiles[Math.floor(z) * world.size + Math.floor(x)].kind;
     const shops = placeZabkas(world);
     expect(shops.length).toBeGreaterThan(0);
+    const h = ZABKA_TILES / 2;
     for (const p of shops) {
-      expect(['road', 'building']).not.toContain(kind(p.x, p.z));
-      const roadNext = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => kind(p.x + dx, p.z + dz) === 'road');
+      // The whole lot is free; some tile just outside it is a road.
+      for (let x = p.x - h + 0.5; x < p.x + h; x++) {
+        for (let z = p.z - h + 0.5; z < p.z + h; z++) expect(['road', 'building']).not.toContain(kind(x, z));
+      }
+      let roadNext = false;
+      for (let i = -h + 0.5; i < h; i++) {
+        for (const [x, z] of [[p.x + i, p.z - h - 0.5], [p.x + i, p.z + h + 0.5], [p.x - h - 0.5, p.z + i], [p.x + h + 0.5, p.z + i]]) {
+          roadNext ||= kind(x, z) === 'road';
+        }
+      }
       expect(roadNext).toBe(true);
     }
   });
@@ -141,7 +150,7 @@ describe('Żabka drunks walking out', () => {
 });
 
 describe('kiosk collisions', () => {
-  const shop = { x: 20.5, z: 20.5 };
+  const shop = { x: 20, z: 20 };
   const bus = (x: number, z: number, angle: number, speed: number): Bus =>
     ({ id: 0, x, z, angle, speed, driverId: 'a', stink: 0 });
 
@@ -150,7 +159,7 @@ describe('kiosk collisions', () => {
     for (let t = 0; t < 1.5; t += 1 / 60) {
       updateBus(b, NO_INPUT, 1 / 60, 100);
       collideZabkas(b, [shop]);
-      expect(b.z + BUS_LENGTH / 2).toBeLessThanOrEqual(shop.z - 0.5 + 1e-9);
+      expect(b.z + BUS_LENGTH / 2).toBeLessThanOrEqual(shop.z - ZABKA_TILES / 2 + 1e-9);
     }
     expect(b.speed).toBeLessThanOrEqual(0);
   });

@@ -1,7 +1,7 @@
 import {
   BONUS_STINK, ZABKA_SPAWN_MIN_S, ZABKA_SPAWN_SPEEDUP_PER_MIN, ZABKA_SPAWN_START_S,
   ZABKA_ZUL_FALLEN_STINK, ZABKA_ZUL_WALK_MAX, ZABKA_ZUL_WALK_MIN, ZABKA_ZUL_WALK_SPEED,
-  ZABKA_ZULS_MAX, ZABKA_ZULS_START, ZABKA_ZULS_STEP_S, ZABKAS_PER_TILE,
+  ZABKA_TILES, ZABKA_ZULS_MAX, ZABKA_ZULS_START, ZABKA_ZULS_STEP_S, ZABKAS_PER_TILE,
 } from '../shared/config';
 import type { Bus, GameState, World } from '../shared/types';
 import { nextId, rand } from './bonus';
@@ -30,23 +30,45 @@ function rng(seed: number): () => number {
   };
 }
 
+const SIDES = [[0, 1], [1, 0], [0, -1], [-1, 0]] as const;
+/** Half the side of a kiosk (render/zabka.ts): it fills its lot. */
+const KIOSK_HALF = ZABKA_TILES / 2;
+
+/** Tiles just outside one side (dx, dz) of the lot whose corner tile is (bx, bz). */
+function sideTiles(bx: number, bz: number, dx: number, dz: number): [number, number][] {
+  const n = ZABKA_TILES;
+  return Array.from({ length: n }, (_, i) => {
+    if (dz === 1) return [bx + i, bz + n];
+    if (dz === -1) return [bx + i, bz - 1];
+    return dx === 1 ? [bx + n, bz + i] : [bx - 1, bz + i];
+  });
+}
+
+function isRoad(world: World, x: number, z: number): boolean {
+  return x >= 0 && z >= 0 && x < world.size && z < world.size && world.tiles[z * world.size + x].kind === 'road';
+}
+
 /**
- * Shop spots from the world seed, spread out, away from the map edge. On the city map they stand
- * on free lots (not road, not building) next to a road; on the flat map anywhere.
+ * Shop spots (centre of a ZABKA_TILES × ZABKA_TILES lot) from the world seed, spread out, away from
+ * the map edge. On the city map they stand on free lots (not road, not building) next to a road;
+ * on the flat map anywhere.
  */
 export function placeZabkas(world: World): { x: number; z: number }[] {
   const rand = rng(world.seed ^ 0x2abca);
   const { size, tiles } = world;
-  const kindAt = (x: number, z: number) =>
-    x < 0 || z < 0 || x >= size || z >= size ? undefined : tiles[z * size + x].kind;
+  const n = ZABKA_TILES;
   const city = tiles.some((t) => t.kind === 'road');
   const margin = 2;
   const candidates: number[] = [];
-  for (let z = margin; z < size - margin; z++) {
-    for (let x = margin; x < size - margin; x++) {
-      const k = kindAt(x, z);
-      if (k === 'road' || k === 'building') continue;
-      if (city && ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => kindAt(x + dx, z + dz) === 'road')) continue;
+  for (let z = margin; z <= size - margin - n; z++) {
+    for (let x = margin; x <= size - margin - n; x++) {
+      let free = true;
+      for (let i = 0; i < n * n && free; i++) {
+        const k = tiles[(z + Math.floor(i / n)) * size + x + (i % n)].kind;
+        free = k !== 'road' && k !== 'building';
+      }
+      if (!free) continue;
+      if (city && !SIDES.some(([dx, dz]) => sideTiles(x, z, dx, dz).some(([tx, tz]) => isRoad(world, tx, tz)))) continue;
       candidates.push(z * size + x);
     }
   }
@@ -60,21 +82,19 @@ export function placeZabkas(world: World): { x: number; z: number }[] {
   const shops: { x: number; z: number }[] = [];
   for (const idx of candidates) {
     if (shops.length >= want) break;
-    const p = { x: (idx % size) + 0.5, z: Math.floor(idx / size) + 0.5 };
+    const p = { x: (idx % size) + n / 2, z: Math.floor(idx / size) + n / 2 };
     if (shops.every((s) => (s.x - p.x) ** 2 + (s.z - p.z) ** 2 >= gap * gap)) shops.push(p);
   }
   return shops;
 }
 
-/** Unit direction the shop door faces: a neighbouring road, else the map centre. */
+/** Unit direction the shop door faces: a side of the lot touching a road, else the map centre. */
 export function zabkaFront(world: World, shop: { x: number; z: number }): { x: number; z: number } {
-  const { size, tiles } = world;
-  const tx = Math.floor(shop.x);
-  const tz = Math.floor(shop.z);
-  for (const [dx, dz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
-    const x = tx + dx;
-    const z = tz + dz;
-    if (x >= 0 && z >= 0 && x < size && z < size && tiles[z * size + x].kind === 'road') return { x: dx, z: dz };
+  const { size } = world;
+  const bx = Math.round(shop.x - ZABKA_TILES / 2);
+  const bz = Math.round(shop.z - ZABKA_TILES / 2);
+  for (const [dx, dz] of SIDES) {
+    if (sideTiles(bx, bz, dx, dz).some(([x, z]) => isRoad(world, x, z))) return { x: dx, z: dz };
   }
   const dx = size / 2 - shop.x;
   const dz = size / 2 - shop.z;
@@ -107,7 +127,7 @@ export function updateZabkas(state: GameState): void {
     if (waiting >= zabkaLimit(state.time)) return;
     // Out of the door (just past the kiosk), then away from the shop, up to 90° off the door line.
     const front = zabkaFront(state.world, shop);
-    const door = { x: shop.x + front.x * 0.7, z: shop.z + front.z * 0.7 };
+    const door = { x: shop.x + front.x * (KIOSK_HALF + 0.2), z: shop.z + front.z * (KIOSK_HALF + 0.2) };
     const a = Math.atan2(front.x, front.z) + (rand(state) - 0.5) * Math.PI;
     const dist = ZABKA_ZUL_WALK_MIN + (ZABKA_ZUL_WALK_MAX - ZABKA_ZUL_WALK_MIN) * rand(state);
     const size = state.world.size;
@@ -122,8 +142,6 @@ export function updateZabkas(state: GameState): void {
   });
 }
 
-/** Half the side of a kiosk (render/zabka.ts): it fills its tile. */
-const KIOSK_HALF = 0.5;
 
 /**
  * Keeps the bus rectangle out of the kiosks (square, axis-aligned): pushes it out along the axis
@@ -136,21 +154,24 @@ export function collideZabkas(bus: Bus, shops: readonly { x: number; z: number }
     const cs = corners(bus);
     const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
     let best: { nx: number; nz: number; depth: number } | null = null;
-    for (const [nx, nz] of [[1, 0], [0, 1], [fx, fz], [fz, -fx]]) {
-      const proj = cs.map(([x, z]) => x * nx + z * nz);
-      const c = shop.x * nx + shop.z * nz;
-      const r = KIOSK_HALF * (Math.abs(nx) + Math.abs(nz));
-      const depth = Math.min(Math.max(...proj), c + r) - Math.max(Math.min(...proj), c - r);
-      if (depth <= 0) {
+    for (const [ax, az] of [[1, 0], [0, 1], [fx, fz], [fz, -fx]]) {
+      const proj = cs.map(([x, z]) => x * ax + z * az);
+      const c = shop.x * ax + shop.z * az;
+      const r = KIOSK_HALF * (Math.abs(ax) + Math.abs(az));
+      // How far the bus has to move along +axis or -axis to clear the kiosk. Both count, because
+      // the bus (BUS_LENGTH) is longer than the kiosk and can stick out on both sides of it.
+      const plus = c + r - Math.min(...proj);
+      const minus = Math.max(...proj) - (c - r);
+      if (plus <= 0 || minus <= 0) {
         best = null;
         break;
       }
-      if (!best || depth < best.depth) best = { nx, nz, depth };
+      const depth = Math.min(plus, minus);
+      const sign = plus < minus ? 1 : -1;
+      if (!best || depth < best.depth) best = { nx: ax * sign, nz: az * sign, depth };
     }
     if (!best) continue;
-    // Point the axis from the kiosk towards the bus.
-    const away = (bus.x - shop.x) * best.nx + (bus.z - shop.z) * best.nz < 0 ? -1 : 1;
-    const nx = best.nx * away, nz = best.nz * away;
+    const { nx, nz } = best;
     bus.x += nx * best.depth;
     bus.z += nz * best.depth;
     bounceOff(bus, -nx, -nz);

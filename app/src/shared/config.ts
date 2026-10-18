@@ -104,6 +104,8 @@ export const STOP_ZUL_CHANCE = 0.5;
 // Żabka shops (sim/zabka.ts): each one lets out drunks ("żul" bonus) that wait until picked up.
 /** Shops per map tile (×size², at least 1). */
 export const ZABKAS_PER_TILE = 1 / 600;
+/** Side of a shop in tiles: it stands on a ZABKA_TILES × ZABKA_TILES lot (render/zabka.ts model). */
+export const ZABKA_TILES = 2;
 /** Seconds between drunks from one shop at the start of the match, the floor, and how many
  *  seconds the gap shrinks per minute of the match. */
 export const ZABKA_SPAWN_START_S = 30;

@@ -7,7 +7,8 @@ import type { Bonus, BonusKind } from '../shared/types';
 import { createBonusesRender } from './bonuses';
 import { createBusModel } from './models/bus';
 
-const KINDS: BonusKind[] = ['zul', 'kebab', 'dog', 'fan', 'herring', 'durian', 'trash', 'controller', 'dropped'];
+// Three drunks: the look goes by id (crate, tracksuit, cardboard).
+const KINDS: BonusKind[] = ['zul', 'zul', 'zul', 'kebab', 'dog', 'fan', 'herring', 'durian', 'trash', 'controller', 'dropped'];
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });

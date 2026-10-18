@@ -78,19 +78,141 @@ function person(b: Builder, look: PersonLook) {
   }
 }
 
-function zul(): BonusVoxel[] {
+// Drunks (GAME_DESIGN: Żul spod Żabki): three looks picked from the proposals, one per bonus by id.
+const ZUL = {
+  jacket: 0x6b4a2e, jacketDark: 0x4e3520, coat: 0x5e5446, pants: 0x4a4f5a, shoes: 0x2a2522,
+  hair: 0x9a938a, stubble: 0x8a7f74, nose: 0xd04040, eye: 0x202020,
+  bottle: 0x7a4a1e, neck: 0x9b6a35, glass: 0x2f7a3a, crate: 0x2f5a3a, crateDark: 0x24452d,
+  tracksuit: 0x2f3540, stripe: 0xe8e8e8, beanie: 0x4f7f7a, beanieTop: 0x6fa39c, ember: 0xe86a2a,
+  bag: 0xeeeeea, bagGreen: 0x2e8b3a, cap: 0x6e6656, capPeak: 0x585244,
+  cardboard: 0xb8935a, cardboardDark: 0x9c7a47, paper: 0xdcd8cc, ink: 0x8a8680,
+};
+
+export type ZulVariant = 'crate' | 'tracksuit' | 'cardboard';
+/** 'walk' while he comes out of a Żabka, 'rest' once he has settled down (and on bus stops). */
+export type ZulPose = 'walk' | 'rest';
+export const ZUL_VARIANTS: readonly ZulVariant[] = ['crate', 'tracksuit', 'cardboard'];
+
+/** Look of the drunk for a bonus id, the same on every client. */
+export function zulVariant(id: number): ZulVariant {
+  return ZUL_VARIANTS[((id % ZUL_VARIANTS.length) + ZUL_VARIANTS.length) % ZUL_VARIANTS.length];
+}
+
+/** Grey hair at the back, stubble, red nose between the eyes; `y` is the head's bottom row. */
+function drunkFace(b: Builder, y: number) {
+  b.box(-1, 1, y, y + 2, -1, -1, ZUL.hair);
+  b.box(-1, 1, y, y, 2, 2, ZUL.stubble);
+  b.set(-1, y + 1, 2, ZUL.eye);
+  b.set(1, y + 1, 2, ZUL.eye);
+  b.set(0, y + 1, 2, ZUL.nose);
+}
+
+/** Young one in a tracksuit with a Żabka bag and a cigarette. Walks and falls over on his face. */
+function tracksuit(b: Builder) {
+  person(b, { shoes: ZUL.stripe, legs: ZUL.tracksuit, torso: ZUL.tracksuit });
+  for (let y = 1; y <= 4; y++) {
+    b.set(-2, y, 0, ZUL.stripe);
+    b.set(2, y, 0, ZUL.stripe);
+  }
+  b.box(0, 0, 5, 9, 1, 1, ZUL.stripe); // zip
+  b.box(-1, 1, 13, 13, -1, 1, ZUL.beanie);
+  b.set(0, 14, 0, ZUL.beanieTop);
+  b.set(1, 10, 2, ZUL.stripe); // cigarette
+  b.set(1, 10, 3, ZUL.ember);
+  b.box(3, 3, 2, 4, -1, 1, ZUL.bag);
+  b.set(3, 3, 0, ZUL.bagGreen);
+}
+
+/** Bald one with a beer crate: carries it out, then sits on it with a bottle. */
+function crate(b: Builder, pose: ZulPose) {
+  if (pose === 'walk') {
+    person(b, { shoes: ZUL.shoes, legs: ZUL.pants, torso: ZUL.jacket, arms: ZUL.jacketDark });
+    drunkFace(b, 10);
+    // Arms forward round the crate in front of the belly.
+    for (const x of [-3, 3]) {
+      for (let y = 5; y <= 9; y++) b.clear(x, y, 0);
+      b.set(x, 9, 0, ZUL.jacketDark);
+      b.set(x, 8, 1, ZUL.jacketDark);
+      b.set(x, 7, 2, SKIN);
+    }
+    b.box(-2, 2, 5, 7, 2, 5, ZUL.crate);
+    b.box(-2, 2, 8, 8, 2, 5, ZUL.crateDark);
+    for (const [x, z] of [[-1, 3], [1, 4], [0, 3]]) b.set(x, 9, z, ZUL.neck);
+    return;
+  }
+  b.box(-2, 2, 0, 4, -2, 2, ZUL.crate);
+  b.box(-2, 2, 4, 4, -2, 2, ZUL.crateDark);
+  b.set(-2, 3, 0, ZUL.crateDark);
+  b.set(2, 3, 0, ZUL.crateDark);
+  // Sitting: thighs forward, shins down in front of the crate.
+  b.box(-2, 2, 5, 5, -1, 0, ZUL.pants);
+  for (const [x0, x1] of [[-2, -1], [1, 2]]) {
+    b.box(x0, x1, 5, 5, 1, 3, ZUL.pants);
+    b.box(x0, x1, 1, 4, 3, 3, ZUL.pants);
+    b.box(x0, x1, 0, 0, 3, 4, ZUL.shoes);
+  }
+  b.box(-2, 2, 6, 10, -1, 1, ZUL.jacket);
+  b.box(-1, 1, 11, 13, -1, 1, SKIN);
+  drunkFace(b, 11);
+  b.box(-3, -3, 7, 10, 0, 0, ZUL.jacketDark);
+  b.set(-3, 6, 1, SKIN);
+  // Right hand holds a bottle by the neck.
+  b.box(3, 3, 7, 10, 0, 0, ZUL.jacketDark);
+  b.set(3, 6, 0, SKIN);
+  b.set(3, 5, 0, ZUL.neck);
+  b.box(3, 3, 2, 4, 0, 0, ZUL.bottle);
+  // Empties next to the crate.
+  b.box(4, 4, 0, 0, -2, 0, ZUL.glass);
+  b.box(-4, -4, 0, 2, 1, 1, ZUL.bottle);
+}
+
+/** Old one in a flat cap with a cardboard under his arm: lies down on it, under a newspaper. */
+function cardboard(b: Builder, pose: ZulPose) {
+  if (pose === 'walk') {
+    person(b, { shoes: ZUL.shoes, legs: ZUL.pants, torso: ZUL.coat });
+    drunkFace(b, 10);
+    b.box(-1, 1, 13, 13, -1, 1, ZUL.cap);
+    b.box(-1, 1, 13, 13, 2, 2, ZUL.capPeak);
+    b.box(-4, -4, 4, 9, -3, 3, ZUL.cardboard);
+    b.box(-4, -4, 6, 6, -3, 3, ZUL.cardboardDark);
+    return;
+  }
+  // On his back along z, head at +z, face up.
+  b.box(-4, 4, 0, 0, -7, 5, ZUL.cardboard);
+  for (let z = -6; z <= 5; z += 4) b.box(-4, 4, 0, 0, z, z, ZUL.cardboardDark);
+  b.box(-2, -1, 1, 2, -6, -3, ZUL.pants);
+  b.box(1, 2, 1, 2, -6, -3, ZUL.pants);
+  b.box(-2, -1, 1, 3, -7, -7, ZUL.shoes);
+  b.box(1, 2, 1, 3, -7, -7, ZUL.shoes);
+  b.box(-2, 2, 3, 3, -6, -3, ZUL.paper); // newspaper over the legs
+  b.box(-2, 2, 3, 3, -5, -5, ZUL.ink);
+  b.box(-2, 2, 1, 3, -2, 1, ZUL.coat);
+  for (const x of [-3, 3]) {
+    b.box(x, x, 1, 2, -2, 0, ZUL.coat);
+    b.set(x, 1, -3, SKIN);
+  }
+  b.box(-1, 1, 1, 3, 2, 4, SKIN);
+  b.box(-1, 1, 1, 1, 2, 4, ZUL.hair);
+  b.box(-1, 1, 4, 4, 2, 2, ZUL.stubble);
+  b.set(-1, 4, 3, ZUL.eye);
+  b.set(1, 4, 3, ZUL.eye);
+  b.set(0, 4, 3, ZUL.nose);
+  b.box(-1, 1, 1, 3, 5, 5, ZUL.cap);
+  b.box(0, 0, 4, 4, -2, -1, ZUL.bottle); // hugged on the chest
+  b.set(0, 4, 0, ZUL.neck);
+  b.box(4, 4, 1, 1, 2, 3, ZUL.glass);
+}
+
+export function zulVoxels(variant: ZulVariant, pose: ZulPose): BonusVoxel[] {
   const b = new Builder();
-  person(b, { shoes: 0x2a2018, legs: 0x4a4a52, torso: 0x6b5a3e });
-  b.set(0, 11, 2, 0xd04040); // red nose
-  b.box(-1, 1, 10, 10, 2, 2, 0x7a6a58); // stubble
-  b.box(-1, 1, 13, 13, -1, 1, 0x3a5a8a); // beanie
-  b.set(0, 14, 0, 0x3a5a8a);
-  // Bottle in the right hand.
-  b.box(4, 4, 3, 7, 0, 0, 0x2f7a3a);
-  b.set(4, 8, 0, 0x2f7a3a);
-  b.set(4, 9, 0, 0xc8a040);
-  for (const [x, y, z] of [[-1, 15, 1], [2, 14, -1], [-2, 13, 2]]) b.set(x, y, z, STINK_GREEN);
+  if (variant === 'tracksuit') tracksuit(b);
+  else if (variant === 'crate') crate(b, pose);
+  else cardboard(b, pose);
   return b.voxels();
+}
+
+function zul(): BonusVoxel[] {
+  return zulVoxels('tracksuit', 'rest');
 }
 
 function fan(): BonusVoxel[] {
@@ -279,6 +401,19 @@ export function bonusGeometry(kind: BonusKind): THREE.BufferGeometry {
   if (!g) {
     g = buildGeometry(bonusVoxels(kind));
     cache.set(kind, g);
+  }
+  return g;
+}
+
+const zulCache = new Map<string, THREE.BufferGeometry>();
+
+/** Shared geometry per drunk look and pose, origin at the bottom centre. */
+export function zulGeometry(variant: ZulVariant, pose: ZulPose): THREE.BufferGeometry {
+  const key = `${variant}:${pose}`;
+  let g = zulCache.get(key);
+  if (!g) {
+    g = buildGeometry(zulVoxels(variant, pose));
+    zulCache.set(key, g);
   }
   return g;
 }

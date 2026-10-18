@@ -15,7 +15,7 @@ i ma na dachu wielką voxelową żabę.
 
 ## Gotowe, gdy
 
-- [ ] trzy wersje żula w `bonusModels.ts`, pozy „idzie” i „na miejscu”
-- [ ] żul z przystanku stoi w miejscu (nie kręci się), Żabkowy kończy w pozie swojej wersji
-- [ ] Żabka 2 × 2 kafelki: rozstawianie, drzwi, kolizje (`ZABKA_TILES` w config)
-- [ ] model Żabki z żabą na dachu, testy
+- [x] trzy wersje żula w `bonusModels.ts`, pozy „idzie” i „na miejscu”
+- [x] żul z przystanku stoi w miejscu (nie kręci się), Żabkowy kończy w pozie swojej wersji
+- [x] Żabka 2 × 2 kafelki: rozstawianie, drzwi, kolizje (`ZABKA_TILES` w config)
+- [x] model Żabki z żabą na dachu, testy
