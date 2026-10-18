@@ -46,4 +46,15 @@ describe('paintZones', () => {
     paintZones(out, tiles, size, colorOf, flash);
     expect(px(out, size, 1, 1) & 255).toBeGreaterThan(before & 255);
   });
+
+  it('high contrast: paler fill and a thicker black border', () => {
+    const out = new Uint8Array((size * SUB) ** 2 * 4);
+    paintZones(out, tiles, size, colorOf);
+    const normalFill = px(out, size, 0, 1);
+    paintZones(out, tiles, size, colorOf, undefined, true);
+    expect(px(out, size, 0, 1) & 255).toBeGreaterThan(normalFill & 255); // red mixed with more neutral
+    expect(px(out, size, SUB - 1, 1)).toBe(0); // black border
+    expect(px(out, size, SUB, 1)).toBe(0);
+    expect(px(out, size, SUB - 2, 1)).not.toBe(0);
+  });
 });

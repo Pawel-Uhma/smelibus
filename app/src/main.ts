@@ -3,10 +3,12 @@ import { createSounds } from './audio/sounds';
 import { createKeyboard } from './input/keyboard';
 import { createTouch, mergeInputs } from './input/touch';
 import { createBonusesRender } from './render/bonuses';
+import { createContrast } from './render/contrast';
 import { createNight, nightModeFromUrl } from './render/night';
 import { createZulRender } from './render/zul';
 import { createScene } from './render/scene';
 import { createWeatherRender } from './render/weather';
+import { HIGH_CONTRAST_NIGHT_MAX } from './shared/config';
 import { createZonesRender } from './render/zones';
 import type { Snapshot } from './shared/types';
 import { createBusPredictor, type BusPredictor } from './sim/prediction';
@@ -15,6 +17,7 @@ import { createMinimap } from './ui/minimap';
 import { showLobby } from './ui/lobby/lobby';
 
 const ui = document.getElementById('ui')!;
+const contrast = createContrast();
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 
 const party = await showLobby(ui);
@@ -26,7 +29,9 @@ const weather = createWeatherRender(scene.scene);
 const night = createNight(scene.scene, party.world);
 night.set(nightModeFromUrl(location.search));
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyN' && !e.repeat && !(e.target instanceof HTMLInputElement)) night.toggle();
+  if (e.repeat || e.target instanceof HTMLInputElement) return;
+  if (e.code === 'KeyN') night.toggle();
+  if (e.code === 'KeyK') contrast.toggle();
 });
 const hud = createHud(ui, party.code, party.playerId, {
   isHost: () => party.lobby().hostId === party.playerId,
@@ -36,7 +41,7 @@ const minimap = createMinimap(ui, party.playerId);
 const keyboard = createKeyboard();
 const touch = createTouch();
 const sounds = createSounds(party.world, party.playerId);
-ui.querySelector('.hud .party')?.append(sounds.muteButton());
+ui.querySelector('.hud .party')?.append(sounds.muteButton(), contrast.button());
 let lastHorn = 0;
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
 // Rematch (card 027): the scene is built for one map, so reload and rejoin the same seat
@@ -82,10 +87,11 @@ function frame(now: number) {
   const ownBus = predictor?.bus ?? null;
 
   const buses = shown.map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));
-  zones.update(party.world, snap.players, dt);
+  zones.update(party.world, snap.players, dt, contrast.on);
   bonuses.update(snap.bonuses ?? [], dt);
   zuls.update(snap.bonuses ?? [], snap.time, dt);
   weather.update(snap.weather ?? [], snap.time, dt);
+  night.setMaxDarkness(contrast.on ? HIGH_CONTRAST_NIGHT_MAX : 1);
   night.update(buses, snap.time);
   // On foot the camera follows the pedestrian (card 006).
   const onFoot = me && me.busId === null && me.x !== undefined && me.z !== undefined ? { x: me.x, z: me.z } : undefined;

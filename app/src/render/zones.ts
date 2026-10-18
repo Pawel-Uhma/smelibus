@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { NEUTRAL_COLOR } from '../shared/config';
+import { HIGH_CONTRAST_BORDER_TEXELS, HIGH_CONTRAST_FILL_MIX, NEUTRAL_COLOR } from '../shared/config';
 import type { Player, PlayerId, Tile, World } from '../shared/types';
 import { createCaptureFx } from './captureFx';
 
@@ -29,10 +29,13 @@ const WHITE: Rgb = [255, 255, 255];
  * Pure painter: writes RGBA texels (size*SUB square, row = z) for the given tiles.
  * Each tile is filled with its owner's color; texels on a tile edge that touches a
  * different owner are drawn darker (the border). `flash[idx]` in 0..1 blends toward white.
+ * `highContrast` (card 036): paler fill, so buses stand out, and a thicker black border.
  */
 export function paintZones(out: Uint8Array, tiles: readonly Tile[], size: number,
-  colorOf: (id: PlayerId) => number | undefined, flash?: Float32Array): void {
+  colorOf: (id: PlayerId) => number | undefined, flash?: Float32Array, highContrast = false): void {
   const w = size * SUB;
+  const fillMix = highContrast ? HIGH_CONTRAST_FILL_MIX : FILL_MIX;
+  const bw = highContrast ? HIGH_CONTRAST_BORDER_TEXELS : 1;
   const ownerAt = (i: number, j: number) => tiles[j * size + i].ownerId;
   for (let j = 0; j < size; j++) {
     for (let i = 0; i < size; i++) {
@@ -40,8 +43,8 @@ export function paintZones(out: Uint8Array, tiles: readonly Tile[], size: number
       const owner = tiles[idx].ownerId;
       const hex = owner ? colorOf(owner) : undefined;
       const base = hex === undefined ? NEUTRAL : rgb(hex);
-      let fill = hex === undefined ? NEUTRAL : mix(base, NEUTRAL, FILL_MIX);
-      let border = hex === undefined ? NEUTRAL : mix(base, [0, 0, 0], 1 - BORDER_DARKEN);
+      let fill = hex === undefined ? NEUTRAL : mix(base, NEUTRAL, fillMix);
+      let border: Rgb = hex === undefined ? NEUTRAL : highContrast ? [0, 0, 0] : mix(base, [0, 0, 0], 1 - BORDER_DARKEN);
       const f = flash ? flash[idx] : 0;
       if (f > 0) {
         fill = mix(fill, WHITE, f * FLASH_WHITE);
@@ -53,8 +56,8 @@ export function paintZones(out: Uint8Array, tiles: readonly Tile[], size: number
       const diffU = j < size - 1 && ownerAt(i, j + 1) !== owner;
       for (let sj = 0; sj < SUB; sj++) {
         for (let si = 0; si < SUB; si++) {
-          const edge = (si === 0 && diffL) || (si === SUB - 1 && diffR)
-            || (sj === 0 && diffD) || (sj === SUB - 1 && diffU);
+          const edge = (si < bw && diffL) || (si >= SUB - bw && diffR)
+            || (sj < bw && diffD) || (sj >= SUB - bw && diffU);
           const c = edge && owner ? border : fill;
           const p = ((j * SUB + sj) * w + (i * SUB + si)) * 4;
           out[p] = c[0];
@@ -80,6 +83,7 @@ export function createZonesRender(scene: THREE.Scene) {
   let flash = new Float32Array(0);
   let flashing = false;
   let lastColors = '';
+  let lastContrast = false;
   const capture = createCaptureFx(scene);
 
   function rebuild(newSize: number) {
@@ -111,14 +115,15 @@ export function createZonesRender(scene: THREE.Scene) {
   }
 
   return {
-    update(world: World, players: readonly Player[], dt: number) {
+    update(world: World, players: readonly Player[], dt: number, highContrast = false) {
       if (world.size !== size || !mesh) rebuild(world.size);
       const tiles = world.tiles;
       const colors = new Map<PlayerId, number>(players.map((p) => [p.id, p.color]));
       const colorKey = players.map((p) => `${p.id}:${p.color}`).join(',');
 
       const first = lastOwner.length !== tiles.length;
-      let changed = first || colorKey !== lastColors;
+      let changed = first || colorKey !== lastColors || highContrast !== lastContrast;
+      lastContrast = highContrast;
       const taken: number[] = [];
       for (let idx = 0; idx < tiles.length; idx++) {
         const owner = tiles[idx].ownerId;
@@ -152,7 +157,7 @@ export function createZonesRender(scene: THREE.Scene) {
       }
       lastColors = colorKey;
       if (!changed) return;
-      paintZones(pixels, tiles, size, (id) => colors.get(id), flash);
+      paintZones(pixels, tiles, size, (id) => colors.get(id), flash, highContrast);
       texture!.needsUpdate = true;
     },
   };

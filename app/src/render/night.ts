@@ -230,6 +230,8 @@ export function createNight(scene: THREE.Scene, world: World) {
   }
 
   let mode: NightMode = 'cycle';
+  /** Darkness cap; high contrast mode (card 036) keeps the night light enough to read. */
+  let maxDark = 1;
 
   return {
     get mode() {
@@ -237,6 +239,9 @@ export function createNight(scene: THREE.Scene, world: World) {
     },
     set(next: NightMode) {
       mode = next;
+    },
+    setMaxDarkness(k: number) {
+      maxDark = k;
     },
     /** Key N: force night, and back to the normal cycle (or day, if the cycle is off). */
     toggle() {
@@ -253,7 +258,7 @@ export function createNight(scene: THREE.Scene, world: World) {
         }
         return;
       }
-      const k = mode === 'night' ? 1 : nightLevel(time);
+      const k = Math.min(maxDark, mode === 'night' ? 1 : nightLevel(time));
       swapUnlit(k);
       apply(k);
       pool.forEach((l, i) => {

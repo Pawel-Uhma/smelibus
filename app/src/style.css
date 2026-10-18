@@ -137,3 +137,19 @@ body.touch-on .hud-stink { left: auto; right: 12px; top: 12px; bottom: auto; wid
 body.touch-on .hud-clock { top: 76px; bottom: auto; left: auto; right: 12px; transform: none; align-items: flex-end; flex-direction: column; }
 body.touch-on .hud-clock .sudden { white-space: normal; max-width: min(170px, 38vw); text-align: right; }
 @media (max-height: 480px) { body.touch-on .hud ul { max-height: calc(100vh - 110px); overflow-y: auto; } }
+
+/* High contrast mode (render/contrast.ts, card 036): solid panels, black text, thicker frames. */
+body.hc .hud, body.hc .hud-clock .time, body.hc .hud-stink, body.hc .rematch-bar, body.hc .win .card { background: #fff; color: #000; border-width: 3px; border-color: #000; }
+body.hc .hud .help { opacity: 1; }
+body.hc .win .rematch-wait { opacity: 1; }
+body.hc .hud li::before { width: 16px; height: 16px; border: 2px solid #000; }
+body.hc .hud li::after { opacity: .45; }
+body.hc .stink-tube { border-color: #000; border-width: 3px; }
+body.hc .stink-ticks { background: linear-gradient(90deg, #0000 calc(25% - 1px), #000 0 calc(25% + 1px), #0000 0 calc(50% - 1px), #000 0 calc(50% + 1px), #0000 0 calc(75% - 1px), #000 0 calc(75% + 1px), #0000 0); }
+body.hc .stink-pop { -webkit-text-stroke: 6px #000; }
+body.hc .stink-pop.plus { color: #b6ff5c; }
+body.hc .stink-pop.minus { color: #fff; }
+body.hc .minimap { border: 3px solid #000; box-shadow: 3px 3px 0 #000; }
+body.hc .banner { background: #000; border: 3px solid #fff; }
+body.hc button { border-color: #000; }
+body.hc button:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
