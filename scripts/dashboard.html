@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenci na żywo</title>
+<style>
+:root {
+  --bg: #f6f6f3; --panel: #ffffff; --line: #e4e3dd; --text: #1d1d1b; --muted: #75746d; --faint: #a4a39b;
+  --accent: #2f6fde; --ok: #1f9d55; --warn: #c9861a; --bad: #d1453b; --chip: #efeee9;
+  --p0: #2f6fde; --p1: #d1453b; --p2: #1f9d55; --p3: #a35bd6; --p4: #c9861a; --p5: #138a9c;
+  --shadow: 0 1px 2px rgba(0,0,0,.05);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141413; --panel: #1d1d1b; --line: #2e2d2a; --text: #ecebe6; --muted: #9b9a92; --faint: #6b6a63;
+    --accent: #6c9cf0; --ok: #43c07a; --warn: #e3a54a; --bad: #ec6d63; --chip: #282825;
+    --p0: #6c9cf0; --p1: #ec6d63; --p2: #43c07a; --p3: #c08bec; --p4: #e3a54a; --p5: #3fc1d4;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141413; --panel: #1d1d1b; --line: #2e2d2a; --text: #ecebe6; --muted: #9b9a92; --faint: #6b6a63;
+  --accent: #6c9cf0; --ok: #43c07a; --warn: #e3a54a; --bad: #ec6d63; --chip: #282825;
+  --p0: #6c9cf0; --p1: #ec6d63; --p2: #43c07a; --p3: #c08bec; --p4: #e3a54a; --p5: #3fc1d4;
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+.wrap { max-width: 1500px; margin: 0 auto; padding: 20px 16px 40px; }
+h2 { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 26px 0 10px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+.muted { color: var(--muted); } .faint { color: var(--faint); }
+
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; }
+header h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+.live { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 13px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 var(--ok); animation: pulse 2s infinite; }
+.dot.off { background: var(--bad); animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 60%, transparent); } 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .dot { animation: none; } .flash { animation: none !important; } }
+.progress { flex: 1 1 260px; display: flex; align-items: center; gap: 10px; }
+.bar { flex: 1; height: 8px; border-radius: 4px; background: var(--chip); overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; }
+.theme { margin-left: auto; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 4px 9px; cursor: pointer; font: inherit; font-size: 12px; }
+
+.banner { margin-top: 14px; padding: 10px 14px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent); background: color-mix(in srgb, var(--bad) 10%, var(--panel)); }
+
+.alerts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.alert { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: 8px; padding: 9px 12px; box-shadow: var(--shadow); }
+.alert.question { border-left-color: var(--accent); } .alert.hot { border-left-color: var(--bad); }
+.alert b { font-weight: 600; }
+
+.people { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.person { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--pc); border-radius: 10px; padding: 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 9px; }
+.person .top { display: flex; align-items: center; gap: 8px; }
+.person .name { font-weight: 650; font-size: 16px; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--pc); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; flex: none; }
+.status { margin-left: auto; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.status.pracuje { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.status.cisza { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.status.długo { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+.now { background: var(--chip); border-radius: 7px; padding: 8px 10px; }
+.now .t { font-weight: 600; }
+.mini { height: 4px; border-radius: 2px; background: var(--line); margin-top: 6px; overflow: hidden; }
+.mini i { display: block; height: 100%; background: var(--pc); }
+.kv { display: grid; grid-template-columns: 72px 1fr; gap: 3px 8px; font-size: 13px; }
+.kv > span:nth-child(odd) { color: var(--faint); }
+.files { display: flex; flex-wrap: wrap; gap: 4px; }
+.files span { background: var(--chip); border-radius: 4px; padding: 1px 6px; }
+.chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+
+.main { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(300px, 1fr); gap: 20px; }
+@media (max-width: 1000px) { .main { grid-template-columns: 1fr; } }
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 700px) { .board { grid-template-columns: 1fr; } .col.doing { order: -1; } }
+.col { background: color-mix(in srgb, var(--chip) 55%, transparent); border-radius: 10px; padding: 10px; min-height: 120px; }
+.col h3 { margin: 2px 4px 10px; font-size: 13px; display: flex; justify-content: space-between; }
+.card { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--cc, var(--line)); border-radius: 8px; padding: 9px 10px; margin-bottom: 8px; box-shadow: var(--shadow); }
+.card .h { display: flex; gap: 8px; align-items: baseline; }
+.card .id { color: var(--faint); font-weight: 600; }
+.card .title { font-weight: 550; }
+.card .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; font-size: 12px; color: var(--muted); }
+.card .goal { font-size: 12px; color: var(--muted); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card.done { opacity: .7; } .card.done .title { text-decoration: line-through; text-decoration-color: var(--faint); }
+.blocked { color: var(--warn); }
+
+.feed { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+.ev { display: grid; grid-template-columns: 58px 1fr; gap: 2px 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.ev:last-child { border-bottom: 0; }
+.ev .when { color: var(--faint); font-size: 12px; padding-top: 1px; }
+.ev .who { font-weight: 600; color: var(--pc); }
+.ev .stat { font-size: 11px; color: var(--faint); }
+.add { color: var(--ok); } .del { color: var(--bad); }
+.flash { animation: flash 2.5s ease-out; }
+@keyframes flash { from { background: color-mix(in srgb, var(--accent) 22%, transparent); } to { background: transparent; } }
+.decisions { margin: 0; padding: 0 0 0 18px; font-size: 13px; }
+.decisions li { margin: 4px 0; }
+.empty { color: var(--faint); font-size: 13px; padding: 6px 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Agenci na żywo</h1>
+    <span class="live"><span class="dot" id="dot"></span><span id="liveText">łączę…</span></span>
+    <div class="progress"><div class="bar" id="bar"></div><span id="progText" class="muted"></span></div>
+    <button class="theme" id="theme" title="Motyw">motyw</button>
+  </header>
+  <div id="banner"></div>
+  <div id="alertsWrap"></div>
+  <h2>Kto co robi</h2>
+  <div class="people" id="people"></div>
+  <div class="main">
+    <div>
+      <h2>Kanban</h2>
+      <div class="board" id="board"></div>
+    </div>
+    <div>
+      <h2>Aktywność na main</h2>
+      <div class="feed" id="feed"></div>
+      <h2>Ostatnie decyzje</h2>
+      <ol class="decisions" id="decisions"></ol>
+    </div>
+  </div>
+</div>
+<script>
+const POLL_MS = 3000;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ago = (t) => {
+  if (!t) return "—";
+  const s = Math.max(0, Math.floor(Date.now() / 1000 - t));
+  if (s < 10) return "teraz";
+  if (s < 60) return `${s} s temu`;
+  if (s < 3600) return `${Math.floor(s / 60)} min temu`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ${Math.floor((s % 3600) / 60)} min temu`;
+  return `${Math.floor(s / 86400)} d temu`;
+};
+const dur = (t) => ago(t).replace(" temu", "");
+const timeAt = (t) => `<span data-at="${t || ""}">${ago(t)}</span>`;
+const durAt = (t) => `<span data-dur="${t || ""}">${dur(t)}</span>`;
+
+// Stały kolor osoby: kolejność z docs/zespol.md, potem reszta
+let colorOf = {};
+const pc = (git) => `var(--p${colorOf[git] ?? 5})`;
+const initials = (n) => n.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+
+let seen = null;
+let last = null;
+
+function render(snap) {
+  const s = snap.state;
+  const fresh = snap.fetched_at && Date.now() / 1000 - snap.fetched_at < snap.interval * 3 + 5;
+  $("dot").className = "dot" + (fresh && !snap.error ? "" : " off");
+  $("liveText").innerHTML = s
+    ? `fetch <span data-at="${snap.fetched_at}">${ago(snap.fetched_at)}</span> · co ${snap.interval} s · main <span class="mono">${esc(s.head)}</span>`
+    : "pierwsze pobieranie…";
+  $("banner").innerHTML = snap.error
+    ? `<div class="banner"><b>git fetch nie działa</b>, pokazuję ostatni znany stan. <span class="mono">${esc(snap.error)}</span></div>` : "";
+  if (!s) return;
+
+  s.people.forEach((p, i) => { if (!(p.git in colorOf)) colorOf[p.git] = Object.keys(colorOf).length % 6; });
+  const byId = Object.fromEntries(s.cards.map((c) => [c.id, c]));
+  const nameOf = Object.fromEntries(s.people.map((p) => [p.git, p.name]));
+
+  // Pasek postępu
+  const { done, doing, total } = s.progress;
+  $("bar").innerHTML = total ? `<i style="width:${(done / total) * 100}%;background:var(--ok)"></i><i style="width:${(doing / total) * 100}%;background:var(--accent);opacity:.55"></i>` : "";
+  $("progText").textContent = `${done}/${total} zrobione · ${doing} w toku · ${total - done - doing} czeka`;
+
+  // Uwaga
+  const alerts = s.alerts.map((a) => {
+    const who = a.who.map((w) => esc(nameOf[w] || w)).join(", ");
+    if (a.kind === "hot") return `<div class="alert hot"><b>Ryzyko konfliktu:</b> <span class="mono">${esc(a.text)}</span><br><span class="muted">w ostatnich 90 min zmieniali: ${who}</span></div>`;
+    if (a.kind === "stale") return `<div class="alert"><b>Długo cicho:</b> ${esc(a.card)} ${esc(a.text)}<br><span class="muted">${who}, ostatni ruch ${timeAt(a.at)}. Może porzucona albo dużo niewypchniętej pracy.</span></div>`;
+    if (a.kind === "question") return `<div class="alert question"><b>Pytanie w karcie ${esc(a.card)}:</b> ${esc(a.text)}<br><span class="muted">karta: ${who}</span></div>`;
+    if (a.kind === "contract") return `<div class="alert"><b>Zmiana kontraktu</b> (<span class="mono">shared/</span> lub <span class="mono">main.ts</span>): ${esc(a.text)}<br><span class="muted">${who}, ${timeAt(a.at)} · reszta: git pull</span></div>`;
+    return "";
+  }).join("");
+  $("alertsWrap").innerHTML = alerts ? `<h2>Uwaga</h2><div class="alerts">${alerts}</div>` : "";
+
+  // Osoby
+  $("people").innerHTML = s.people.map((p) => {
+    const cards = p.doing.map((id) => byId[id]).filter(Boolean);
+    const now = cards.length ? cards.map((c) => `
+      <div class="now">
+        <div><span class="faint mono">${esc(c.id)}</span> <span class="t">${esc(c.title)}</span></div>
+        <div class="muted" style="font-size:12px">od ${durAt(c.since)}${c.checks_total ? ` · ${c.checks_done}/${c.checks_total} kryteriów` : ""}${c.paths ? ` · <span class="mono">${esc(c.paths)}</span>` : ""}</div>
+        ${c.checks_total ? `<div class="mini"><i style="width:${(c.checks_done / c.checks_total) * 100}%"></i></div>` : ""}
+      </div>`).join("") : `<div class="now muted">Brak karty w toku</div>`;
+    const l = p.last;
+    return `
+    <div class="person" style="--pc:${pc(p.git)}">
+      <div class="top">
+        <div class="avatar">${esc(initials(p.name))}</div>
+        <div><div class="name">${esc(p.name)}</div><div class="faint mono">${esc(p.git)}</div></div>
+        <span class="status ${esc(p.status.split(" ")[0])}">${esc(p.status)}</span>
+      </div>
+      <div><span class="chip">obszar: ${esc(p.area === "-" ? "nieprzypisany" : p.area)}</span>${p.outside ? ' <span class="chip">spoza zespol.md</span>' : ""} <span class="chip">zrobione: ${p.done_count}</span></div>
+      ${now}
+      <div class="kv">
+        <span>ostatni</span><span>${l ? `${esc(l.subject)} · ${timeAt(l.at)}` : '<span class="faint">brak commitów</span>'}</span>
+        <span>kod</span><span>${p.last_code ? timeAt(p.last_code.at) : '<span class="faint">jeszcze nic w app/</span>'}</span>
+        <span>1 h</span><span>${p.hour_commits} commitów · <span class="add">+${p.hour_add}</span> <span class="del">−${p.hour_del}</span></span>
+      </div>
+      ${p.recent_files.length ? `<div class="files mono">${p.recent_files.map((f) => `<span title="${esc(f)}">${esc(f.replace(/^app\/src\//, ""))}</span>`).join("")}</div>` : ""}
+    </div>`;
+  }).join("") || `<div class="empty">Nikt jeszcze nie jest wpisany w docs/zespol.md</div>`;
+
+  // Kanban
+  const areaColor = {};
+  s.areas.forEach((a, i) => (areaColor[a.code] = `var(--p${(i + 1) % 6})`));
+  const col = (key, label) => {
+    let cs = s.cards.filter((c) => c.col === key);
+    if (key === "done") cs = cs.sort((a, b) => (b.since || 0) - (a.since || 0));
+    const body = cs.map((c) => {
+      const blocked = c.blocked_by.length && key === "todo"
+        ? `<span class="blocked">czeka na ${c.blocked_by.map((d) => esc(d) + (byId[d]?.col === "doing" ? ` (${esc(nameOf[byId[d].who] || byId[d].who)})` : "")).join(", ")}</span>` : "";
+      const owner = c.who && c.who !== "-" ? `<span style="color:${pc(c.who)};font-weight:600">${esc(nameOf[c.who] || c.who)}</span>` : "";
+      const when = key === "doing" ? `od ${durAt(c.since)}` : key === "done" ? timeAt(c.since) : "";
+      const checks = c.checks_total && key !== "todo" ? `${c.checks_done}/${c.checks_total} ✓` : "";
+      return `<div class="card ${key}" style="--cc:${key === "doing" ? pc(c.who) : "var(--line)"}" title="${esc(c.goal)}">
+        <div class="h"><span class="id mono">${esc(c.id)}</span><span class="title">${esc(c.title)}</span></div>
+        ${key === "todo" && c.goal ? `<div class="goal">${esc(c.goal.replace(/\*\*|`/g, ""))}</div>` : ""}
+        <div class="meta"><span class="chip" style="border-left:3px solid ${areaColor[c.area] || "var(--line)"}">${esc(c.area)}</span>${owner}${when ? `<span>${when}</span>` : ""}${checks ? `<span>${checks}</span>` : ""}${blocked}</div>
+      </div>`;
+    }).join("") || `<div class="empty">pusto</div>`;
+    return `<div class="col ${key}"><h3><span>${label}</span><span class="faint">${cs.length}</span></h3>${body}</div>`;
+  };
+  $("board").innerHTML = col("todo", "Do zrobienia") + col("doing", "W toku") + col("done", "Zrobione");
+
+  // Aktywność (nowe commity od ostatniego odświeżenia błyskają)
+  const prevSeen = seen;
+  seen = new Set(s.commits.map((c) => c.sha));
+  $("feed").innerHTML = s.commits.slice(0, 30).map((c) => {
+    let what = esc(c.subject);
+    if (c.kanban) what = `<span class="chip">bierze kartę</span> ${esc(c.kanban.card)}`;
+    else if (c.files.some((f) => f.includes("doing => done"))) what = `<span class="chip" style="color:var(--ok)">✓ karta zrobiona</span> ${what}`;
+    const isNew = prevSeen && !prevSeen.has(c.sha);
+    return `<div class="ev${isNew ? " flash" : ""}" style="--pc:${pc(c.author)}">
+      <span class="when" data-at="${c.at}">${ago(c.at)}</span>
+      <span><span class="who">${esc(nameOf[c.author] || c.author)}</span> ${what}
+      <br><span class="stat mono">${esc(c.sha)} · ${c.files.length} plików · <span class="add">+${c.add}</span> <span class="del">−${c.del}</span></span></span>
+    </div>`;
+  }).join("") || `<div class="empty" style="padding:12px">Brak commitów</div>`;
+
+  $("decisions").innerHTML = s.decisions.map((d) => `<li>${esc(d)}</li>`).join("") || `<li class="faint">brak</li>`;
+}
+
+async function poll() {
+  try {
+    const r = await fetch("/api/state", { cache: "no-store" });
+    last = await r.json();
+    render(last);
+  } catch (e) {
+    $("dot").className = "dot off";
+    $("liveText").textContent = "panel nie odpowiada (czy dashboard.py działa?)";
+  }
+}
+
+// Co sekundę odświeżamy tylko napisy „x min temu”
+setInterval(() => {
+  document.querySelectorAll("[data-at]").forEach((el) => { const t = +el.dataset.at; if (t) el.textContent = ago(t); });
+  document.querySelectorAll("[data-dur]").forEach((el) => { const t = +el.dataset.dur; if (t) el.textContent = dur(t); });
+}, 1000);
+
+// Motyw: auto → jasny → ciemny, zapamiętany lokalnie
+const themes = ["auto", "light", "dark"];
+const applyTheme = (t) => { if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; $("theme").textContent = `motyw: ${t}`; };
+let theme = "auto";
+try { theme = localStorage.getItem("theme") || "auto"; } catch (e) {}
+applyTheme(theme);
+$("theme").onclick = () => { theme = themes[(themes.indexOf(theme) + 1) % 3]; applyTheme(theme); try { localStorage.setItem("theme", theme); } catch (e) {} };
+
+poll();
+setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>

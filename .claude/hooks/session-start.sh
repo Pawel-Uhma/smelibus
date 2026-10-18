@@ -13,7 +13,7 @@ if [ -n "$row" ]; then
   if [ -z "$area" ] || [ "$area" = "-" ]; then
     echo "Osoba: $name. Obszar nieprzypisany: zapytaj użytkownika, który bierze (docs/zespol.md, tabela Obszary; sprawdź, które są już zajęte), wpisz go i wypchnij."
   else
-    IFS=$'\t' read -r _ scope paths <<<"$(area_row "$area")"
+    IFS=$'\t' read -r _ scope paths <<<"$(area_row "${area%% *}")"  # „swiat (+ pogoda)” → swiat
     echo "Osoba: $name. Obszar: $area ($scope). Ścieżki w app/src/: $paths"
   fi
 else

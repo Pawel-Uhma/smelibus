@@ -65,3 +65,11 @@ AGENTS.md      # zasady współpracy — dla ludzi i agentów AI
 /sync     →  co zrobili inni, zmiany w shared/
 ```
 `/spotkanie` zamienia notatkę z rozmowy na decyzje i karty.
+
+### Podgląd agentów na żywo
+
+```bash
+python3 scripts/dashboard.py              # http://localhost:8787
+python3 scripts/dashboard.py --host 0.0.0.0   # też dla innych w tej samej sieci (np. na rzutnik)
+```
+Kto nad czym pracuje (karta, od kiedy, postęp kryteriów, ostatni commit, aktywność z ostatniej godziny), kanban, strumień commitów, ostatnie decyzje oraz ostrzeżenia: pliki ruszane w tym samym czasie przez kilka osób, zmiany kontraktu w `shared/`, pytania w kartach i karty bez ruchu od 45 minut. `git fetch` co 10 s na własnej kopii w `~/.cache`, strona odświeża się co 3 s. Pokazuje to, co jest wypchnięte na `main`. Wymaga tylko Pythona 3 i gita.
