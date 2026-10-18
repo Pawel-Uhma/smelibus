@@ -188,3 +188,6 @@ Smród rysujemy tymi samymi voxelami co autobus, bez systemu cząsteczek. Trzy s
 
 - Wartości balansu: ile smrodu wytrąca taranowanie, czasy odnowienia bonusów, 400 kafelków na gracza.
 - Czy wietrzenie smrodu zostaje przy modelu skoku (decyzja po pierwszym grywalnym prototypie).
+- Jak domknąć mecz, który się ciągnie (8 graczy, ostatnie kafelki): kurczenie stref od 12 min
+  i oddanie resztek < 1% mapy sąsiadowi, czy twardy limit czasu (łamie „bez wygranej na punkty”).
+  Nierozstrzygnięte (Paweł, 2026-10-18).
