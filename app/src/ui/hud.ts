@@ -7,6 +7,19 @@ export type { HudView } from './hudModel';
 /** Stink cloud with three wavy fumes, colored by the pop's CSS (currentColor). */
 const STINK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="#1b1b1b" stroke-width="1.5" d="M6 20a4 4 0 0 1-.6-8 5 5 0 0 1 9.6-1.5A4 4 0 1 1 18 20z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 7c-1-1 1-2 0-4M12 6c-1-1 1-2 0-4M16 7c-1-1 1-2 0-4"/></svg>`;
 
+/** Fill colour along the stink bar: pale yellow when fresh, deep toxic green when full. */
+function stinkColor(f: number): string {
+  return `hsl(${Math.round(58 + f * 55)} ${Math.round(62 + f * 25)}% ${Math.round(66 - f * 22)}%)`;
+}
+
+function stinkTier(f: number): string {
+  if (f < 0.15) return 'Świeży';
+  if (f < 0.35) return 'Zalatuje';
+  if (f < 0.6) return 'Śmierdzi';
+  if (f < 0.85) return 'Cuchnie';
+  return 'SMELIBUS!';
+}
+
 /**
  * In-game HUD over the canvas: party code, map share per player, clock with sudden death,
  * own bus stink, and the win screen. Only reads the view passed to update().
@@ -23,11 +36,19 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
       <div id="clock" class="time">0:00</div>
       <div id="sudden" class="sudden" hidden></div>
     </div>
-    <div class="hud-stink">
-      <div class="label">Smród <b id="stink-val">0</b></div>
-      <div class="bar"><div id="stink-bar"></div></div>
-      <div id="stink-pops" class="stink-pops"></div>
+    <div id="stink" class="hud-stink">
+      <div class="stink-head">
+        <span class="stink-icon">${STINK_ICON}</span>
+        <span id="stink-tier" class="stink-tier">${stinkTier(0)}</span>
+        <b id="stink-val" class="stink-val">0</b>
+      </div>
+      <div class="stink-tube">
+        <div id="stink-bar" class="stink-fill">${'<i></i>'.repeat(6)}</div>
+        <div class="stink-ticks"></div>
+      </div>
+      <div class="stink-fumes"><i></i><i></i><i></i></div>
     </div>
+    <div id="stink-pops" class="stink-pops"></div>
     <div id="win" class="win" hidden>
       <div class="card">
         <div class="swatch" id="win-swatch"></div>
@@ -43,7 +64,8 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
   const clock = $('clock');
   const sudden = $('sudden');
   const stinkVal = $('stink-val');
-  const stinkBar = $('stink-bar');
+  const stinkBox = $('stink');
+  const stinkTierEl = $('stink-tier');
   const win = $('win');
   const popsBox = $('stink-pops');
   const pops = createStinkPops();
@@ -69,16 +91,26 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
   let lastStink = -1;
   let shownWinner: PlayerId | null = null;
 
-  /** A small stink icon with "+N" / "−N" that floats up off the stink bar and fades. */
-  function showPop(delta: number) {
+  /** Re-triggers a one-shot CSS animation class on the stink bar. */
+  function flash(cls: 'up' | 'down') {
+    stinkBox.classList.remove('up', 'down');
+    void stinkBox.offsetWidth;
+    stinkBox.classList.add(cls);
+  }
+
+  /** An outlined "+N" / "−N" that jumps out above the own bus and floats away. */
+  function showPop(delta: number, at: { x: number; y: number }) {
     const el = document.createElement('div');
     el.className = 'stink-pop ' + (delta > 0 ? 'plus' : 'minus');
-    el.style.left = `${10 + Math.random() * 60}%`;
-    el.innerHTML = STINK_ICON;
-    el.append(`${delta > 0 ? '+' : '−'}${Math.abs(delta)}`);
+    el.style.left = `${at.x + (Math.random() - 0.5) * 50}px`;
+    el.style.top = `${at.y}px`;
+    el.style.fontSize = `${18 + Math.min(Math.abs(delta), 20) * 0.7}px`;
+    el.style.setProperty('--drift', `${(Math.random() - 0.5) * 40}px`);
+    el.textContent = `${delta > 0 ? '+' : '−'}${Math.abs(delta)}`;
     el.addEventListener('animationend', () => el.remove());
     popsBox.append(el);
     while (popsBox.childElementCount > 8) popsBox.firstElementChild!.remove();
+    flash(delta > 0 ? 'up' : 'down');
   }
 
   return {
@@ -121,14 +153,19 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId) {
       }
 
       const now = performance.now();
-      for (const d of pops.update(m.stink, m.busId, (now - lastUpdate) / 1000)) showPop(d);
+      for (const d of pops.update(m.stink, m.busId, (now - lastUpdate) / 1000)) if (view.ownScreen) showPop(d, view.ownScreen);
       lastUpdate = now;
 
       const stink = Math.round(m.stink);
       if (stink !== lastStink) {
         lastStink = stink;
         stinkVal.textContent = String(stink);
-        stinkBar.style.width = `${(m.stink / m.stinkMax) * 100}%`;
+        const f = Math.min(1, Math.max(0, m.stink / m.stinkMax));
+        stinkBox.style.setProperty('--s', f.toFixed(3));
+        stinkBox.style.setProperty('--c', stinkColor(f));
+        stinkBox.classList.toggle('max', f >= 0.85);
+        const tier = stinkTier(f);
+        if (stinkTierEl.textContent !== tier) stinkTierEl.textContent = tier;
       }
 
       const winnerId = m.winner?.id ?? null;

@@ -32,20 +32,65 @@ button:hover { background: #ffb829; }
 .hud-clock .sudden.on { background: #c8357a; animation: sudden-pulse 1s ease-in-out infinite alternate; }
 @keyframes sudden-pulse { to { transform: scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .hud-clock .sudden.on { animation: none; } }
-.hud-stink { position: absolute; left: 12px; bottom: 12px; width: min(260px, calc(100vw - 24px)); background: #fffc; border: 2px solid #1b1b1b; border-radius: 10px; padding: 8px 10px; pointer-events: none !important; }
-.hud-stink .label { font-size: 13px; margin-bottom: 4px; }
-.hud-stink .bar { height: 12px; background: #0002; border-radius: 6px; overflow: hidden; }
-.hud-stink .bar > div { height: 100%; width: 0; background: #6fa82b; transition: width .2s; }
-.stink-pops { position: absolute; left: 0; right: 0; bottom: 100%; height: 0; }
-.stink-pop { position: absolute; bottom: 4px; display: flex; align-items: center; gap: 3px; padding: 2px 7px 2px 4px; border: 2px solid #1b1b1b; border-radius: 999px; font-weight: 800; font-size: 14px; white-space: nowrap; animation: stink-pop 1.4s ease-out forwards; }
-.stink-pop svg { width: 18px; height: 18px; }
-.stink-pop.plus { background: #e4f5c8; color: #4f8a12; }
-.stink-pop.minus { background: #e3ecf5; color: #5a7a99; }
+.hud-stink { --s: 0; --c: hsl(58 62% 66%); position: absolute; left: 12px; bottom: 12px; width: min(260px, calc(100vw - 24px)); background: #fffc; border: 2px solid #1b1b1b; border-radius: 12px; padding: 7px 10px 9px; box-shadow: 3px 3px 0 #1b1b1b; pointer-events: none !important; }
+.stink-head { position: relative; z-index: 1; display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.stink-icon { display: flex; width: 22px; height: 22px; color: var(--c); transition: color .3s; transform-origin: 50% 80%; animation: stink-icon-bob calc(2.4s - var(--s) * 1.6s) ease-in-out infinite; }
+.stink-icon svg { width: 100%; height: 100%; }
+.stink-tier { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.stink-val { margin-left: auto; font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+.stink-tube { position: relative; height: 18px; border: 2px solid #1b1b1b; border-radius: 999px; background: #1b1b1b1f; overflow: hidden; box-shadow: inset 0 2px 0 #0002, 0 0 calc(var(--s) * 16px) var(--c); transition: box-shadow .3s; }
+.stink-fill { position: relative; height: 100%; width: calc(var(--s) * 100%); min-width: 0; border-radius: 999px; overflow: hidden; background-color: var(--c);
+  background-image: linear-gradient(#fff6, #fff0 45%, #0002), repeating-linear-gradient(-45deg, #fff0 0 7px, #ffffff2e 7px 14px);
+  background-size: 100% 100%, 20px 20px;
+  animation: stink-stripes .8s linear infinite;
+  transition: width .45s cubic-bezier(.3, 1.5, .5, 1), background-color .3s; }
+.stink-fill i { position: absolute; bottom: -6px; width: 5px; height: 5px; border-radius: 50%; border: 1.5px solid #fffb; opacity: calc(var(--s) * 2); animation: stink-bubble 1.6s ease-in infinite; }
+.stink-fill i:nth-child(1) { left: 8%; animation-delay: 0s; }
+.stink-fill i:nth-child(2) { left: 24%; animation-delay: .5s; width: 4px; height: 4px; }
+.stink-fill i:nth-child(3) { left: 41%; animation-delay: 1.1s; }
+.stink-fill i:nth-child(4) { left: 58%; animation-delay: .3s; width: 6px; height: 6px; }
+.stink-fill i:nth-child(5) { left: 74%; animation-delay: .9s; width: 4px; height: 4px; }
+.stink-fill i:nth-child(6) { left: 89%; animation-delay: 1.4s; }
+.stink-ticks { position: absolute; inset: 0; background: linear-gradient(90deg, #0000 calc(25% - 1px), #1b1b1b40 0 calc(25% + 1px), #0000 0 calc(50% - 1px), #1b1b1b40 0 calc(50% + 1px), #0000 0 calc(75% - 1px), #1b1b1b40 0 calc(75% + 1px), #0000 0); }
+/* Wisps rising from the fill's edge, thicker the more it stinks. */
+.stink-fumes { position: absolute; left: 10px; right: 10px; bottom: 24px; height: 0; }
+.stink-fumes i { position: absolute; left: calc(var(--s) * 100% - 6px); bottom: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--c); opacity: 0; filter: blur(1px); animation: stink-fume 1.8s ease-out infinite; }
+.stink-fumes i:nth-child(2) { animation-delay: .6s; margin-left: 4px; }
+.stink-fumes i:nth-child(3) { animation-delay: 1.2s; margin-left: -4px; }
+.hud-stink.up .stink-tube { animation: stink-bump-up .45s ease-out; }
+.hud-stink.up .stink-val { animation: stink-val-up .45s ease-out; }
+.hud-stink.down .stink-tube { animation: stink-bump-down .45s ease-out; }
+.hud-stink.down .stink-val { animation: stink-val-down .45s ease-out; }
+.hud-stink.max .stink-tier { color: #8a4fc4; animation: stink-tier-pulse .5s ease-in-out infinite alternate; }
+.hud-stink.max .stink-tube { animation: stink-wobble .35s ease-in-out infinite; box-shadow: inset 0 2px 0 #0002, 0 0 14px #a45be0, 0 0 4px #a45be0; }
+.hud-stink.max .stink-fumes i { background: #a45be0; }
+@keyframes stink-stripes { to { background-position: 0 0, 20px 0; } }
+@keyframes stink-bubble { 0% { transform: translateY(0) scale(.6); } 100% { transform: translateY(-20px) scale(1.1); opacity: 0; } }
+@keyframes stink-fume {
+  0% { transform: translate(0, 0) scale(.4); opacity: 0; }
+  20% { opacity: calc(var(--s) * .9); }
+  100% { transform: translate(6px, -26px) scale(1.6); opacity: 0; }
+}
+@keyframes stink-icon-bob { 50% { transform: rotate(-8deg) scale(calc(1 + var(--s) * .15)); } }
+@keyframes stink-bump-up { 30% { transform: scaleY(1.25); filter: brightness(1.35); } }
+@keyframes stink-bump-down { 30% { transform: scaleY(.85); filter: saturate(.3) brightness(1.1); } }
+@keyframes stink-val-up { 30% { transform: scale(1.35); color: #4f8a12; } }
+@keyframes stink-val-down { 30% { transform: scale(.85); color: #5a7a99; } }
+@keyframes stink-tier-pulse { to { transform: scale(1.08); } }
+@keyframes stink-wobble { 25% { transform: translateX(-1px) rotate(-.6deg); } 75% { transform: translateX(1px) rotate(.6deg); } }
+/* Stink +/- numbers above the own bus. */
+.stink-pops { position: absolute; inset: 0; overflow: hidden; pointer-events: none !important; }
+.stink-pop { position: absolute; transform: translate(-50%, -100%); font-weight: 900; line-height: 1; white-space: nowrap; -webkit-text-stroke: 4px #1b1b1b; paint-order: stroke fill; animation: stink-pop 1.3s ease-out forwards; }
+.stink-pop.plus { color: #9be04a; }
+.stink-pop.minus { color: #a9c6e8; }
 @keyframes stink-pop {
-  0% { transform: translateY(6px) scale(.6); opacity: 0; }
-  15% { transform: translateY(0) scale(1.1); opacity: 1; }
-  25% { transform: translateY(-4px) scale(1); }
-  100% { transform: translateY(-48px); opacity: 0; }
+  0% { transform: translate(-50%, -100%) scale(.4); opacity: 0; }
+  15% { transform: translate(-50%, -130%) scale(1.25); opacity: 1; }
+  30% { transform: translate(-50%, -130%) scale(1); }
+  100% { transform: translate(calc(-50% + var(--drift, 0px)), -330%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stink-icon, .stink-fill, .stink-fill i, .stink-fumes i, .hud-stink.max .stink-tube, .hud-stink.max .stink-tier { animation: none; }
 }
 .win { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #1b1b1b99; padding: 16px; }
 .win[hidden] { display: none; }
