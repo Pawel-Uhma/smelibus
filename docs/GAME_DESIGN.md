@@ -146,7 +146,7 @@ Smród rysujemy tymi samymi voxelami co autobus, bez systemu cząsteczek. Trzy s
 |---|---|---|
 | 0–30 | Świeżak | czysty lakier |
 | 31–70 | Zalatuje | ok. 1/7 voxeli karoserii to oliwkowe plamy `#6F7A2E`; pojedyncze zielone obłoczki nad dachem i z rury wydechowej |
-| 71–100 | Durian | plamy na ok. 1/3 karoserii, ok. 1/4 szyb pękniętych (`#C9D6DC`), półprzezroczysta chmura zielonych voxeli (`#8CC846`, krycie ok. 0.4) do 2 voxeli wokół autobusu |
+| 71–100 | Durian | plamy na ok. 1/3 karoserii, ok. 1/4 szyb pękniętych (`#C9D6DC`), półprzezroczysta chmura zielonych voxeli (`#8CC846`, krycie ok. 0.4) do 3 voxeli wokół autobusu, gęstnieje ze smrodem |
 
 - Plamy i pęknięcia wybiera hash pozycji voxela, więc są stałe i nie migają przy zmianie `stink`.
 - Plamy i szyby to podmiana kolorów w modelu autobusu (`render/models/`), chmura to osobny

@@ -15,11 +15,11 @@ const DURIAN_FROM = STINK_STAGE_LIMITS[1];
 
 const STINK_GREEN = 0x8cc846;
 /** The durian cloud reaches this many voxels out from the bus body. */
-export const CLOUD_REACH = 2;
+export const CLOUD_REACH = 3;
 const CLOUD_OPACITY = 0.4;
 /** Share of cloud cells shown at the start of the durian stage and at STINK_MAX. */
-export const CLOUD_FILL_MIN = 0.15;
-export const CLOUD_FILL_MAX = 0.5;
+export const CLOUD_FILL_MIN = 0.1;
+export const CLOUD_FILL_MAX = 0.45;
 /** Puffs per second per bus at the start of the smelly stage and at STINK_MAX. */
 const PUFF_RATE_MIN = 1.5;
 const PUFF_RATE_MAX = 5;
