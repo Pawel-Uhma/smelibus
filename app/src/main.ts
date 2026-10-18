@@ -4,6 +4,7 @@ import { createBonusesRender } from './render/bonuses';
 import { createScene } from './render/scene';
 import { createWeatherRender } from './render/weather';
 import { createZonesRender } from './render/zones';
+import type { Snapshot } from './shared/types';
 import { createBusPredictor, type BusPredictor } from './sim/prediction';
 import { createHud } from './ui/hud';
 import { showLobby } from './ui/lobby/lobby';
@@ -20,8 +21,9 @@ const hud = createHud(ui, party.code, party.playerId);
 const keyboard = createKeyboard();
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
 
-// Own bus is predicted locally (instant controls) and eased toward the server's version.
+// Own bus is predicted locally (instant controls) and replayed on top of each server snapshot.
 let predictor: BusPredictor | null = null;
+let reconciled: Snapshot | null = null;
 let lastFrame = performance.now();
 
 function frame(now: number) {
@@ -29,7 +31,6 @@ function frame(now: number) {
   lastFrame = now;
   const snap = party.latest();
   const input = keyboard.read();
-  party.sendInput(input);
 
   const me = snap.players.find((p) => p.id === party.playerId);
   const serverBus = snap.buses.find((b) => b.id === me?.busId);
@@ -38,13 +39,16 @@ function frame(now: number) {
   const shown = party.interpolatedBuses(now);
   if (predictor && serverBus) {
     // Collide with the other buses where they are drawn, so ours never visibly drives into them.
+    // A server without acks (older deploy) can't be replayed on; the prediction then runs on its own.
+    if (snap !== reconciled && snap.acks) predictor.reconcile(serverBus, snap.acks[party.playerId], shown);
+    reconciled = snap;
     predictor.step(input, dt, shown);
-    predictor.reconcile(serverBus, dt);
     // Only movement is predicted; stink and the rest come straight from the server.
     predictor.bus.stink = serverBus.stink;
     predictor.bus.slowDecayUntil = serverBus.slowDecayUntil;
     predictor.bus.driverId = serverBus.driverId;
   }
+  party.sendInput(predictor ? { ...input, seq: predictor.seq } : input);
   const ownBus = predictor?.bus ?? null;
 
   const buses = shown.map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));

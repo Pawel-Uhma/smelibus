@@ -139,7 +139,7 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
     },
     sendInput(input) {
       // Send on change, plus a keepalive so a lost message can't leave the bus stuck.
-      const key = `${input.throttle},${input.steer}`;
+      const key = `${input.throttle},${input.steer},${input.seq}`;
       const now = performance.now();
       if (key === lastSent && now - lastSentAt < 250) return;
       lastSent = key;

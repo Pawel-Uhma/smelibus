@@ -7,6 +7,14 @@ export interface BusInput {
   throttle: number;
   /** -1 (left) .. 1 (right) */
   steer: number;
+  /** Client prediction: grows by one on every input change, the server acks it (InputAck). */
+  seq?: number;
+}
+
+/** Last input seq the server got from a player and for how many sim ticks it has run it. */
+export interface InputAck {
+  seq: number;
+  ticks: number;
 }
 
 export interface Bus {
@@ -126,6 +134,8 @@ export interface Snapshot {
   bonuses?: Bonus[];
   /** Same as GameState.weather (a few cells, sent every snapshot). */
   weather?: WeatherCell[];
+  /** Per player, for own-bus prediction (sim/prediction.ts). */
+  acks?: Record<PlayerId, InputAck>;
 }
 
 /** [tile index in World.tiles, new ownerId]. */

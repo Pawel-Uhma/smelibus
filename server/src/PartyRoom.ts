@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
 import type {
-  BusInput, GameState, JoinOptions, LobbyInfo, PartyMetadata, PlayerId, Snapshot, Welcome,
+  BusInput, GameState, InputAck, JoinOptions, LobbyInfo, PartyMetadata, PlayerId, Snapshot, Welcome,
 } from '../../app/src/shared/types';
 import { createTileTracker } from '../../app/src/net/tiles';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
@@ -16,6 +16,7 @@ export class PartyRoom extends Room {
   maxClients = MAX_PLAYERS;
   private game!: GameState;
   private busInputs = new Map<PlayerId, BusInput>();
+  private acks = new Map<PlayerId, InputAck>();
   private tiles!: ReturnType<typeof createTileTracker>;
   private lastBonuses = '';
   private lobby: LobbyInfo = { hostId: null, started: false, public: false };
@@ -34,6 +35,11 @@ export class PartyRoom extends Room {
     input: (client: Client, input: BusInput) => {
       if (typeof input?.throttle !== 'number' || typeof input?.steer !== 'number') return;
       this.busInputs.set(client.sessionId, { throttle: input.throttle, steer: input.steer });
+      // Keepalives repeat the same seq; only a new one restarts the tick count.
+      const seq = Number(input.seq);
+      if (Number.isFinite(seq) && this.acks.get(client.sessionId)?.seq !== seq) {
+        this.acks.set(client.sessionId, { seq, ticks: 0 });
+      }
     },
   };
 
@@ -47,7 +53,9 @@ export class PartyRoom extends Room {
     this.syncLobby();
     // Waiting room until the host clicks Start: the clock and sudden death don't run yet.
     this.setSimulationInterval(() => {
-      if (this.lobby.started) stepGame(this.game, this.busInputs, SIM_DT);
+      if (!this.lobby.started) return;
+      stepGame(this.game, this.busInputs, SIM_DT);
+      for (const ack of this.acks.values()) ack.ticks++;
     }, SIM_DT * 1000);
     this.clock.setInterval(() => {
       const snap = this.snapshot();
@@ -75,6 +83,7 @@ export class PartyRoom extends Room {
   onDrop(client: Client) {
     this.setConnected(client.sessionId, false);
     this.busInputs.delete(client.sessionId);
+    this.acks.delete(client.sessionId);
     // Not awaited: on timeout Colyseus calls onLeave, which frees the bus and neutralizes the zone.
     this.allowReconnection(client, RECONNECT_SECONDS);
   }
@@ -85,6 +94,7 @@ export class PartyRoom extends Room {
 
   onLeave(client: Client) {
     this.busInputs.delete(client.sessionId);
+    this.acks.delete(client.sessionId);
     removePlayer(this.game, client.sessionId);
     if (this.lobby.hostId === client.sessionId) this.lobby.hostId = this.game.players[0]?.id ?? null;
     this.syncLobby();
@@ -121,6 +131,9 @@ export class PartyRoom extends Room {
 
   private snapshot(): Snapshot {
     const { tick, time, players, buses, winnerId, bonuses, weather } = this.game;
-    return { tick, time, players, buses, winnerId: winnerId ?? null, bonuses: bonuses ?? [], weather: weather ?? [] };
+    return {
+      tick, time, players, buses, winnerId: winnerId ?? null, bonuses: bonuses ?? [], weather: weather ?? [],
+      acks: Object.fromEntries(this.acks),
+    };
   }
 }
