@@ -1,7 +1,7 @@
 # Scaffold gry
 
 obszar: wspolne
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: app/ (cały), shared/, main.ts
 
