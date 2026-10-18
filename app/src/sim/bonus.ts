@@ -10,7 +10,7 @@ import type { Bonus, BonusKind, BonusSpot, Bus, GameState } from '../shared/type
 const clampStink = (v: number) => Math.max(0, Math.min(STINK_MAX, v));
 
 /** mulberry32 step on state.bonusRng; returns [0, 1). */
-function rand(state: GameState): number {
+export function rand(state: GameState): number {
   let t = (state.bonusRng = ((state.bonusRng ?? 1) + 0x6d2b79f5) | 0);
   t = Math.imul(t ^ (t >>> 15), t | 1);
   t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
@@ -32,6 +32,7 @@ function kindFor(state: GameState, spot: BonusSpot): BonusKind {
     case 'trash': return 'trash';
     case 'controller': return 'controller';
     case 'dropped': return 'dropped';
+    case 'zabka': return 'zul';
   }
 }
 
@@ -41,7 +42,7 @@ function respawnTime(spot: BonusSpot): number {
   return BONUS_RESPAWN_S;
 }
 
-function nextId(state: GameState): number {
+export function nextId(state: GameState): number {
   return (state.bonuses ?? []).reduce((m, b) => Math.max(m, b.id), -1) + 1;
 }
 
@@ -130,6 +131,10 @@ export function updateBonuses(state: GameState, dt: number): void {
       break;
     }
   }
-  // Dropped stink is one-off: gone once collected or expired.
-  state.bonuses = bonuses.filter((b) => b.spot !== 'dropped' || (b.active && state.time < b.respawnAt));
+  // Dropped stink and Żabka drunks are one-offs: gone once collected (or, dropped, expired).
+  state.bonuses = bonuses.filter((b) => {
+    if (b.spot === 'dropped') return b.active && state.time < b.respawnAt;
+    if (b.spot === 'zabka') return b.active;
+    return true;
+  });
 }

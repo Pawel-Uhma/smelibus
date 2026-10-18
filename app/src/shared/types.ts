@@ -60,6 +60,8 @@ export interface World {
   tiles: Tile[];
   /** Bus stop spots on road tiles next to buildings, from the city generator. */
   stops?: { x: number; z: number }[];
+  /** Żabka shops (sim/zabka.ts), fixed for the match, so they travel with the world on join. */
+  zabkas?: { x: number; z: number }[];
 }
 
 export interface GameState {
@@ -74,6 +76,8 @@ export interface GameState {
   bonuses?: Bonus[];
   /** RNG state of the bonus spawner, so the sim stays deterministic. */
   bonusRng?: number;
+  /** Game time when each shop in world.zabkas lets out its next drunk (same order). */
+  zabkaNextAt?: number[];
   /** Rain / Harnaś clouds drifting over the map (sim/weather.ts). */
   weather?: WeatherCell[];
   /** RNG state of the weather spawner. */
@@ -101,8 +105,9 @@ export interface WeatherCell {
 export type BonusKind =
   | 'zul' | 'kebab' | 'dog' | 'fan' | 'herring' | 'durian' | 'trash' | 'controller' | 'dropped';
 
-/** Where a bonus lives: decides what respawns there. `dropped` is a one-off from a ram. */
-export type BonusSpot = 'stop' | 'map' | 'trash' | 'controller' | 'dropped';
+/** Where a bonus lives: decides what respawns there. `dropped` (from a ram) and `zabka`
+ *  (a drunk let out by a shop) are one-offs. */
+export type BonusSpot = 'stop' | 'map' | 'trash' | 'controller' | 'dropped' | 'zabka';
 
 export interface Bonus {
   id: number;
@@ -118,6 +123,8 @@ export interface Bonus {
   respawnAt: number;
   /** Game time before which it can't be picked up (knocked-out stink). */
   pickableAt?: number;
+  /** Index in world.zabkas of the shop that let this drunk out (spot 'zabka'). */
+  zabka?: number;
 }
 
 /** What the server broadcasts every SNAPSHOT_INTERVAL_MS. The world is sent once on join. */

@@ -92,6 +92,20 @@ export const TRASH_CANS_PER_TILE = 1 / 120;
 export const CONTROLLERS_PER_TILE = 1 / 400;
 /** Bus stops hold a drunk this often, otherwise a regular bonus. */
 export const STOP_ZUL_CHANCE = 0.5;
+// Żabka shops (sim/zabka.ts): each one lets out drunks ("żul" bonus) that wait until picked up.
+/** Shops per map tile (×size², at least 1). */
+export const ZABKAS_PER_TILE = 1 / 600;
+/** Seconds between drunks from one shop at the start of the match, the floor, and how many
+ *  seconds the gap shrinks per minute of the match. */
+export const ZABKA_SPAWN_START_S = 30;
+export const ZABKA_SPAWN_MIN_S = 8;
+export const ZABKA_SPAWN_SPEEDUP_PER_MIN = 3;
+/** Drunks waiting at one shop at most: ZABKA_ZULS_START, +1 every ZABKA_ZULS_STEP_S, up to ZABKA_ZULS_MAX. */
+export const ZABKA_ZULS_START = 1;
+export const ZABKA_ZULS_STEP_S = 180;
+export const ZABKA_ZULS_MAX = 4;
+/** Drunks stand within this distance of their shop (tiles). */
+export const ZABKA_ZUL_RADIUS = 1.5;
 export const BONUS_STINK = {
   zul: 25,
   kebab: 10,

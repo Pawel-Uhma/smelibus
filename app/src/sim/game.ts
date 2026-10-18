@@ -3,6 +3,7 @@ import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types
 import { dropStink, spawnBonuses, updateBonuses } from './bonus';
 import { collideBuses, NO_INPUT, updateBus } from './bus';
 import { updateWeather } from './weather';
+import { spawnZabkas, updateZabkas } from './zabka';
 import { generateWorld, nearestDrivable } from './world';
 import { assignJoinZone, tileIndexAt, updateZones } from './zones';
 
@@ -12,6 +13,7 @@ export function createGame(seed: number): GameState {
   const state: GameState = { tick: 0, time: 0, world, players: [], buses: [] };
   for (let i = 0; i < EXTRA_BUSES; i++) state.buses.push(spawnBus(state));
   spawnBonuses(state);
+  spawnZabkas(state);
   return state;
 }
 
@@ -55,6 +57,7 @@ export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInpu
     updateBus(bus, input, dt, state.world.size);
   }
   for (const d of collideBuses(state.buses, state.world.size)) dropStink(state, d.x, d.z, d.amount);
+  updateZabkas(state);
   updateBonuses(state, dt);
   updateWeather(state, dt);
   updateZones(state, prevTiles);
