@@ -16,7 +16,7 @@ Pełny opis mechanik: [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md)
 
 ## Uruchomienie
 
-Klient jest w `app/` (deploy na Vercel, smelibus.vercel.app), serwer gry w `server/` (Railway).
+Klient jest w `app/` (deploy na Vercel, smelibus.pl), serwer gry w `server/` (Railway).
 
 ```bash
 cd app

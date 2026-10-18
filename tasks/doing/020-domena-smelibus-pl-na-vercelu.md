@@ -4,7 +4,7 @@ obszar: wspolne
 kto: Pawel
 zależy od: -
 ścieżki: - (tylko panel Vercela, bez zmian w kodzie)
-pytanie: @Antek rekordy DNS są niżej, wpisz je w nazwa.pl. (było: @Pawel Antek kupił smelibus.pl (nazwa.pl). Tylko Ty masz dostęp do projektu `smelibus` na Vercelu — weź tę kartę albo dodaj Antka do teamu.)
+pytanie: @Pawel ustaw w Vercelu przekierowanie 301 www.smelibus.pl → smelibus.pl, potem karta do done.
 
 ## Cel
 
@@ -35,6 +35,7 @@ Do zrobienia przez Pawła: przekierowanie 301 `www.smelibus.pl` → `smelibus.pl
 ## Gotowe, gdy
 
 - [x] obie domeny dodane w Vercelu, rekordy wpisane w tę kartę
-- [ ] Antek wpisał rekordy w nazwa.pl
-- [ ] https://smelibus.pl działa z ważnym certyfikatem, www przekierowuje na smelibus.pl
-- [ ] `smelibus.vercel.app` → `smelibus.pl` w CLAUDE.md i README.md
+- [x] Antek wpisał rekordy w nazwa.pl
+- [x] https://smelibus.pl i www działają z ważnym certyfikatem (18.10.2026)
+- [ ] www przekierowuje 301 na smelibus.pl (Paweł, panel Vercela; agent nie ma dostępu do domen przez API)
+- [x] `smelibus.vercel.app` → `smelibus.pl` w CLAUDE.md i README.md
