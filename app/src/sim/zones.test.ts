@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Bus, GameState, PlayerId, World } from '../shared/types';
 import {
   assignJoinZone, assignStartZones, countTiles, findWinner, jump, suddenDeathMultiplier,
   tileIndexAt, updateZones,
 } from './zones';
+
+// The cases below count tiles on tiny maps: one tile per point of stink keeps the numbers readable.
+vi.mock('../shared/config', async (original) => ({ ...(await original<object>()), TILES_PER_STINK: 1 }));
 
 function world(size: number, owner: (i: number, j: number) => PlayerId | null = () => null): World {
   const tiles = Array.from({ length: size * size }, (_, idx) => ({

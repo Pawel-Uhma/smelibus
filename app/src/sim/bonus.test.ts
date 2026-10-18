@@ -126,7 +126,7 @@ describe('stink bonuses', () => {
   });
 
   it('a ram knocks stink onto the ground, pickable after a short delay, one-off', () => {
-    const s = createGame(1);
+    const s = createGame(1, false); // flat: fixed positions must not land in a building
     s.bonuses = [];
     const pa = addPlayer(s, 'a', 'A');
     const pb = addPlayer(s, 'b', 'B');

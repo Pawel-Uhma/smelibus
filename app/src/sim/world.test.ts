@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { CITY_ROAD_WIDTH, MAX_PLAYERS } from '../shared/config';
+import { MAX_PLAYERS } from '../shared/config';
 import type { World } from '../shared/types';
 import { generateWorld, isDrivable, mapSizeFor, nearestDrivable } from './world';
 
 const kinds = (w: World) => w.tiles.map((t) => t.kind ?? 'grass').join(',');
 
-/** Drivable tiles reachable from tile (0, 0), 4-neighbour flood fill. */
+/** Drivable tiles reachable from the first drivable tile, 4-neighbour flood fill. */
 function reachable(w: World): Set<number> {
-  const seen = new Set<number>([0]);
-  const queue = [0];
+  const start = w.tiles.findIndex((t) => t.kind !== 'building');
+  const seen = new Set<number>([start]);
+  const queue = [start];
   while (queue.length) {
     const idx = queue.pop()!;
     const x = idx % w.size;
@@ -47,16 +48,22 @@ describe('city', () => {
     expect(kinds(generateWorld(7, 8, true))).not.toBe(kinds(generateWorld(8, 8, true)));
   });
 
-  it('has a road ring along the edge', () => {
-    for (const players of [1, 4, 8]) {
-      const w = generateWorld(5, players, true);
-      for (let k = 0; k < w.size; k++) {
-        for (let d = 0; d < CITY_ROAD_WIDTH; d++) {
-          expect(w.tiles[d * w.size + k].kind).toBe('road');
-          expect(w.tiles[k * w.size + d].kind).toBe('road');
-        }
-      }
+  it('has streets at many angles, avenues, roundabouts and Warsaw building types', () => {
+    const styles = new Set<string>();
+    let roundabouts = 0;
+    for (const seed of seeds) {
+      const w = generateWorld(seed, 8, true);
+      const angles = new Set(w.streets!.map((s) => Math.round((Math.atan2(s.bz - s.az, s.bx - s.ax) * 180) / Math.PI / 5)));
+      expect(angles.size).toBeGreaterThan(6);
+      expect(w.streets!.some((s) => s.kind === 'avenue')).toBe(true);
+      roundabouts += w.roundabouts!.length;
+      for (const b of w.buildings!) styles.add(b.style);
+      w.tiles.forEach((t) => {
+        if (t.kind === 'building') expect(w.buildings![t.building!]).toBeDefined();
+      });
     }
+    expect(roundabouts).toBeGreaterThanOrEqual(seeds.length);
+    expect([...styles].sort()).toEqual(['block', 'mdm', 'office', 'palace', 'pavilion', 'tenement']);
   });
 
   it('connects every drivable tile, so no bus or bonus gets walled in', () => {
@@ -73,9 +80,10 @@ describe('city', () => {
     for (const seed of seeds) {
       const w = generateWorld(seed, 8, true);
       const share = (k: string) => w.tiles.filter((t) => (t.kind ?? 'grass') === k).length / w.tiles.length;
-      expect(share('building')).toBeGreaterThan(0.2);
+      expect(share('building')).toBeGreaterThan(0.08);
       expect(share('road')).toBeGreaterThan(0.25);
-      expect(w.tiles.filter((t) => t.kind === 'building').every((t) => (t.height ?? 0) >= 1)).toBe(true);
+      expect(share('road')).toBeLessThan(0.6);
+      expect(w.tiles.filter((t) => t.kind === 'building').every((t) => (t.height ?? 0) > 0)).toBe(true);
     }
   });
 
@@ -98,9 +106,13 @@ describe('isDrivable / nearestDrivable', () => {
   const bx = (building % w.size) + 0.5;
   const bz = Math.floor(building / w.size) + 0.5;
 
+  const open = w.tiles.findIndex((t) => t.kind !== 'building');
+  const ox = (open % w.size) + 0.5;
+  const oz = Math.floor(open / w.size) + 0.5;
+
   it('blocks buildings and the outside of the map', () => {
     expect(isDrivable(w, bx, bz)).toBe(false);
-    expect(isDrivable(w, 0.5, 0.5)).toBe(true);
+    expect(isDrivable(w, ox, oz)).toBe(true);
     expect(isDrivable(w, -1, 5)).toBe(false);
     expect(isDrivable(w, 5, w.size + 1)).toBe(false);
   });
@@ -108,6 +120,6 @@ describe('isDrivable / nearestDrivable', () => {
   it('moves a point out of a building, keeps a drivable one', () => {
     const p = nearestDrivable(w, bx, bz);
     expect(isDrivable(w, p.x, p.z)).toBe(true);
-    expect(nearestDrivable(w, 0.5, 0.5)).toEqual({ x: 0.5, z: 0.5 });
+    expect(nearestDrivable(w, ox, oz)).toEqual({ x: ox, z: oz });
   });
 });

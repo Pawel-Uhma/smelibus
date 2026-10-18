@@ -3,27 +3,64 @@
 export const MAX_PLAYERS = 8;
 /** Extra buses on top of one per player (GAME_DESIGN: players + 2). */
 export const EXTRA_BUSES = 2;
-/** Map area per player, in tiles. */
-export const TILES_PER_PLAYER = 400;
+/** Map area per player, in tiles (the city needs room for streets wide enough for buses). */
+export const TILES_PER_PLAYER = 1600;
 
-// City generator (sim/world.ts, card 002). Sizes in tiles.
+// City generator (sim/city.ts, cards 002 and 038). Sizes in tiles; a bus is 3 long, 1.2 wide.
 /** Streets and buildings instead of a flat field (buses bounce off buildings, card 023). */
 export const CITY_ENABLED = true;
-/** Road width; a bus is BUS_LENGTH long, so two of them can pass. */
-export const CITY_ROAD_WIDTH = 3;
-/** Blocks (without roads) are cut while a side is longer than MAX, never below MIN. */
-export const CITY_BLOCK_MIN = 6;
-export const CITY_BLOCK_MAX = 13;
-/** Chance a whole block is a drivable park instead of buildings. */
-export const CITY_PARK_CHANCE = 0.15;
-/** Building lot side range inside a block. */
-export const CITY_LOT_MIN = 2;
-export const CITY_LOT_MAX = 4;
-/** Chance a lot stays empty (courtyard, drivable). */
-export const CITY_EMPTY_LOT_CHANCE = 0.12;
-/** Building height range, tiles. */
-export const CITY_HEIGHT_MIN = 1;
-export const CITY_HEIGHT_MAX = 4;
+/**
+ * Street cross-sections, half widths from the centreline outward: median (green, avenue only),
+ * carriageway, green strip with trees, sidewalk. A bike path (CITY_BIKE_WIDTH) sits between the
+ * green strip and the sidewalk on one side of some streets.
+ */
+export const CITY_STREETS = {
+  avenue: { median: 0.8, road: 3.6, green: 0.7, walk: 1.1 },
+  street: { median: 0, road: 2.7, green: 0.7, walk: 1 },
+  lane: { median: 0, road: 2.2, green: 0, walk: 1 },
+} as const;
+export const CITY_BIKE_WIDTH = 1;
+/** Street grid: node spacing, how far nodes are shaken off the grid (share of the spacing) and
+ *  the largest tilt of the whole grid, radians. */
+export const CITY_GRID_SPACING = 36;
+export const CITY_GRID_JITTER = 0.2;
+export const CITY_GRID_TILT = 0.4;
+/** Chance a street is dropped (two blocks merge) and a block gets a diagonal street across. */
+export const CITY_DROP_STREET_CHANCE = 0.16;
+export const CITY_DIAGONAL_CHANCE = 0.08;
+/** Chance a plain junction of four streets is a roundabout; the avenue crossing always is. */
+export const CITY_ROUNDABOUT_CHANCE = 0.35;
+/** Roundabout outer radius (edge of the ring road) for streets and for the avenue crossing. */
+export const CITY_ROUNDABOUT_R = 6;
+export const CITY_ROUNDABOUT_BIG_R = 8;
+/** Width of the ring road; the rest of the circle is a green island. */
+export const CITY_ROUNDABOUT_RING = 4.5;
+/** Chance a block is a park. */
+export const CITY_PARK_CHANCE = 0.13;
+/** Height of one storey, tiles. */
+export const CITY_FLOOR_HEIGHT = 0.75;
+/** Tenement frontage: depth from the street, lot width along it, storeys, chance a lot stays empty. */
+export const CITY_TENEMENT_DEPTH = 4;
+export const CITY_TENEMENT_LOT_MIN = 4;
+export const CITY_TENEMENT_LOT_MAX = 6;
+export const CITY_TENEMENT_FLOORS_MIN = 3;
+export const CITY_TENEMENT_FLOORS_MAX = 6;
+export const CITY_EMPTY_LOT_CHANCE = 0.1;
+/** Prefab housing estate blocks ("bloki"): slab thickness and length, storeys of low and high slabs. */
+export const CITY_SLAB_THICKNESS = 3;
+export const CITY_SLAB_LENGTH_MIN = 9;
+export const CITY_SLAB_LENGTH_MAX = 20;
+export const CITY_SLAB_FLOORS_LOW = 5;
+export const CITY_SLAB_FLOORS_HIGH = 11;
+/** Glass office towers downtown: footprint side and storeys. */
+export const CITY_TOWER_SIDE_MIN = 5;
+export const CITY_TOWER_SIDE_MAX = 7;
+export const CITY_TOWER_FLOORS_MIN = 12;
+export const CITY_TOWER_FLOORS_MAX = 20;
+/** Palace of Culture footprint side (one, near the centre, on a paved square). */
+export const CITY_PALACE_SIDE = 11;
+/** Disconnected pockets smaller than this many tiles are filled in, bigger ones get a gateway. */
+export const CITY_MIN_POCKET = 12;
 /** Bus stops per tile of road. */
 export const CITY_STOPS_PER_ROAD_TILE = 1 / 40;
 
@@ -106,7 +143,7 @@ export const CONTROLLERS_PER_TILE = 1 / 400;
 export const STOP_ZUL_CHANCE = 0.5;
 // Żabka shops (sim/zabka.ts): each one lets out drunks ("żul" bonus) that wait until picked up.
 /** Shops per map tile (×size², at least 1). */
-export const ZABKAS_PER_TILE = 1 / 600;
+export const ZABKAS_PER_TILE = 1 / 1400;
 /** Side of a shop in tiles: it stands on a ZABKA_TILES × ZABKA_TILES lot (render/zabka.ts model). */
 export const ZABKA_TILES = 2;
 /** Seconds between drunks from one shop at the start of the match, the floor, and how many
@@ -139,7 +176,7 @@ export const BONUS_STINK = {
 } as const;
 // InPost parcel lockers (sim/paczkomat.ts): ramming one knocks out a parcel or, sometimes, a poop.
 /** Lockers per map tile (×size², at least 1). */
-export const PACZKOMATS_PER_TILE = 1 / 500;
+export const PACZKOMATS_PER_TILE = 1 / 1100;
 /** Chance that a hit knocks out a poop (BONUS_STINK.poop) instead of a parcel. */
 export const PACZKOMAT_POOP_CHANCE = 0.3;
 /** Slowest hit (tiles/s into the locker, before the bounce) that still knocks something out. */
@@ -165,8 +202,9 @@ export const SUDDEN_DEATH = [
   { after: 8 * 60, multiplier: 2 },
   { after: 10 * 60, multiplier: 3 },
 ];
-/** Tiles taken per point of stink on a jump (before the sudden death multiplier). */
-export const TILES_PER_STINK = 1;
+/** Tiles taken per point of stink on a jump (before the sudden death multiplier). 4 since the
+ *  city map grew 4× in area (card 038), so a jump takes the same share of the map. */
+export const TILES_PER_STINK = 4;
 /** Start points sit on a ring this far from the center, as a fraction of map size. */
 export const START_RING = 0.3;
 
@@ -246,9 +284,9 @@ export const SOUND_FULL_DIST = 3;
 /** A bus knocked sideways at least this fast (tiles/s) in one snapshot makes a "bum". */
 export const SOUND_RAM_PUSH = 3;
 /** Tile gains bigger than this aren't a jump (game start, join zones) and stay silent. */
-export const SOUND_CAPTURE_MAX_TILES = 300;
+export const SOUND_CAPTURE_MAX_TILES = 1200;
 /** Captures of this many tiles or more get the highest jump chord. */
-export const SOUND_CAPTURE_TOP_TILES = 150;
+export const SOUND_CAPTURE_TOP_TILES = 600;
 /** Harnaś can clinks per second at full exposure under the cloud. */
 export const SOUND_CLINKS_PER_S = 7;
 /** Master volume, 0..1. */

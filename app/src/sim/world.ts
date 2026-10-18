@@ -1,17 +1,14 @@
-import {
-  CITY_BLOCK_MAX, CITY_BLOCK_MIN, CITY_EMPTY_LOT_CHANCE, CITY_ENABLED, CITY_HEIGHT_MAX,
-  CITY_HEIGHT_MIN, CITY_LOT_MAX, CITY_LOT_MIN, CITY_PARK_CHANCE, CITY_ROAD_WIDTH,
-  CITY_STOPS_PER_ROAD_TILE, MAX_PLAYERS, TILES_PER_PLAYER,
-} from '../shared/config';
-import type { Tile, TileKind, World } from '../shared/types';
+import { CITY_ENABLED, CITY_STOPS_PER_ROAD_TILE, MAX_PLAYERS, TILES_PER_PLAYER } from '../shared/config';
+import type { Tile, World } from '../shared/types';
+import { generateCity as buildCity } from './city';
 
 export function mapSizeFor(playerCount: number): number {
   return Math.ceil(Math.sqrt(TILES_PER_PLAYER * Math.max(1, Math.min(playerCount, MAX_PLAYERS))));
 }
 
 /**
- * Map for a party. Flat field (DECISIONS: MVP on a flat map) unless `city`: then a street
- * grid with building blocks and parks, the same for the same seed.
+ * Map for a party. Flat field unless `city`: then streets, blocks of buildings and parks
+ * (sim/city.ts), the same for the same seed.
  */
 export function generateWorld(seed: number, playerCount: number, city = CITY_ENABLED): World {
   const size = mapSizeFor(playerCount);
@@ -33,67 +30,9 @@ function rng(seed: number): () => number {
   };
 }
 
-interface Rect { x0: number; z0: number; x1: number; z1: number } // [x0, x1) × [z0, z1)
-
 function generateCity(world: World): void {
-  const { size, tiles } = world;
   const rand = rng(world.seed ^ 0xc17e);
-  const int = (lo: number, hi: number) => lo + Math.floor(rand() * (hi - lo + 1));
-  const set = (r: Rect, kind: TileKind) => {
-    for (let z = r.z0; z < r.z1; z++) for (let x = r.x0; x < r.x1; x++) tiles[z * size + x].kind = kind;
-  };
-  const W = CITY_ROAD_WIDTH;
-
-  // Ring road along the edge, then cut the inside into blocks. Every cut is a road spanning
-  // its parent rect, whose border is already road, so the whole network is connected.
-  set({ x0: 0, z0: 0, x1: size, z1: size }, 'road');
-  const blocks: Rect[] = [];
-  const split = (r: Rect) => {
-    const w = r.x1 - r.x0;
-    const h = r.z1 - r.z0;
-    const canX = w > CITY_BLOCK_MAX && w >= 2 * CITY_BLOCK_MIN + W;
-    const canZ = h > CITY_BLOCK_MAX && h >= 2 * CITY_BLOCK_MIN + W;
-    if (!canX && !canZ) { blocks.push(r); return; }
-    const alongX = canX && (!canZ || (w === h ? rand() < 0.5 : w > h));
-    const [lo, hi] = alongX ? [r.x0, r.x1] : [r.z0, r.z1];
-    const cut = int(lo + CITY_BLOCK_MIN, hi - CITY_BLOCK_MIN - W);
-    if (alongX) {
-      split({ ...r, x1: cut });
-      split({ ...r, x0: cut + W });
-    } else {
-      split({ ...r, z1: cut });
-      split({ ...r, z0: cut + W });
-    }
-  };
-  split({ x0: W, z0: W, x1: size - W, z1: size - W });
-
-  for (const b of blocks) {
-    if (rand() < CITY_PARK_CHANCE) { set(b, 'park'); continue; }
-    // Lots: cut the block into a grid of strips along each axis, one building per cell.
-    const cuts = (lo: number, hi: number) => {
-      const out = [lo];
-      while (hi - out[out.length - 1] > CITY_LOT_MAX) {
-        const rest = hi - out[out.length - 1];
-        out.push(out[out.length - 1] + Math.min(int(CITY_LOT_MIN, CITY_LOT_MAX), rest - CITY_LOT_MIN));
-      }
-      out.push(hi);
-      return out;
-    };
-    const xs = cuts(b.x0, b.x1);
-    const zs = cuts(b.z0, b.z1);
-    for (let a = 0; a + 1 < xs.length; a++) {
-      for (let c = 0; c + 1 < zs.length; c++) {
-        const lot = { x0: xs[a], x1: xs[a + 1], z0: zs[c], z1: zs[c + 1] };
-        // Only lots on the block edge may stay empty: an inner one would be a walled-in courtyard.
-        const onEdge = a === 0 || c === 0 || a + 2 === xs.length || c + 2 === zs.length;
-        if (onEdge && rand() < CITY_EMPTY_LOT_CHANCE) { set(lot, 'grass'); continue; }
-        set(lot, 'building');
-        const height = int(CITY_HEIGHT_MIN, CITY_HEIGHT_MAX);
-        for (let z = lot.z0; z < lot.z1; z++) for (let x = lot.x0; x < lot.x1; x++) tiles[z * size + x].height = height;
-      }
-    }
-  }
-
+  buildCity(world, rand);
   world.stops = placeStops(world, rand);
 }
 

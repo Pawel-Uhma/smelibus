@@ -123,15 +123,25 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 
 - **Domyślnie miasto:** ulice, kwartały z budynkami i parki. Autobusy i piesi odbijają się od
   budynków. Przystanki stoją przy ulicach, a żaden bonus nie pojawia się w budynku.
+- **Jak wygląda miasto** (karta 038): ulice idą pod różnymi kątami, nie w szachownicę. Są trzy
+  przekroje: aleja dwujezdniowa z zielonym pasem dzielącym i drzewami, ulica z pasami zieleni
+  i drzewami, wąska uliczka. Do tego chodniki, czerwone ścieżki rowerowe przy części ulic,
+  przejścia dla pieszych na skrzyżowaniach i ronda (duże na skrzyżowaniu alej). Jezdnia ma dwa
+  pasy w każdą stronę na alei, po jednym na ulicy. Budynki zależą od dzielnicy: w centrum
+  Pałac Kultury na placu, szklane biurowce i socrealistyczne kamienice MDM, dookoła kwartały
+  kamienic z podwórkami (wjazd bramą), na obrzeżach osiedla bloków z wielkiej płyty z kolorowymi
+  balkonami i pawilonami. Parki mają alejki, fontannę i drzewa. Przez drzewa się przejeżdża,
+  cały pas ulicy (z chodnikiem i zielenią) jest przejezdny, blokują tylko budynki.
 - **Przełącznik „Miasto / Płaska”** w poczekalni: klika tylko host, inni widzą wybór. Każde
   przełączenie losuje nową mapę wybranego rodzaju. Płaska mapa nie ma budynków ani ulic, można
   jeździć wszędzie.
 - Na mapie stoją elementy: przystanki z bonusami, śmietniki, kontrolerzy, Żabki.
-- Mapa to siatka kafelków generowana losowo przy starcie party. Rozmiar zależy od liczby
-  graczy: ok. **400 kafelków na gracza** (np. ~56×56 przy 8). Każdy kafelek ma właściciela (`ownerId`).
+- Mapa to siatka kafelków generowana losowo przy starcie party, zawsze na pełne party:
+  **1600 kafelków na gracza**, czyli ~114×114 (karta 038, wcześniej 400 i 57×57, ulice były za
+  wąskie na autobusy). Każdy kafelek ma właściciela (`ownerId`).
 - Start: mapa dzielona na tyle stref, ilu jest graczy (np. Voronoi od punktów startowych).
 - **Skok:** gdy autobus z kierowcą przekroczy granicę strefy kierowcy (wjedzie do niej z cudzego
-  albo neutralnego terenu), gracz przejmuje **N = stink** kafelków (× mnożnik sudden death).
+  albo neutralnego terenu), gracz przejmuje **N = 4 × stink** kafelków (× mnożnik sudden death; 4, bo mapa urosła 4×).
   Kafelki są brane od punktu przekroczenia granicy na zewnątrz, najbliższe pierwsze, niezależnie
   od tego, czyje są. Smród autobusu spada do 0.
 - O tym, komu zabierasz teren, decydujesz tym, z której strony wjeżdżasz.

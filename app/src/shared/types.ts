@@ -73,6 +73,46 @@ export interface Tile {
   kind?: TileKind;
   /** Building height in tiles (only for 'building'). */
   height?: number;
+  /** Index in World.buildings of the building standing here (city map, card 038). */
+  building?: number;
+}
+
+/** Street cross-section (sizes in shared/config.ts CITY_STREETS). */
+export type StreetKind = 'avenue' | 'street' | 'lane';
+
+/**
+ * One straight street from (ax, az) to (bx, bz) on the city map. Render draws it from this;
+ * the sim only looks at tile kinds ('road' covers carriageway, green strips, paths and sidewalks).
+ */
+export interface CityStreet {
+  kind: StreetKind;
+  ax: number;
+  az: number;
+  bx: number;
+  bz: number;
+  /** Bike path on the left (-1) or right (1) side looking from a to b, 0 = none. */
+  bike: number;
+  /** Length at each end taken by the junction there (markings and green strips stop short);
+   *  0 = dead end or map edge. */
+  trimA: number;
+  trimB: number;
+}
+
+export interface CityRoundabout {
+  x: number;
+  z: number;
+  /** Outer radius of the ring road. */
+  r: number;
+}
+
+/** Warsaw building types: kamienica, wielka płyta, glass office, MDM socrealism, pavilion, PKiN. */
+export type BuildingStyle = 'tenement' | 'block' | 'office' | 'mdm' | 'pavilion' | 'palace';
+
+export interface CityBuilding {
+  style: BuildingStyle;
+  floors: number;
+  /** Facade color (for blocks: the balcony color, for pavilions: the sign). */
+  color: number;
 }
 
 export interface World {
@@ -82,6 +122,10 @@ export interface World {
   tiles: Tile[];
   /** Bus stop spots on road tiles next to buildings, from the city generator. */
   stops?: { x: number; z: number }[];
+  /** City map only (card 038): street network and buildings, for the render. */
+  streets?: CityStreet[];
+  roundabouts?: CityRoundabout[];
+  buildings?: CityBuilding[];
   /** Żabka shops (sim/zabka.ts), fixed for the match, so they travel with the world on join. */
   zabkas?: { x: number; z: number }[];
   /** InPost parcel lockers (sim/paczkomat.ts): centre and the axis-aligned unit direction the

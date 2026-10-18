@@ -14,7 +14,7 @@ describe('game', () => {
   });
 
   it('drives only the bus of the player who sent input', () => {
-    const s = createGame(1);
+    const s = createGame(1, false); // flat: a city bus may be parked nose to a wall
     const a = addPlayer(s, 'a', 'A');
     const before = s.buses.map((b) => ({ x: b.x, z: b.z }));
     for (let i = 0; i < 30; i++) stepGame(s, new Map([['a', { throttle: 1, steer: 0 }]]), 1 / 60);

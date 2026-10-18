@@ -14,8 +14,8 @@ skrzyżowania i ronda, parki z drzewami (przejezdne), kilka typów voxelowych bu
 
 ## Gotowe, gdy
 
-- [ ] ulice z jezdniami, chodnikami, zielenią i ścieżkami rowerowymi pod różnymi kątami
-- [ ] ronda i skrzyżowania z przejściami dla pieszych
-- [ ] kilka typów warszawskich budynków rozmieszczonych zależnie od dzielnicy
-- [ ] parki z drzewami, przez które się przejeżdża
-- [ ] wszystkie przejezdne kafelki połączone (test)
+- [x] ulice z jezdniami, chodnikami, zielenią i ścieżkami rowerowymi pod różnymi kątami
+- [x] ronda i skrzyżowania z przejściami dla pieszych
+- [x] kilka typów warszawskich budynków rozmieszczonych zależnie od dzielnicy
+- [x] parki z drzewami, przez które się przejeżdża
+- [x] wszystkie przejezdne kafelki połączone (test)
