@@ -1,7 +1,7 @@
 # Pieszy: kolizje z budynkami miasta
 
 obszar: autobus
-kto: -
+kto: Szczpan
 zależy od: 006, 023
 ścieżki: sim/player.ts
 
