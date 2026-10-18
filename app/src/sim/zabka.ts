@@ -2,8 +2,9 @@ import {
   BONUS_STINK, ZABKA_SPAWN_MIN_S, ZABKA_SPAWN_SPEEDUP_PER_MIN, ZABKA_SPAWN_START_S, ZABKA_ZUL_RADIUS,
   ZABKA_ZULS_MAX, ZABKA_ZULS_START, ZABKA_ZULS_STEP_S, ZABKAS_PER_TILE,
 } from '../shared/config';
-import type { GameState, World } from '../shared/types';
+import type { Bus, GameState, World } from '../shared/types';
 import { nextId, rand } from './bonus';
+import { bounceOff, corners } from './bus';
 import { nearestDrivable } from './world';
 
 /** Seconds between drunks from one shop at game time `time`: shrinks as the match goes on. */
@@ -89,4 +90,39 @@ export function updateZabkas(state: GameState): void {
       active: true, respawnAt: 0, x, z, zabka: i,
     });
   });
+}
+
+/** Half the side of a kiosk (render/zabka.ts): it fills its tile. */
+const KIOSK_HALF = 0.5;
+
+/**
+ * Keeps the bus rectangle out of the kiosks (square, axis-aligned): pushes it out along the axis
+ * of least overlap (separating axis test) and bounces it off that side, like the map edge.
+ * Runs on the server after updateBus and in the client's own-bus prediction.
+ */
+export function collideZabkas(bus: Bus, shops: readonly { x: number; z: number }[] | undefined): void {
+  if (!shops) return;
+  for (const shop of shops) {
+    const cs = corners(bus);
+    const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
+    let best: { nx: number; nz: number; depth: number } | null = null;
+    for (const [nx, nz] of [[1, 0], [0, 1], [fx, fz], [fz, -fx]]) {
+      const proj = cs.map(([x, z]) => x * nx + z * nz);
+      const c = shop.x * nx + shop.z * nz;
+      const r = KIOSK_HALF * (Math.abs(nx) + Math.abs(nz));
+      const depth = Math.min(Math.max(...proj), c + r) - Math.max(Math.min(...proj), c - r);
+      if (depth <= 0) {
+        best = null;
+        break;
+      }
+      if (!best || depth < best.depth) best = { nx, nz, depth };
+    }
+    if (!best) continue;
+    // Point the axis from the kiosk towards the bus.
+    const away = (bus.x - shop.x) * best.nx + (bus.z - shop.z) * best.nz < 0 ? -1 : 1;
+    const nx = best.nx * away, nz = best.nz * away;
+    bus.x += nx * best.depth;
+    bus.z += nz * best.depth;
+    bounceOff(bus, -nx, -nz);
+  }
 }

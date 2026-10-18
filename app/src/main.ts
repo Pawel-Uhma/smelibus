@@ -35,7 +35,7 @@ function frame(now: number) {
   const me = snap.players.find((p) => p.id === party.playerId);
   const serverBus = snap.buses.find((b) => b.id === me?.busId);
   if (!serverBus) predictor = null;
-  else if (!predictor || predictor.bus.id !== serverBus.id) predictor = createBusPredictor(serverBus, party.world.size);
+  else if (!predictor || predictor.bus.id !== serverBus.id) predictor = createBusPredictor(serverBus, party.world.size, party.world.zabkas);
   const shown = party.interpolatedBuses(now);
   if (predictor && serverBus) {
     // Collide with the other buses where they are drawn, so ours never visibly drives into them.

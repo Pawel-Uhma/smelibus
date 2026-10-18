@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { BONUS_STINK, ZABKA_SPAWN_MIN_S, ZABKA_ZULS_MAX, ZABKA_ZULS_START } from '../shared/config';
-import type { GameState } from '../shared/types';
+import { BONUS_STINK, BUS_LENGTH, ZABKA_SPAWN_MIN_S, ZABKA_ZULS_MAX, ZABKA_ZULS_START } from '../shared/config';
+import type { Bus, GameState } from '../shared/types';
 import { updateBonuses } from './bonus';
+import { NO_INPUT, updateBus } from './bus';
 import { addPlayer, createGame } from './game';
 import { generateWorld } from './world';
-import { placeZabkas, updateZabkas, zabkaInterval, zabkaLimit } from './zabka';
+import { collideZabkas, placeZabkas, updateZabkas, zabkaInterval, zabkaLimit } from './zabka';
 
 const zabkaZuls = (s: GameState, shop?: number) =>
   s.bonuses!.filter((b) => b.spot === 'zabka' && (shop === undefined || b.zabka === shop));
@@ -91,5 +92,35 @@ describe('Żabka shops', () => {
     s.time += 120;
     updateBonuses(s, 0);
     expect(s.bonuses!.some((b) => b.id === zul.id)).toBe(false);
+  });
+});
+
+describe('kiosk collisions', () => {
+  const shop = { x: 20.5, z: 20.5 };
+  const bus = (x: number, z: number, angle: number, speed: number): Bus =>
+    ({ id: 0, x, z, angle, speed, driverId: 'a', stink: 0 });
+
+  it('stops a bus driving head-on into the kiosk and bounces it back', () => {
+    const b = bus(shop.x, shop.z - 4, 0, 10);
+    for (let t = 0; t < 1.5; t += 1 / 60) {
+      updateBus(b, NO_INPUT, 1 / 60, 100);
+      collideZabkas(b, [shop]);
+      expect(b.z + BUS_LENGTH / 2).toBeLessThanOrEqual(shop.z - 0.5 + 1e-9);
+    }
+    expect(b.speed).toBeLessThanOrEqual(0);
+  });
+
+  it('pushes a slanted bus fully out and leaves far buses alone', () => {
+    const b = bus(shop.x - 1.2, shop.z - 1.2, Math.PI / 4, 0);
+    collideZabkas(b, [shop]);
+    const after = { x: b.x, z: b.z };
+    expect(Math.hypot(after.x - (shop.x - 1.2), after.z - (shop.z - 1.2))).toBeGreaterThan(0);
+    collideZabkas(b, [shop]);
+    expect(b.x).toBeCloseTo(after.x, 9);
+    expect(b.z).toBeCloseTo(after.z, 9);
+
+    const far = bus(shop.x + 5, shop.z, 0, 3);
+    collideZabkas(far, [shop]);
+    expect(far).toEqual(bus(shop.x + 5, shop.z, 0, 3));
   });
 });

@@ -1,6 +1,7 @@
 import { PREDICTION_CORRECT_RATE, PREDICTION_SNAP_DIST, SIM_DT } from '../shared/config';
 import type { Bus, BusInput, InputAck } from '../shared/types';
 import { collideWithOthers, updateBus } from './bus';
+import { collideZabkas } from './zabka';
 
 /** Local ticks kept for replaying on top of the server (covers pings up to ~1.5 s). */
 const HISTORY_TICKS = 90;
@@ -27,7 +28,9 @@ const angleDiff = (from: number, to: number) => Math.atan2(Math.sin(to - from), 
  * from the server's bus and replays the local inputs after that tick: no guessing, no drift.
  * The jump between the old and new prediction is hidden by a visual offset that fades out.
  */
-export function createBusPredictor(start: Bus, mapSize: number): BusPredictor {
+export function createBusPredictor(
+  start: Bus, mapSize: number, zabkas?: readonly { x: number; z: number }[],
+): BusPredictor {
   const sim: Bus = { ...start };
   const bus: Bus = { ...start };
   /** Inputs of local ticks [base, tick). */
@@ -41,6 +44,7 @@ export function createBusPredictor(start: Bus, mapSize: number): BusPredictor {
 
   const simulate = (input: BusInput, others: readonly Bus[]) => {
     updateBus(sim, input, SIM_DT, mapSize);
+    collideZabkas(sim, zabkas);
     collideWithOthers(sim, others, mapSize);
   };
   const draw = () => {

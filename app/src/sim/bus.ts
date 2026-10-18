@@ -12,7 +12,7 @@ const HALF_L = BUS_LENGTH / 2;
 const HALF_W = BUS_HIT_WIDTH / 2;
 
 /** The four corners of the bus rectangle, as [x, z] pairs. */
-function corners(bus: Bus): [number, number][] {
+export function corners(bus: Bus): [number, number][] {
   const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
   const out: [number, number][] = [];
   for (const l of [-HALF_L, HALF_L]) {
@@ -50,7 +50,7 @@ function kick(bus: Bus, dvx: number, dvz: number): void {
  * Bounce off a wall in direction (nx, nz). Only the part of the velocity going into the wall
  * bounces, so a head-on hit reverses at BUS_BOUNCE and a scrape along the wall barely slows down.
  */
-function bounceOff(bus: Bus, nx: number, nz: number): void {
+export function bounceOff(bus: Bus, nx: number, nz: number): void {
   const into = speedAlong(bus, nx, nz);
   if (into > 0) kick(bus, -(1 + BUS_BOUNCE) * into * nx, -(1 + BUS_BOUNCE) * into * nz);
 }
