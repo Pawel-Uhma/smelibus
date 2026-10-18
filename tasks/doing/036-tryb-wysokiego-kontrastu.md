@@ -1,7 +1,7 @@
 # Tryb wysokiego kontrastu
 
 obszar: swiat
-kto: -
+kto: antpop
 zależy od: -
 ścieżki: -
 
