@@ -1,7 +1,7 @@
 # Poprawki landing page i pola kodu dołączania
 
 obszar: siec
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: `ui/lobby/lobby.ts`, `ui/lobby/lobby.css`, `app/index.html`
 
