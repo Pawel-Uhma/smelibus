@@ -1,7 +1,7 @@
 # Voxelowe modele bonusów smrodu
 
 obszar: smrod
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: `render/bonuses.ts`, `render/bonusModels.ts`
 
