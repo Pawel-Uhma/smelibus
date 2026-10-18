@@ -3,6 +3,7 @@ import type { Bus, Player, PlayerId, World } from '../shared/types';
 import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
 import { createStinkEffect } from './stink';
+import { createZabkaRender } from './zabka';
 
 /** Placeholder render: flat ground, buses as plain boxes. Cards 003/004 replace it with voxels. */
 export function createScene(canvas: HTMLCanvasElement, world: World) {
@@ -29,6 +30,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   grid.position.set(s / 2, 0.01, s / 2);
   scene.add(grid);
   if (world.tiles.some((t) => t.kind)) createCityRender(scene, world);
+  createZabkaRender(scene, world);
 
   const meshes = new Map<number, BusModel>();
   const stink = createStinkEffect(scene);

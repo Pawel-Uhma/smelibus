@@ -143,6 +143,12 @@ się z zielenią smrodu ani przy najczęstszych typach daltonizmu.
 Zarezerwowane, nie dla graczy: zieleń smrodu `#8CC846`, plamy `#6F7A2E`, wyświetlacz `#FFB000`,
 szarości niczyich autobusów i kafelków (`#BBBBBB`, `#D9D4C7`). Wartości w `shared/config.ts` (`PLAYER_COLORS`).
 
+### Żabka
+
+Kiosk 6 × 6 × 6 voxeli (jeden kafelek): ściany `#F2EFE6`, zielony pas szyldu `#2E8B3A` z białym
+logo z przodu, zielony dach `#3A9A45` z białym logo widocznym z kamery od góry. Przód z drzwiami
+i szybami zwrócony do sąsiedniej ulicy (na płaskiej mapie do środka mapy). Kod: `render/zabka.ts`.
+
 ### Smród na autobusie
 
 Smród rysujemy tymi samymi voxelami co autobus, bez systemu cząsteczek. Trzy stopnie wg `stink`
