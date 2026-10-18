@@ -1,7 +1,7 @@
 # Włączenie miasta i przełącznik Miasto/Płaska
 
 obszar: swiat
-kto: -
+kto: Szczpan
 zależy od: 023
 ścieżki: shared/config.ts, sim/world.ts, sim/bonus.ts, ../../server/, ui/lobby/
 
