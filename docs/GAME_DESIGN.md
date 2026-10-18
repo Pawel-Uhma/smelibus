@@ -78,6 +78,8 @@ miejsce odnawia się po czasie (np. 15 s).
 | Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej (odstęp 30 s → 8 s, limit przy sklepie 1 → 4). Żul wychodzi drzwiami, idzie 1–2,5 kafelka w losową stronę od sklepu i się przewraca; leżący daje **+40**. Po zebraniu znika, „siedzi” jak ten z przystanku. Trzy wersje żula (niżej, Grafika → Żul) |
 | Paczka z Paczkomatu | +5 | paczkomaty InPost stoją przy ulicach; uderzenie w drzwi z prędkością ≥ 3 kafelki/s wybija przed paczkomat paczkę, a w **30%** przypadków **kupę (+30)**. Potem paczkomat jest pusty przez 6 s. Ocieranie bokiem się nie liczy. Wybite leży 20 s |
 
+**Statystyki ładunku** (karta 039): każdy podniesiony bonus liczy się autobusowi i jego kierowcy, w jednym miejscu (`sim/cargo.ts`, wołane przy zebraniu). HUD przy pasku smrodu pokazuje 🍺 żuli, którzy **siedzą w autobusie teraz** (każdy przez 20 s od zebrania, `ZUL_SIT_SECONDS`), oraz 📦 paczki i 💩 kupy **zebrane od startu gry**. Ekran wygranej ma tabelę graczy: żule, paczki, kupy, reszta (wszystko inne, też kanar i rozsypany smród), wszystko jako suma od startu; lider kolumny jest podświetlony (remis: wszyscy), przy zerze nikt. Rewanż zeruje statystyki.
+
 Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),
 widoczna zielona chmura wokół autobusu skalowana smrodem.
 

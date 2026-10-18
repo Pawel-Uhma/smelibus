@@ -81,6 +81,8 @@ function frame(now: number) {
     // Only movement is predicted; stink and the rest come straight from the server.
     predictor.bus.stink = serverBus.stink;
     predictor.bus.slowDecayUntil = serverBus.slowDecayUntil;
+    predictor.bus.zulsUntil = serverBus.zulsUntil;
+    predictor.bus.collected = serverBus.collected;
     predictor.bus.driverId = serverBus.driverId;
   }
   party.sendInput(predictor ? { ...input, seq: predictor.seq } : input);

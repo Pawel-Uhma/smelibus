@@ -38,6 +38,10 @@ export interface Bus {
   /** Sideways knock-back velocity from a hit (tiles/s, world axes); tyres scrub it away. */
   pushX?: number;
   pushZ?: number;
+  /** Bonuses this bus has picked up this game, per kind (sim/cargo.ts, card 039). */
+  collected?: BonusCounts;
+  /** Game time at which each drunk on board gets off (pickup + ZUL_SIT_SECONDS). */
+  zulsUntil?: number[];
 }
 
 export interface Player {
@@ -62,6 +66,8 @@ export interface Player {
   connected: boolean;
   /** Computer player run by the server (sim/bot.ts, card 037). */
   bot?: boolean;
+  /** Bonuses picked up by buses this player drove, this game, per kind (sim/cargo.ts, card 039). */
+  collected?: BonusCounts;
 }
 
 /** What stands on a tile (card 002 city generator). Missing = 'grass' (flat map). */
@@ -178,6 +184,9 @@ export interface WeatherCell {
 export type BonusKind =
   | 'zul' | 'kebab' | 'dog' | 'fan' | 'herring' | 'durian' | 'trash' | 'controller' | 'dropped'
   | 'parcel' | 'poop';
+
+/** How many bonuses of each kind were picked up; missing kind = 0. */
+export type BonusCounts = Partial<Record<BonusKind, number>>;
 
 /** Where a bonus lives: decides what respawns there. `dropped` (from a ram) and `zabka`
  *  (a drunk let out by a shop) are one-offs. */

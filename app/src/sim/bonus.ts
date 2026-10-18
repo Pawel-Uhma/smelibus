@@ -4,6 +4,7 @@ import {
   MAP_BONUS_SPOTS_PER_TILE, STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
   TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
 } from '../shared/config';
+import { countPickup } from './cargo';
 import { nearestDrivable } from './world';
 import type { Bonus, BonusKind, BonusSpot, Bus, GameState } from '../shared/types';
 
@@ -111,6 +112,7 @@ export function bonusPosition(b: Bonus, time: number): { x: number; z: number } 
 /** Applies one bonus to a bus. */
 export function collect(state: GameState, bus: Bus, b: Bonus): void {
   bus.stink = clampStink(bus.stink + b.amount);
+  countPickup(state, bus, b.kind);
   if (b.kind === 'zul') bus.slowDecayUntil = state.time + ZUL_SIT_SECONDS;
   b.active = false;
   b.respawnAt = state.time + respawnTime(b.spot);

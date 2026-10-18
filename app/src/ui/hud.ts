@@ -1,5 +1,5 @@
 import type { PlayerId } from '../shared/types';
-import { buildHudModel, formatClock, type HudView } from './hudModel';
+import { buildHudModel, CARGO_COLUMNS, formatClock, type CargoColumn, type CargoRow, type HudView } from './hudModel';
 import { createStinkPops } from './stinkPops';
 
 export type { HudView } from './hudModel';
@@ -16,6 +16,45 @@ const STINK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="curr
 /** Fill colour along the stink bar: pale yellow when fresh, deep toxic green when full. */
 function stinkColor(f: number): string {
   return `hsl(${Math.round(58 + f * 55)} ${Math.round(62 + f * 25)}% ${Math.round(66 - f * 22)}%)`;
+}
+
+const CARGO_HEAD: Record<CargoColumn, [icon: string, label: string]> = {
+  zul: ['🍺', 'Żule'], parcel: ['📦', 'Paczki'], poop: ['💩', 'Kupy'], other: ['➕', 'Reszta'],
+};
+
+/** End-of-game cargo table (card 039): totals per player, the leader of each column marked. */
+function cargoTable(rows: CargoRow[]): HTMLTableElement {
+  const table = document.createElement('table');
+  table.className = 'cargo';
+  const head = table.createTHead().insertRow();
+  const who = document.createElement('th');
+  who.textContent = 'Gracz';
+  head.append(who);
+  for (const c of CARGO_COLUMNS) {
+    const [icon, label] = CARGO_HEAD[c];
+    const th = document.createElement('th');
+    th.title = label;
+    th.innerHTML = `${icon}<span class="lbl"> ${label}</span>`;
+    head.append(th);
+  }
+  const body = table.createTBody();
+  for (const r of rows) {
+    const tr = body.insertRow();
+    if (r.me) tr.classList.add('me');
+    const name = tr.insertCell();
+    name.className = 'who';
+    name.style.setProperty('--c', r.color);
+    name.textContent = r.name + (r.me ? ' (ty)' : '');
+    for (const c of CARGO_COLUMNS) {
+      const td = tr.insertCell();
+      td.textContent = String(r.counts[c]);
+      if (r.leads.includes(c)) {
+        td.classList.add('lead');
+        td.title = 'Najwięcej';
+      }
+    }
+  }
+  return table;
 }
 
 function stinkTier(f: number): string {
@@ -43,6 +82,11 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
       <div id="sudden" class="sudden" hidden></div>
     </div>
     <div id="stink" class="hud-stink">
+      <div class="hud-cargo">
+        <span title="Żule w autobusie teraz">🍺 <b id="cargo-zul">0</b></span>
+        <span title="Paczki w tej grze">📦 <b id="cargo-parcel">0</b></span>
+        <span title="Kupy w tej grze">💩 <b id="cargo-poop">0</b></span>
+      </div>
       <div class="stink-head">
         <span class="stink-icon">${STINK_ICON}</span>
         <span id="stink-tier" class="stink-tier">${stinkTier(0)}</span>
@@ -60,6 +104,7 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
         <div class="swatch" id="win-swatch"></div>
         <h2 id="win-title"></h2>
         <p id="win-sub"></p>
+        <div id="win-cargo"></div>
         <button id="win-rematch" class="rematch" hidden>Rewanż</button>
         <button id="win-close">Patrz dalej</button>
         <p class="rematch-wait" hidden>Czekamy na hosta…</p>
@@ -80,6 +125,8 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
   const stinkTierEl = $('stink-tier');
   const win = $('win');
   const popsBox = $('stink-pops');
+  const cargoEls = { zul: $('cargo-zul'), parcel: $('cargo-parcel'), poop: $('cargo-poop') };
+  const winCargo = $('win-cargo');
   const pops = createStinkPops();
   let lastUpdate = performance.now();
   copy.onclick = async () => {
@@ -125,6 +172,8 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
   let lastClock = '';
   let lastSudden = '';
   let lastStink = -1;
+  let lastCargo = '';
+  let lastWinCargo = '';
   let shownWinner: PlayerId | null = null;
 
   /** Re-triggers a one-shot CSS animation class on the stink bar. */
@@ -204,6 +253,14 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
         if (stinkTierEl.textContent !== tier) stinkTierEl.textContent = tier;
       }
 
+      const cargo = `${m.zuls}|${m.parcels}|${m.poops}`;
+      if (cargo !== lastCargo) {
+        lastCargo = cargo;
+        cargoEls.zul.textContent = String(m.zuls);
+        cargoEls.parcel.textContent = String(m.parcels);
+        cargoEls.poop.textContent = String(m.poops);
+      }
+
       const winnerId = m.winner?.id ?? null;
       if (winnerId !== shownWinner) {
         shownWinner = winnerId;
@@ -215,6 +272,11 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
             : `${m.winner.name} zasmrodził całą mapę. Czas gry ${m.clock}.`;
         }
         win.hidden = !m.winner || dismissedWinner === winnerId;
+      }
+      const winCargoKey = win.hidden ? '' : JSON.stringify(m.cargo);
+      if (winCargoKey !== lastWinCargo) {
+        lastWinCargo = winCargoKey;
+        winCargo.replaceChildren(...(winCargoKey ? [cargoTable(m.cargo)] : []));
       }
       // Host can change mid-game (the old one left), so this is re-checked every frame.
       const host = !!rematch?.isHost();

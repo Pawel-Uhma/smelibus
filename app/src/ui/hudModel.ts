@@ -1,5 +1,6 @@
 import { STINK_MAX, SUDDEN_DEATH } from '../shared/config';
-import type { Bus, Player, PlayerId, Tile } from '../shared/types';
+import type { BonusCounts, Bus, Player, PlayerId, Tile } from '../shared/types';
+import { zulsOnBoard } from '../sim/cargo';
 import { suddenDeathMultiplier } from '../sim/zones';
 
 /** What the HUD reads from the game. Plain data, the HUD never writes back. */
@@ -37,6 +38,47 @@ export interface HudModel {
   /** Seconds until the next multiplier step, or null when there is none left. */
   nextStepIn: number | null;
   winner: { id: PlayerId; name: string; color: string; me: boolean } | null;
+  /** Drunks sitting in the own bus right now (0 on foot). */
+  zuls: number;
+  /** Parcels and poops the player picked up this game. */
+  parcels: number;
+  poops: number;
+  /** End-of-game cargo table, one row per player in `rows` order (card 039). */
+  cargo: CargoRow[];
+}
+
+/** Columns of the cargo table: drunks, parcels, poops, everything else (totals this game). */
+export const CARGO_COLUMNS = ['zul', 'parcel', 'poop', 'other'] as const;
+export type CargoColumn = (typeof CARGO_COLUMNS)[number];
+
+export interface CargoRow {
+  id: PlayerId;
+  name: string;
+  color: string;
+  me: boolean;
+  counts: Record<CargoColumn, number>;
+  /** Columns this player leads (highest count above 0; ties all lead). */
+  leads: CargoColumn[];
+}
+
+/** Totals per cargo column; `other` sums every kind except drunks, parcels and poops. */
+export function cargoCounts(c: BonusCounts | undefined): Record<CargoColumn, number> {
+  let other = 0;
+  for (const [k, n] of Object.entries(c ?? {})) if (k !== 'zul' && k !== 'parcel' && k !== 'poop') other += n ?? 0;
+  return { zul: c?.zul ?? 0, parcel: c?.parcel ?? 0, poop: c?.poop ?? 0, other };
+}
+
+export function buildCargoTable(players: Player[], order: PlayerId[], me: PlayerId): CargoRow[] {
+  const byId = new Map(players.map((p) => [p.id, p]));
+  const rows = order.flatMap((id) => {
+    const p = byId.get(id);
+    return p ? [{ id, name: p.name, color: cssColor(p.color), me: id === me, counts: cargoCounts(p.collected), leads: [] as CargoColumn[] }] : [];
+  });
+  for (const col of CARGO_COLUMNS) {
+    const best = Math.max(0, ...rows.map((r) => r.counts[col]));
+    if (best > 0) for (const r of rows) if (r.counts[col] === best) r.leads.push(col);
+  }
+  return rows;
 }
 
 export const cssColor = (c: number) => '#' + c.toString(16).padStart(6, '0');
@@ -75,5 +117,9 @@ export function buildHudModel(view: HudView, me: PlayerId): HudModel {
     multiplier: suddenDeathMultiplier(view.time),
     nextStepIn: next ? next.after - view.time : null,
     winner: winP ? { id: winP.id, name: winP.name, color: cssColor(winP.color), me: winP.id === me } : null,
+    zuls: zulsOnBoard(ownBus, view.time),
+    parcels: meP?.collected?.parcel ?? 0,
+    poops: meP?.collected?.poop ?? 0,
+    cargo: buildCargoTable(view.players, rows.map((r) => r.id), me),
   };
 }

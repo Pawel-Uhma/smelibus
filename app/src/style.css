@@ -35,6 +35,8 @@ button:hover { background: #ffb829; }
 @keyframes sudden-pulse { to { transform: scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .hud-clock .sudden.on { animation: none; } }
 .hud-stink { --s: 0; --c: hsl(58 62% 66%); position: absolute; left: calc(8px + env(safe-area-inset-left)); bottom: calc(8px + env(safe-area-inset-bottom)); width: min(210px, calc(100vw - 16px)); background: #fffc; border: 2px solid #1b1b1b; border-radius: 10px; padding: 4px 8px 6px; box-shadow: 2px 2px 0 #1b1b1b; pointer-events: none !important; }
+.hud-cargo { display: flex; gap: 10px; font-size: 13px; line-height: 1; margin: 1px 0 4px; font-variant-numeric: tabular-nums; }
+.hud-cargo b { font-weight: 900; }
 .stink-head { position: relative; z-index: 1; display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
 .stink-icon { display: flex; width: 18px; height: 18px; color: var(--c); transition: color .3s; transform-origin: 50% 80%; animation: stink-icon-bob calc(2.4s - var(--s) * 1.6s) ease-in-out infinite; }
 .stink-icon svg { width: 100%; height: 100%; }
@@ -100,6 +102,13 @@ button:hover { background: #ffb829; }
 .win .swatch { width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 12px; border: 2px solid #1b1b1b; }
 .win h2 { margin: 0 0 8px; font-size: clamp(28px, 7vw, 40px); }
 .win p { margin: 0 0 16px; }
+.win .cargo { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.win .cargo th { font-size: 12px; font-weight: 700; padding: 0 4px 4px; white-space: nowrap; }
+.win .cargo td { padding: 4px; border-top: 1px solid #1b1b1b33; }
+.win .cargo .who { text-align: left; font-weight: 700; border-left: 6px solid var(--c); padding-left: 6px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.win .cargo tr.me td { background: #f3f3f3; }
+.win .cargo tr td.lead { background: #ffe14d; font-weight: 900; }
+@media (max-width: 420px) { .win .card { padding: 18px 12px; max-width: 100%; box-sizing: border-box; } .win .cargo { font-size: 13px; } .win .cargo .lbl { display: none; } .win .cargo th:not(:first-child) { font-size: 15px; } .win .cargo .who { max-width: 100px; } }
 .win .rematch-wait { margin: 12px 0 0; opacity: .75; }
 .rematch-bar { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: #fff; border: 2px solid #1b1b1b; border-radius: 10px; padding: 6px 10px; }
 .rematch-bar[hidden], .rematch[hidden], .rematch-wait[hidden] { display: none; }

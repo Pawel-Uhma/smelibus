@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Bus, Player } from '../shared/types';
-import { buildHudModel, formatClock, type HudView } from './hudModel';
+import { buildCargoTable, buildHudModel, cargoCounts, formatClock, type HudView } from './hudModel';
 
 const player = (id: string, busId: number | null = null): Player =>
   ({ id, name: id.toUpperCase(), color: 0x2f6bd6, busId, connected: true });
@@ -43,5 +43,35 @@ describe('hud model', () => {
   it('names the winner', () => {
     expect(buildHudModel(view(), 'a').winner).toBeNull();
     expect(buildHudModel(view({ winnerId: 'b' }), 'a').winner).toMatchObject({ id: 'b', name: 'B', me: false });
+  });
+
+  it('shows drunks on board now and parcels and poops this game', () => {
+    const v = view({ time: 10 });
+    v.buses[0].zulsUntil = [5, 12, 30];
+    v.players[0].collected = { zul: 3, parcel: 4, poop: 2, kebab: 1 };
+    expect(buildHudModel(v, 'a')).toMatchObject({ zuls: 2, parcels: 4, poops: 2 });
+    expect(buildHudModel(view(), 'a')).toMatchObject({ zuls: 0, parcels: 0, poops: 0 });
+  });
+
+  it('sums the other kinds into one cargo column', () => {
+    expect(cargoCounts({ zul: 1, parcel: 2, poop: 3, kebab: 4, controller: 1, dropped: 2 }))
+      .toEqual({ zul: 1, parcel: 2, poop: 3, other: 7 });
+    expect(cargoCounts(undefined)).toEqual({ zul: 0, parcel: 0, poop: 0, other: 0 });
+  });
+
+  it('marks the leader of each cargo column, ties included, nobody at 0', () => {
+    const a = { ...player('a'), collected: { zul: 2, parcel: 1 } };
+    const b = { ...player('b'), collected: { zul: 2, poop: 1 } };
+    const c = player('c');
+    const rows = buildCargoTable([a, b, c], ['c', 'a', 'b'], 'b');
+    expect(rows.map((r) => [r.id, r.me, r.leads])).toEqual([
+      ['c', false, []],
+      ['a', false, ['zul', 'parcel']],
+      ['b', true, ['zul', 'poop']],
+    ]);
+  });
+
+  it('puts the cargo table in map share order', () => {
+    expect(buildHudModel(view(), 'b').cargo.map((r) => r.id)).toEqual(['a', 'b']);
   });
 });
