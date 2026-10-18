@@ -13,5 +13,5 @@ zamiast ciągnąć do opóźnionej pozycji). Zderzenia autobusów kształtem pas
 
 ## Gotowe, gdy
 
-- [ ] skręt bez dryfu przy pingu
-- [ ] autobusy obok siebie nie odbijają się przed dotknięciem, czołowo nie wchodzą w siebie
+- [x] skręt bez dryfu przy pingu
+- [x] autobusy obok siebie nie odbijają się przed dotknięciem, czołowo nie wchodzą w siebie
