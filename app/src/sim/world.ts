@@ -1,6 +1,7 @@
-import { CITY_ENABLED, CITY_STOPS_PER_ROAD_TILE, MAX_PLAYERS, TILES_PER_PLAYER } from '../shared/config';
+import { CITY_ENABLED, CITY_OSM_ENABLED, CITY_STOPS_PER_ROAD_TILE, MAX_PLAYERS, TILES_PER_PLAYER } from '../shared/config';
 import type { Tile, World } from '../shared/types';
 import { generateCity as buildCity } from './city';
+import { OSM_ATTRIBUTION, osmNetwork, osmStops } from './osm';
 
 export function mapSizeFor(playerCount: number): number {
   return Math.ceil(Math.sqrt(TILES_PER_PLAYER * Math.max(1, Math.min(playerCount, MAX_PLAYERS))));
@@ -8,13 +9,14 @@ export function mapSizeFor(playerCount: number): number {
 
 /**
  * Map for a party. Flat field unless `city`: then streets, blocks of buildings and parks
- * (sim/city.ts), the same for the same seed.
+ * (sim/city.ts), the same for the same seed. With `osm` the streets are real central Warsaw
+ * (sim/osm.ts, card 014) and only the buildings depend on the seed.
  */
-export function generateWorld(seed: number, playerCount: number, city = CITY_ENABLED): World {
+export function generateWorld(seed: number, playerCount: number, city = CITY_ENABLED, osm = CITY_OSM_ENABLED): World {
   const size = mapSizeFor(playerCount);
   const tiles: Tile[] = Array.from({ length: size * size }, () => ({ ownerId: null }));
   const world: World = { seed, size, tiles };
-  if (city) generateCity(world);
+  if (city) generateCity(world, osm);
   return world;
 }
 
@@ -30,10 +32,12 @@ function rng(seed: number): () => number {
   };
 }
 
-function generateCity(world: World): void {
+function generateCity(world: World, osm: boolean): void {
   const rand = rng(world.seed ^ 0xc17e);
-  buildCity(world, rand);
-  world.stops = placeStops(world, rand);
+  buildCity(world, rand, osm ? osmNetwork(world.size, rand) : undefined);
+  const real = osm ? osmStops(world) : [];
+  if (osm) world.attribution = OSM_ATTRIBUTION;
+  world.stops = real.length ? real : placeStops(world, rand);
 }
 
 /** Road tiles next to a building, spread out so stops don't bunch up. */

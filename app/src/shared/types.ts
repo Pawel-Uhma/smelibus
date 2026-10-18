@@ -126,6 +126,8 @@ export interface World {
   streets?: CityStreet[];
   roundabouts?: CityRoundabout[];
   buildings?: CityBuilding[];
+  /** Data credit to show while this map is on screen (OSM city, card 014: ODbL). */
+  attribution?: string;
   /** Żabka shops (sim/zabka.ts), fixed for the match, so they travel with the world on join. */
   zabkas?: { x: number; z: number }[];
   /** InPost parcel lockers (sim/paczkomat.ts): centre and the axis-aligned unit direction the

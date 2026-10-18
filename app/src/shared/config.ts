@@ -64,6 +64,25 @@ export const CITY_MIN_POCKET = 12;
 /** Bus stops per tile of road. */
 export const CITY_STOPS_PER_ROAD_TILE = 1 / 40;
 
+// Real streets from OpenStreetMap (card 014, proposal in DECISIONS): src/data/osmWarszawa.ts.
+/** City from the OSM extract of central Warsaw instead of the random grid. Off = card 038 city. */
+export const CITY_OSM_ENABLED = false;
+/** Metres of the real city per tile (a 12 m bus would be 3 tiles at 4; 5 keeps more streets on the map). */
+export const OSM_METERS_PER_TILE = 5;
+/** Street cross-section per OSM highway class: [one carriageway, two-way or merged pair]. */
+export const OSM_STREET_KINDS: Record<string, readonly ['avenue' | 'street' | 'lane', 'avenue' | 'street' | 'lane']> = {
+  primary: ['street', 'avenue'],
+  secondary: ['street', 'avenue'],
+  tertiary: ['lane', 'street'],
+  unclassified: ['lane', 'lane'],
+  residential: ['lane', 'lane'],
+  living_street: ['lane', 'lane'],
+};
+/** Real roundabout radius is clamped to this range, tiles. */
+export const OSM_ROUNDABOUT_R_MAX = 10;
+/** An OSM stop snaps to a road tile at most this far away, tiles. */
+export const OSM_STOP_SNAP = 6;
+
 /** Simulation step, seconds. */
 export const SIM_DT = 1 / 60;
 /** How often the server broadcasts a snapshot, ms. */

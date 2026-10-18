@@ -25,8 +25,19 @@ export function streetHalfWidth(s: CityStreet, side: number): number {
 /** Sidewalk ring around a roundabout. */
 export const ROUNDABOUT_WALK = CITY_STREETS.lane.walk;
 
-interface Node { x: number; z: number; edges: number[]; round: number }
-interface Edge { a: number; b: number; kind: StreetKind; bike: number; diagonal: boolean }
+/** Street graph junction; `round` > 0 = roundabout of that radius. */
+export interface Node { x: number; z: number; edges: number[]; round: number }
+export interface Edge { a: number; b: number; kind: StreetKind; bike: number; diagonal: boolean }
+
+/** A street graph from outside the generator (card 014: OpenStreetMap), in tiles. */
+export interface CityNetwork {
+  nodes: Node[];
+  edges: Edge[];
+  /** Roundabouts at nodes (their `round` set); the random ones are not added. */
+  roundabouts: CityRoundabout[];
+  /** Where the Palace of Culture should stand, if on the map. */
+  palace?: { x: number; z: number };
+}
 
 /**
  * Streets, blocks and buildings for `world` (all tiles start empty). A tilted, shaken grid of
@@ -35,13 +46,13 @@ interface Edge { a: number; b: number; kind: StreetKind; bike: number; diagonal:
  * filled by district: offices and the Palace of Culture in the centre, tenements around it,
  * prefab estates and parks further out. Every drivable tile ends up connected.
  */
-export function generateCity(world: World, rand: () => number): void {
+export function generateCity(world: World, rand: () => number, network?: CityNetwork): void {
   const { size, tiles } = world;
   const int = (lo: number, hi: number) => lo + Math.floor(rand() * (hi - lo + 1));
   const pick = <T>(xs: readonly T[]) => xs[Math.floor(rand() * xs.length)];
 
-  const { nodes, edges } = buildNetwork(size, rand);
-  const roundabouts = placeRoundabouts(nodes, edges, size, rand);
+  const { nodes, edges } = network ?? buildNetwork(size, rand);
+  const roundabouts = network ? network.roundabouts : placeRoundabouts(nodes, edges, size, rand);
   const streets = edges.map((e): CityStreet => {
     const a = nodes[e.a], b = nodes[e.b];
     return { kind: e.kind, ax: a.x, az: a.z, bx: b.x, bz: b.z, bike: e.bike, trimA: 0, trimB: 0 };
@@ -269,13 +280,13 @@ export function generateCity(world: World, rand: () => number): void {
   };
 
   /** The Palace of Culture on a paved square, as close to the block's middle as it fits. */
-  const fillPalace = (block: number) => {
+  const fillPalace = (block: number, target?: { x: number; z: number }) => {
     const list = blocks[block];
     const F = CITY_PALACE_SIDE;
     let cx = 0, cz = 0;
     for (const idx of list) { cx += idx % size; cz += Math.floor(idx / size); }
-    cx = cx / list.length - F / 2 + 0.5;
-    cz = cz / list.length - F / 2 + 0.5;
+    cx = (target ? target.x - 0.5 : cx / list.length) - F / 2 + 0.5;
+    cz = (target ? target.z - 0.5 : cz / list.length) - F / 2 + 0.5;
     const box = bbox(list);
     let best: [number, number] | null = null, bestD = Infinity;
     for (let z0 = box.z0; z0 <= box.z1 - F; z0++) {
@@ -299,7 +310,12 @@ export function generateCity(world: World, rand: () => number): void {
   });
   const byCenter = [...info].sort((a, b) => a.r - b.r || a.id - b.id);
   let palace = -1;
-  for (const b of byCenter) {
+  const at = network?.palace;
+  if (at && at.x >= 0 && at.z >= 0 && at.x < size && at.z < size) {
+    const id = blockOf[Math.floor(at.z) * size + Math.floor(at.x)];
+    if (id >= 0 && fillPalace(id, at)) palace = id;
+  }
+  for (const b of palace >= 0 ? [] : byCenter) {
     if (b.r > 0.5) break;
     if (blocks[b.id].length >= (CITY_PALACE_SIDE + 4) ** 2 && fillPalace(b.id)) { palace = b.id; break; }
   }
@@ -351,7 +367,7 @@ function neighbours8(idx: number, size: number): number[] {
 }
 
 /** Does the segment pass within `pad` of the map square? (Cohen–Sutherland style reject, then sampling.) */
-function touchesMap(ax: number, az: number, bx: number, bz: number, size: number, pad: number): boolean {
+export function touchesMap(ax: number, az: number, bx: number, bz: number, size: number, pad: number): boolean {
   const lo = -pad, hi = size + pad;
   if (Math.max(ax, bx) < lo || Math.min(ax, bx) > hi || Math.max(az, bz) < lo || Math.min(az, bz) > hi) return false;
   for (let k = 0; k <= 32; k++) {
