@@ -11,7 +11,7 @@ Na mapie stoją sklepy Żabka (punkty z generatora mapy, voxelowy budynek). Każ
 
 ## Gotowe, gdy
 
-- [ ] Żabki w `GameState` (pozycje z seeda mapy)
-- [ ] spawn żuli przy Żabkach, częstszy z czasem meczu, z limitem na sklep
-- [ ] testy Vitest: na początku meczu rzadko, później częściej; limit nie jest przekraczany
-- [ ] voxelowy model Żabki w renderze (albo osobna karta)
+- [x] Żabki w `GameState` (pozycje z seeda mapy)
+- [x] spawn żuli przy Żabkach, częstszy z czasem meczu, z limitem na sklep
+- [x] testy Vitest: na początku meczu rzadko, później częściej; limit nie jest przekraczany
+- [x] voxelowy model Żabki w renderze (albo osobna karta)
