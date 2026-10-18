@@ -1,7 +1,7 @@
 # Open data: przystanki i ulice z OSM albo GTFS (po MVP)
 
 obszar: swiat
-kto: -
+kto: Pawel
 zależy od: 002
 ścieżki: sim/world.ts, data/
 
