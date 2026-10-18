@@ -11,7 +11,7 @@ Obszary to podział z myślą o pracy równoległej. Własność jest miękka: c
 | Paweł | Pawel | - |
 | Szczepan | Szczpan | - |
 | Janek | Jasiek | - |
-| Antek | antpop | - |
+| Antek | antpop | swiat (+ pogoda) |
 
 ## Obszary
 

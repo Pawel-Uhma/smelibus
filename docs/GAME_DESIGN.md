@@ -45,6 +45,13 @@ Pojawiają się na przystankach i ulicach, zbiera się je przejeżdżając autob
 Pomysły na później: **Choinka zapachowa** (pułapka — obniża smród), pasażerowie wysiadający
 gdy smród > 90 (chaos), widoczna zielona chmura wokół autobusu skalowana smrodem.
 
+## Pogoda
+
+- Pogoda zmienia się cyklicznie: **sucho** albo **deszcz** (czasy trwania losowe, z `config.ts`).
+- W deszczu smród autobusów wietrzeje szybciej (mnożnik wietrzenia, np. ×3), więc strefy rosną wolniej
+  i trzeba agresywniej zbierać bonusy.
+- Deszcz jest globalny (cała mapa). Wariant na później: lokalne chmury deszczowe przesuwające się po mapie.
+
 ## Strefy i mapa
 
 - Mapa to siatka kafelków (np. 64×64). Każdy kafelek ma właściciela (`ownerId`).
