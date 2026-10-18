@@ -15,7 +15,7 @@
     "5173": { "label": "vite dev", "onAutoForward": "notify" }
   },
   // Volume is created as root; give it to the node user, then install deps once the scaffold exists.
-  "postCreateCommand": "sudo chown node:node app/node_modules && if [ -f app/package.json ]; then cd app && npm install; fi",
+  "postCreateCommand": "sudo chown node:node app/node_modules && if [ -f app/package.json ]; then cd app && npm ci; fi",
   "remoteUser": "node",
   "customizations": {
     "vscode": {

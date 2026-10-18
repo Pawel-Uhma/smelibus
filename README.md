@@ -35,7 +35,7 @@ npm run build    # build produkcyjny
 ./scripts/devc.sh down
 ```
 
-`node_modules` siedzi w wolumenie Dockera (Linuksowe binarki nie mieszają się z hostem). Po pierwszym `package.json` zrób `down` + `up` albo `exec npm install`.
+`node_modules` siedzi w wolumenie Dockera (Linuksowe binarki nie mieszają się z hostem). Po pierwszym `package.json` zrób `down` + `up` albo `exec npm ci` (nie `npm install`: npm 10 w kontenerze przepisuje lockfile).
 
 > Skrypty powstaną w karcie 001 (scaffold): `./scripts/kanban.sh tablica`.
 
