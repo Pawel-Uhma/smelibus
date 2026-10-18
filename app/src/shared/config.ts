@@ -6,6 +6,27 @@ export const EXTRA_BUSES = 2;
 /** Map area per player, in tiles. */
 export const TILES_PER_PLAYER = 400;
 
+// City generator (sim/world.ts, card 002). Sizes in tiles.
+/** Streets and buildings instead of a flat field. Off until buses collide with buildings. */
+export const CITY_ENABLED = false;
+/** Road width; a bus is BUS_LENGTH long, so two of them can pass. */
+export const CITY_ROAD_WIDTH = 3;
+/** Blocks (without roads) are cut while a side is longer than MAX, never below MIN. */
+export const CITY_BLOCK_MIN = 6;
+export const CITY_BLOCK_MAX = 13;
+/** Chance a whole block is a drivable park instead of buildings. */
+export const CITY_PARK_CHANCE = 0.15;
+/** Building lot side range inside a block. */
+export const CITY_LOT_MIN = 2;
+export const CITY_LOT_MAX = 4;
+/** Chance a lot stays empty (courtyard, drivable). */
+export const CITY_EMPTY_LOT_CHANCE = 0.12;
+/** Building height range, tiles. */
+export const CITY_HEIGHT_MIN = 1;
+export const CITY_HEIGHT_MAX = 4;
+/** Bus stops per tile of road. */
+export const CITY_STOPS_PER_ROAD_TILE = 1 / 40;
+
 /** Simulation step, seconds. */
 export const SIM_DT = 1 / 60;
 /** How often the server broadcasts a snapshot, ms. */

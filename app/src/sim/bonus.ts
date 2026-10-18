@@ -4,6 +4,7 @@ import {
   MAP_BONUS_SPOTS_PER_TILE, STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
   TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
 } from '../shared/config';
+import { nearestDrivable } from './world';
 import type { Bonus, BonusKind, BonusSpot, Bus, GameState } from '../shared/types';
 
 const clampStink = (v: number) => Math.max(0, Math.min(STINK_MAX, v));
@@ -70,10 +71,13 @@ export function spawnBonuses(state: GameState): void {
   for (const [spot, perTile] of counts) {
     const n = Math.max(1, Math.round(area * perTile));
     for (let i = 0; i < n; i++) {
+      const rx = margin + rand(state) * (size - 2 * margin);
+      const rz = margin + rand(state) * (size - 2 * margin);
+      // City map: stops sit at the generated bus stops, everything else off the buildings.
+      const stop = spot === 'stop' ? state.world.stops?.[i] : undefined;
+      const { x, z } = stop ?? nearestDrivable(state.world, rx, rz);
       const b: Bonus = {
-        id: state.bonuses.length, spot, kind: 'kebab', amount: 0, active: false, respawnAt: 0,
-        x: margin + rand(state) * (size - 2 * margin),
-        z: margin + rand(state) * (size - 2 * margin),
+        id: state.bonuses.length, spot, kind: 'kebab', amount: 0, active: false, respawnAt: 0, x, z,
       };
       activate(state, b);
       state.bonuses.push(b);

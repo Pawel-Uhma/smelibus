@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Bus, Player, PlayerId, World } from '../shared/types';
+import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
 import { createStinkEffect } from './stink';
 
@@ -27,6 +28,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   const grid = new THREE.GridHelper(s, s, 0x6f9e52, 0x7cb05c);
   grid.position.set(s / 2, 0.01, s / 2);
   scene.add(grid);
+  if (world.tiles.some((t) => t.kind)) createCityRender(scene, world);
 
   const meshes = new Map<number, BusModel>();
   const stink = createStinkEffect(scene);

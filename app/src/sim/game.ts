@@ -3,7 +3,7 @@ import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types
 import { dropStink, spawnBonuses, updateBonuses } from './bonus';
 import { collideBuses, NO_INPUT, updateBus } from './bus';
 import { updateWeather } from './weather';
-import { generateWorld } from './world';
+import { generateWorld, nearestDrivable } from './world';
 import { assignJoinZone, tileIndexAt, updateZones } from './zones';
 
 /** Sandbox party: the map is sized for a full party, players drop straight into a bus. */
@@ -21,10 +21,8 @@ function spawnBus(state: GameState): Bus {
   const angle = id * 2.39996; // golden angle spreads them evenly
   const r = state.world.size * 0.3;
   const c = state.world.size / 2;
-  return {
-    id, x: c + Math.sin(angle) * r, z: c + Math.cos(angle) * r,
-    angle, speed: 0, driverId: null, stink: 0,
-  };
+  const { x, z } = nearestDrivable(state.world, c + Math.sin(angle) * r, c + Math.cos(angle) * r);
+  return { id, x, z, angle, speed: 0, driverId: null, stink: 0 };
 }
 
 export function addPlayer(state: GameState, id: PlayerId, name: string): Player {

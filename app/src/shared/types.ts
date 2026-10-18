@@ -31,8 +31,15 @@ export interface Player {
   connected: boolean;
 }
 
+/** What stands on a tile (card 002 city generator). Missing = 'grass' (flat map). */
+export type TileKind = 'grass' | 'road' | 'park' | 'building';
+
 export interface Tile {
   ownerId: PlayerId | null;
+  /** Missing on the flat map. Only 'building' blocks driving. */
+  kind?: TileKind;
+  /** Building height in tiles (only for 'building'). */
+  height?: number;
 }
 
 export interface World {
@@ -40,6 +47,8 @@ export interface World {
   /** Map is size × size tiles; tile (i, j) covers x ∈ [i, i+1), z ∈ [j, j+1). */
   size: number;
   tiles: Tile[];
+  /** Bus stop spots on road tiles next to buildings, from the city generator. */
+  stops?: { x: number; z: number }[];
 }
 
 export interface GameState {

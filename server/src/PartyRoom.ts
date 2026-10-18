@@ -5,6 +5,7 @@ import type {
 } from '../../app/src/shared/types';
 import { createTileTracker } from '../../app/src/net/tiles';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
+import { nearestDrivable } from '../../app/src/sim/world';
 import { assignStartZones, startPoint } from '../../app/src/sim/zones';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -96,7 +97,8 @@ export class PartyRoom extends Room {
     players.forEach((p, k) => {
       const bus = buses.find((b) => b.id === p.busId);
       if (!bus) return;
-      const at = startPoint(world.size, k, players.length);
+      const p0 = startPoint(world.size, k, players.length);
+      const at = nearestDrivable(world, p0.x, p0.z);
       bus.x = at.x;
       bus.z = at.z;
       bus.speed = 0;
