@@ -1,59 +1,25 @@
 import * as THREE from 'three';
 import type { Bonus } from '../shared/types';
 import { bonusPosition } from '../sim/bonus';
-import { BUS_VOXEL_SIZE as VOXEL } from './models/bus';
-import { buildVoxelGeometry } from './models/voxelGeometry';
+import { BONUS_VOXEL_SIZE as VOXEL, bonusGeometry } from './bonusModels';
 
-const SHOE = 0x2a2420;
-const PANTS = 0x4a4e5a;
-const JACKET = 0x7a5c3a;
-const SKIN = 0xe8b08e;
-const NOSE = 0xc8483c;
-const BEANIE = 0x8a8a86;
 const STINK_GREEN = 0x8cc846;
 /** Seconds the fall-over takes once he reaches his spot. */
 const FALL_S = 0.35;
 /** Green puffs hovering over a drunk lying on the ground. */
 const PUFFS = 5;
 
-export interface ZulVoxel {
-  x: number;
-  y: number;
-  z: number;
-  color: number;
-}
-
-/** Drunk: 3 wide × 2 deep × 8 high voxels, front at grid z = 1 (red nose). */
-export function zulVoxels(): ZulVoxel[] {
-  const out: ZulVoxel[] = [];
-  for (let y = 0; y < 8; y++) {
-    for (let z = 0; z < 2; z++) {
-      for (let x = 0; x < 3; x++) {
-        let color: number | null;
-        if (y === 0) color = x === 1 ? null : SHOE;
-        else if (y <= 2) color = x === 1 && y === 1 ? null : PANTS;
-        else if (y <= 5) color = JACKET;
-        else if (y === 6) color = z === 1 && x === 1 ? NOSE : SKIN;
-        else color = BEANIE;
-        if (color !== null) out.push({ x, y, z, color });
-      }
-    }
-  }
-  return out;
-}
-
 /**
  * Żabka drunks (card 019): walk out of the shop swaying, fall on their face, then lie there with
  * a green cloud over them. Positions come from Bonus.walk, so the walk is smooth between snapshots.
  */
 export function createZulRender(scene: THREE.Scene) {
-  const geo = buildVoxelGeometry(
-    zulVoxels().map((v) => ({ ...v, color: new THREE.Color(v.color) })),
-    VOXEL,
-    [-1.5, 0, -1],
-  );
+  // Same drunk as on bus stops (render/bonusModels.ts): front +z, origin at the feet.
+  const geo = bonusGeometry('zul');
+  geo.computeBoundingBox();
+  const height = geo.boundingBox!.max.y;
   const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
-  const puffGeo = new THREE.BoxGeometry(VOXEL * 1.4, VOXEL * 1.4, VOXEL * 1.4);
+  const puffGeo = new THREE.BoxGeometry(VOXEL * 2, VOXEL * 2, VOXEL * 2);
   const puffMat = new THREE.MeshLambertMaterial({
     color: STINK_GREEN, transparent: true, opacity: 0.6, depthWrite: false,
   });
@@ -105,7 +71,7 @@ export function createZulRender(scene: THREE.Scene) {
           p.visible = fall === 1;
           if (!p.visible) return;
           const a = (k / PUFFS) * Math.PI * 2 + clock * 0.8 + phase;
-          p.position.set(Math.cos(a) * 0.3, 0.45 + 0.12 * Math.sin(clock * 2 + k), 0.6 + Math.sin(a) * 0.3);
+          p.position.set(Math.cos(a) * 0.35, 0.6 + 0.12 * Math.sin(clock * 2 + k), height / 2 + Math.sin(a) * 0.4);
         });
       }
       for (const [id, m] of models) {
