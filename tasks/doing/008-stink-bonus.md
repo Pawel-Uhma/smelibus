@@ -1,7 +1,7 @@
 # Bonusy smrodu: spawn, zbieranie, wietrzenie
 
 obszar: smrod
-kto: -
+kto: Pawel
 zależy od: 001
 ścieżki: sim/bonus.ts
 
