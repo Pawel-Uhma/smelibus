@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PEDESTRIAN_SPEED, STUN_SECONDS } from '../shared/config';
-import type { Bus, BusInput, GameState, Player } from '../shared/types';
+import { PEDESTRIAN_RADIUS, PEDESTRIAN_SPEED, STUN_SECONDS } from '../shared/config';
+import type { Bus, BusInput, GameState, Player, World } from '../shared/types';
 import { enterBus, hitPedestrians, isOnFoot, leaveBus, updatePlayers, walk } from './player';
 
 const bus = (over: Partial<Bus> = {}): Bus => ({
@@ -109,3 +109,84 @@ describe('hit by a bus', () => {
     expect(p.x!).toBeGreaterThan(20.6);
   });
 });
+
+describe('buildings', () => {
+  /** 50×50 map with building tiles at the given [i, j]. */
+  const city = (buildings: [number, number][]): World => {
+    const world: World = { seed: 0, size: 50, tiles: Array.from({ length: 2500 }, () => ({ ownerId: null })) };
+    for (const [i, j] of buildings) world.tiles[j * 50 + i].kind = 'building';
+    return world;
+  };
+  const wallAt = (j: number) => Array.from({ length: 50 }, (_, i): [number, number] => [i, j]);
+  /** Does the pedestrian circle overlap a building? */
+  const inBuilding = (p: Player, world: World) => {
+    for (let a = 0; a < Math.PI * 2; a += 0.2) {
+      const x = p.x! + Math.sin(a) * (PEDESTRIAN_RADIUS - 1e-6);
+      const z = p.z! + Math.cos(a) * (PEDESTRIAN_RADIUS - 1e-6);
+      if (world.tiles[Math.floor(z) * 50 + Math.floor(x)]?.kind === 'building') return true;
+    }
+    return false;
+  };
+  const stroll = (p: Player, world: World, input: BusInput, seconds: number) => {
+    for (let t = 0; t < seconds; t += 1 / 60) {
+      walk(p, input, 1 / 60, 50, world);
+      expect(inBuilding(p, world)).toBe(false);
+    }
+  };
+
+  it('stops at a wall it walks into', () => {
+    const world = city(wallAt(20));
+    const p = player({ x: 10.5, z: 17 });
+    stroll(p, world, { throttle: 1, steer: 0 }, 2);
+    expect(p.z).toBeCloseTo(20 - PEDESTRIAN_RADIUS);
+  });
+
+  it('slides along a wall when walking into it diagonally, without catching on the seams', () => {
+    const world = city(wallAt(20));
+    const p = player({ x: 10.5, z: 19 });
+    // Up and right on screen: +z into the wall, -x along it.
+    stroll(p, world, { throttle: 1, steer: 1 }, 2);
+    const along = PEDESTRIAN_SPEED * 2 / Math.SQRT2;
+    expect(p.x).toBeLessThan(10.5 - along + 0.1);
+    expect(p.z).toBeCloseTo(20 - PEDESTRIAN_RADIUS);
+  });
+
+  it('walks around the corner of a lone building', () => {
+    const world = city([[10, 10]]);
+    // Centre just past the edge: only the circle grazes the corner, and it rolls around it.
+    const p = player({ x: 11.1, z: 8 });
+    stroll(p, world, { throttle: 1, steer: 0 }, 2);
+    expect(p.z).toBeGreaterThan(11);
+  });
+
+  it('cannot jump through a wall with one long step', () => {
+    const world = city(wallAt(20));
+    const p = player({ x: 10.5, z: 19 });
+    walk(p, { throttle: 1, steer: 0 }, 1, 50, world);
+    expect(p.z).toBeLessThan(20);
+  });
+
+  it('gets out by the left side when the right door faces a wall', () => {
+    // Bus faces +z, right side is -x; buildings fill column 18.
+    const world = city(Array.from({ length: 50 }, (_, j): [number, number] => [18, j]));
+    const b = bus({ x: 19.5, driverId: 'a' });
+    const p = player({ busId: 0 });
+    const s = game([p], [b]);
+    s.world = world;
+    leaveBus(s, p);
+    expect(p.x!).toBeGreaterThan(b.x);
+    expect(inBuilding(p, world)).toBe(false);
+  });
+
+  it('a bus does not shove a pedestrian into a building', () => {
+    const world = city(wallAt(20));
+    const p = player({ x: 10.5, z: 19.7 });
+    // Driven bus right below the pedestrian, overlapping them.
+    const b = bus({ x: 10.5, z: 19.7 - 1.6, driverId: 'b', speed: 0 });
+    const s = game([p], [b]);
+    s.world = world;
+    hitPedestrians(s);
+    expect(inBuilding(p, world)).toBe(false);
+  });
+});
+

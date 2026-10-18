@@ -11,6 +11,6 @@ Od karty 023 miasto jest włączone (`CITY_ENABLED = true`) i autobusy odbijają
 
 ## Gotowe, gdy
 
-- [ ] pieszy nie wchodzi w budynek (koło `PEDESTRIAN_RADIUS` vs kafelki, ślizg wzdłuż ściany)
-- [ ] po wysiadaniu pieszy stoi poza budynkiem (`isDrivable` / najbliższe wolne miejsce)
-- [ ] testy Vitest
+- [x] pieszy nie wchodzi w budynek (koło `PEDESTRIAN_RADIUS` vs kafelki, ślizg wzdłuż ściany)
+- [x] po wysiadaniu pieszy stoi poza budynkiem (`isDrivable` / najbliższe wolne miejsce)
+- [x] testy Vitest
