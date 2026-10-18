@@ -31,4 +31,15 @@ describe('game', () => {
     expect(s.players).toHaveLength(0);
     expect(s.buses.every((b) => b.driverId === null)).toBe(true);
   });
+
+  it('turns the zone of a removed player neutral', () => {
+    const s = createGame(1);
+    addPlayer(s, 'a', 'A');
+    addPlayer(s, 'b', 'B');
+    s.world.tiles[0].ownerId = 'a';
+    s.world.tiles[1].ownerId = 'b';
+    removePlayer(s, 'a');
+    expect(s.world.tiles[0].ownerId).toBeNull();
+    expect(s.world.tiles[1].ownerId).toBe('b');
+  });
 });

@@ -84,7 +84,12 @@ export interface Snapshot {
   time: number;
   players: Player[];
   buses: Bus[];
+  /** Tiles whose owner changed since the previous snapshot. Missing = none. */
+  tileChanges?: TileChange[];
 }
+
+/** [tile index in World.tiles, new ownerId]. */
+export type TileChange = [index: number, ownerId: PlayerId | null];
 
 /** Sent once to a client right after it joins. */
 export interface Welcome {

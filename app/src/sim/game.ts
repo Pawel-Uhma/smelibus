@@ -42,8 +42,10 @@ export function addPlayer(state: GameState, id: PlayerId, name: string): Player 
   return player;
 }
 
+/** Player is gone for good (left or missed RECONNECT_SECONDS): bus is freed, zone turns neutral. */
 export function removePlayer(state: GameState, id: PlayerId): void {
   for (const bus of state.buses) if (bus.driverId === id) bus.driverId = null;
+  for (const tile of state.world.tiles) if (tile.ownerId === id) tile.ownerId = null;
   state.players = state.players.filter((p) => p.id !== id);
 }
 

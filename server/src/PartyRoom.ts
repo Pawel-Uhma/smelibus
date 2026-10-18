@@ -1,6 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { MAX_PLAYERS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
 import type { BusInput, GameState, PlayerId, Snapshot, Welcome } from '../../app/src/shared/types';
+import { createTileTracker } from '../../app/src/net/tiles';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -11,6 +12,7 @@ export class PartyRoom extends Room {
   maxClients = MAX_PLAYERS;
   private game!: GameState;
   private busInputs = new Map<PlayerId, BusInput>();
+  private tiles!: ReturnType<typeof createTileTracker>;
 
   messages = {
     hello: (client: Client) => {
@@ -27,8 +29,12 @@ export class PartyRoom extends Room {
   onCreate() {
     this.roomId = randomCode();
     this.game = createGame(Math.floor(Math.random() * 2 ** 31));
+    this.tiles = createTileTracker(this.game.world.tiles);
     this.setSimulationInterval(() => stepGame(this.game, this.busInputs, SIM_DT), SIM_DT * 1000);
-    this.clock.setInterval(() => this.broadcast('snapshot', this.snapshot()), SNAPSHOT_INTERVAL_MS);
+    this.clock.setInterval(() => {
+      const tileChanges = this.tiles.diff();
+      this.broadcast('snapshot', tileChanges.length ? { ...this.snapshot(), tileChanges } : this.snapshot());
+    }, SNAPSHOT_INTERVAL_MS);
   }
 
   onJoin(client: Client, options: { name?: string }) {
@@ -36,10 +42,11 @@ export class PartyRoom extends Room {
     addPlayer(this.game, client.sessionId, name);
   }
 
-  async onDrop(client: Client) {
+  onDrop(client: Client) {
     this.setConnected(client.sessionId, false);
     this.busInputs.delete(client.sessionId);
-    await this.allowReconnection(client, RECONNECT_SECONDS);
+    // Not awaited: on timeout Colyseus calls onLeave, which frees the bus and neutralizes the zone.
+    this.allowReconnection(client, RECONNECT_SECONDS);
   }
 
   onReconnect(client: Client) {

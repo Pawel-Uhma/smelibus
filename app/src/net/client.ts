@@ -1,6 +1,7 @@
 import { Client, type Room } from '@colyseus/sdk';
 import { INTERP_DELAY_MS } from '../shared/config';
 import type { Bus, BusInput, PlayerId, Snapshot, Welcome, World } from '../shared/types';
+import { applyTileChanges } from './tiles';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'ws://localhost:2567';
 const TOKEN_KEY = 'smelibus.reconnect';
@@ -8,6 +9,7 @@ const TOKEN_KEY = 'smelibus.reconnect';
 export interface Party {
   code: string;
   playerId: PlayerId;
+  /** Kept up to date with the server's tile owners (snapshot `tileChanges`). */
   world: World;
   /** Latest snapshot from the server. */
   latest(): Snapshot;
@@ -43,13 +45,21 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ code: room.roomId, token: room.reconnectionToken }));
 
   const buffer: { at: number; snap: Snapshot }[] = [];
-  const welcome = new Promise<Welcome>((resolve) => room.onMessage('welcome', resolve));
+  let world: World | null = null;
+  const welcome = new Promise<Welcome>((resolve) =>
+    room.onMessage('welcome', (w: Welcome) => {
+      world = w.world;
+      resolve(w);
+    }),
+  );
   room.onMessage('snapshot', (snap: Snapshot) => {
+    // Changes sent before `welcome` are already in the welcome map.
+    if (world) applyTileChanges(world.tiles, snap.tileChanges);
     buffer.push({ at: performance.now(), snap });
     if (buffer.length > 30) buffer.shift();
   });
   room.send('hello');
-  const { playerId, world } = await welcome;
+  const { playerId } = await welcome;
   while (!buffer.length) await new Promise((r) => setTimeout(r, 20));
 
   let lastSent = '';
@@ -60,7 +70,7 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   return {
     code: room.roomId,
     playerId,
-    world,
+    world: world!,
     latest: () => buffer[buffer.length - 1].snap,
     interpolatedBuses(now) {
       const t = now - INTERP_DELAY_MS;
