@@ -197,3 +197,18 @@ export const TOUCH_STICK_RADIUS = 56;
 export const TOUCH_STICK_DEADZONE = 0.15;
 /** Stick values are rounded to this step, so a still thumb doesn't flood the server with inputs. */
 export const TOUCH_STICK_STEP = 0.1;
+
+// Minimap and the arrow to the own zone (ui/minimap.ts).
+/** Minimap side in CSS px on desktop and on phones (touch controls on). */
+export const MINIMAP_SIZE_PX = 168;
+export const MINIMAP_SIZE_TOUCH_PX = 104;
+/** Building tiles are drawn at this share of the owner color's brightness. */
+export const MINIMAP_BUILDING_SHADE = 0.62;
+/** Dot radii as a share of the minimap side. */
+export const MINIMAP_BUS_DOT = 0.028;
+export const MINIMAP_OWN_BUS_DOT = 0.045;
+export const MINIMAP_PEDESTRIAN_DOT = 0.016;
+/** Cloud fill opacity on the minimap. */
+export const MINIMAP_CLOUD_ALPHA = 0.35;
+/** The border arrow sits this many CSS px inside the screen edge. */
+export const BORDER_ARROW_MARGIN_PX = 44;

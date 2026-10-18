@@ -19,6 +19,6 @@ Do tego strzałka przy krawędzi ekranu do najbliższej granicy własnej strefy,
 
 ## Gotowe, gdy
 
-- [ ] minimapa odświeża się płynnie przy 8 graczach i mapie ~56×56
-- [ ] strzałka znika, gdy granica własnej strefy jest na ekranie
-- [ ] test Vitest liczący najbliższy kafelek granicy (czysta funkcja)
+- [x] minimapa odświeża się płynnie przy 8 graczach i mapie ~56×56
+- [x] strzałka znika, gdy granica własnej strefy jest na ekranie
+- [x] test Vitest liczący najbliższy kafelek granicy (czysta funkcja)

@@ -95,6 +95,10 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
   od tego, czyje są. Smród autobusu spada do 0.
 - O tym, komu zabierasz teren, decydujesz tym, z której strony wjeżdżasz.
 - Przejęte kafelki zmieniają kolor (render podświetla granicę).
+- **Minimapa** w rogu HUD (na telefonie na dole pośrodku, między kciukami): strefy w kolorach
+  graczy, budynki ciemniejsze, autobusy i piesi jako kropki, chmury deszczu i Harnasia.
+  **Bez bonusów**, żeby nie było za łatwo. Gdy granicy własnej strefy nie widać na ekranie,
+  przy krawędzi ekranu pojawia się strzałka do najbliższej granicy.
 
 ## Warunek zwycięstwa
 

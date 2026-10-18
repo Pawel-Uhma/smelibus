@@ -9,6 +9,7 @@ import { createZonesRender } from './render/zones';
 import type { Snapshot } from './shared/types';
 import { createBusPredictor, type BusPredictor } from './sim/prediction';
 import { createHud } from './ui/hud';
+import { createMinimap } from './ui/minimap';
 import { showLobby } from './ui/lobby/lobby';
 
 const ui = document.getElementById('ui')!;
@@ -21,6 +22,7 @@ const bonuses = createBonusesRender(scene.scene);
 const zuls = createZulRender(scene.scene);
 const weather = createWeatherRender(scene.scene);
 const hud = createHud(ui, party.code, party.playerId);
+const minimap = createMinimap(ui, party.playerId);
 const keyboard = createKeyboard();
 const touch = createTouch();
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
@@ -65,6 +67,7 @@ function frame(now: number) {
   // Stink pops rise from just above the own bus.
   const ownScreen = ownBus ? scene.toScreen(ownBus.x, 2.6, ownBus.z) : null;
   hud.update({ time: snap.time, players: snap.players, buses, tiles: party.world.tiles, winnerId: snap.winnerId, ownScreen });
+  minimap.update({ world: party.world, players: snap.players, buses, weather: snap.weather ?? [], toScreen: scene.toScreen });
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
