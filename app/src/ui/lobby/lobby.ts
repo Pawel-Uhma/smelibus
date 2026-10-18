@@ -1,5 +1,6 @@
 import { createMenuBackdrop, type MenuBackdrop } from '../../render/menuScene';
 import { createParty, joinParty, rejoinParty, watchPublicParties, type Party } from '../../net/client';
+import { joinErrorMessage, normalizePartyCode } from '../../net/partyCode';
 import { PLAYER_COLORS } from '../../shared/config';
 import type { Player, PublicParty } from '../../shared/types';
 import './lobby.css';
@@ -29,7 +30,7 @@ export async function showLobby(root: HTMLElement): Promise<Party> {
 }
 
 function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
-  const codeFromUrl = location.pathname.match(/^\/p\/([A-Za-z0-9]+)/)?.[1]?.toUpperCase() ?? '';
+  const codeFromUrl = normalizePartyCode(location.pathname.match(/^\/p\/([A-Za-z0-9]+)/)?.[1] ?? '');
   root.innerHTML = `
     <div class="lobby">
       <div class="card">
@@ -41,10 +42,12 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
         <button id="create">Stwórz party</button>
         <label class="check"><input type="checkbox" id="public"> publiczne</label>
       </div>
-      <div class="join">
-        <input id="code" placeholder="KOD" maxlength="6" autocomplete="off" value="${esc(codeFromUrl)}">
-        <button id="join">Dołącz</button>
-      </div>
+      <form class="join" id="join-form" novalidate>
+        <input id="code" name="code" placeholder="KOD" aria-label="Kod party" value="${esc(codeFromUrl)}"
+          autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false"
+          inputmode="text" enterkeyhint="go">
+        <button id="join" type="submit">Dołącz</button>
+      </form>
       <p id="msg" class="msg"></p>
       <section class="public-list">
         <h2>Publiczne party</h2>
@@ -96,7 +99,7 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
       stopList();
       resolve(party);
     };
-    const go = async (open: (name: string) => Promise<Party>) => {
+    const go = async (open: (name: string) => Promise<Party>, errorText = joinErrorMessage) => {
       if (busy) return;
       busy = true;
       const name = nameInput.value.trim() || 'Kierowca';
@@ -105,11 +108,12 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
       try {
         done(await open(name));
       } catch (e) {
-        msg.textContent = `Nie udało się: ${(e as Error).message || 'serwer nie odpowiada'}`;
+        msg.textContent = errorText(e, '');
         busy = false;
       }
     };
-    const joinCode = (code: string) => go((name) => joinParty(code, name, color));
+    const joinCode = (code: string) =>
+      go((name) => joinParty(code, name, color), (e) => joinErrorMessage(e, code));
 
     function renderList(parties: PublicParty[]) {
       list.innerHTML = '';
@@ -137,21 +141,40 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
       safeSet(PUBLIC_KEY, publicInput.checked ? '1' : '0');
       go((name) => createParty(name, { public: publicInput.checked, color }));
     };
-    $('join').onclick = () => {
-      const code = codeInput.value.trim();
-      if (!code) return void (msg.textContent = 'Wpisz kod party');
+    // A real form: Enter on desktop and "Go" on phone keyboards both submit, also mid-IME.
+    $<HTMLFormElement>('join-form').onsubmit = (e) => {
+      e.preventDefault();
+      const code = normalizePartyCode(codeInput.value);
+      codeInput.value = code;
+      if (!code) {
+        msg.textContent = 'Wpisz kod party';
+        return void codeInput.focus();
+      }
+      codeInput.blur(); // closes the phone keyboard
       joinCode(code);
     };
-    codeInput.onkeydown = (e) => e.key === 'Enter' && $('join').click();
+    // The value is only cleaned on paste and blur, never while typing: rewriting it during
+    // Android IME composition duplicates or eats letters. CSS shows it uppercase meanwhile.
+    codeInput.addEventListener('paste', (e) => {
+      const text = e.clipboardData?.getData('text');
+      if (!text) return;
+      e.preventDefault();
+      codeInput.value = normalizePartyCode(text);
+    });
+    codeInput.addEventListener('blur', () => (codeInput.value = normalizePartyCode(codeInput.value)));
+    // Don't yank focus from a field the player already tapped while rejoin was checking.
+    const focusName = () => {
+      if (!root.contains(document.activeElement)) nameInput.focus();
+    };
 
     if (codeFromUrl) {
       rejoinParty(codeFromUrl).then((party) => {
         if (party && !busy) {
           busy = true;
           done(party);
-        } else nameInput.focus();
+        } else focusName();
       });
-    } else nameInput.focus();
+    } else focusName();
   });
 }
 

@@ -62,3 +62,6 @@
 .lobby .waiting li { background: #fff; }
 @media (max-width: 760px) { .lobby { align-items: center; padding: 16px; } .lobby .card { box-shadow: 5px 5px 0 #1b1b1b; padding: 18px 14px 14px; } .lobby .swatch { width: 28px; height: 28px; } }
 @media (prefers-reduced-motion: reduce) { .lobby .card, .lobby .logo, .lobby .logo::before, .lobby .logo::after { animation: none; } }
+/* Join code field (card 026): 16px stops iOS from zooming in, text select must work on touch. */
+.lobby #code { font-size: 16px; touch-action: manipulation; -webkit-user-select: text; user-select: text; }
+.lobby #code::placeholder { letter-spacing: 2px; }

@@ -4,6 +4,7 @@ import type {
   Bus, BusInput, JoinOptions, LobbyInfo, PartyMetadata, PlayerId, PublicParty, Snapshot, Welcome, World,
 } from '../shared/types';
 import { createSnapshotBuffer } from './interp';
+import { normalizePartyCode } from './partyCode';
 import { applyTileChanges } from './tiles';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'ws://localhost:2567';
@@ -33,7 +34,7 @@ const client = new Client(SERVER_URL);
 export const createParty = (name: string, opts: Omit<JoinOptions, 'name'> = {}) =>
   connect(() => client.create('party', { ...opts, name }));
 export const joinParty = (code: string, name: string, color?: number) =>
-  connect(() => client.joinById(code.toUpperCase(), { name, color }));
+  connect(() => client.joinById(normalizePartyCode(code), { name, color }));
 
 /** Streams the public party list (Colyseus LobbyRoom). Returns an unsubscribe function. */
 export function watchPublicParties(cb: (list: PublicParty[]) => void, onError?: (e: Error) => void): () => void {
