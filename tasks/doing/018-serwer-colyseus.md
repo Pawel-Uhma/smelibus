@@ -1,7 +1,7 @@
 # Serwer gry Colyseus: pokój party, autorytatywna symulacja
 
 obszar: siec
-kto: -
+kto: Pawel
 zależy od: 001
 ścieżki: server/
 
