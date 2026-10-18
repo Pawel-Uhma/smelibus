@@ -3,6 +3,8 @@ import '../../style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PLAYER_COLORS, STINK_MAX } from '../../shared/config';
+import type { Bus } from '../../shared/types';
+import { createStinkEffect } from '../stink';
 import { createBusModel, stinkStage } from './bus';
 
 const STAGE_NAMES = ['Świeżak', 'Zalatuje', 'Durian'];
@@ -32,6 +34,11 @@ const buses = PLAYER_COLORS.map((color, i) => {
   scene.add(bus.group);
   return bus;
 });
+// Same stink puffs and cloud as in the game (render/stink.ts), fed with parked buses.
+const stinkFx = createStinkEffect(scene);
+const parked: Bus[] = buses.map((b, id) => ({
+  id, x: b.group.position.x, z: b.group.position.z, angle: 0, speed: 0, driverId: null, stink: 0,
+}));
 
 const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
 const controls = new OrbitControls(camera, canvas);
@@ -70,6 +77,7 @@ const stinkVal = panel.querySelector<HTMLSpanElement>('#stinkVal')!;
 function applyStink() {
   const stink = Number(stinkInput.value);
   for (const bus of buses) bus.setStink(stink);
+  for (const bus of parked) bus.stink = stink;
   stinkVal.textContent = `${stink} · ${STAGE_NAMES[stinkStage(stink)]}`;
 }
 stinkInput.addEventListener('input', applyStink);
@@ -78,7 +86,11 @@ panel.querySelector('#camFree')!.addEventListener('click', freeView);
 panel.querySelector('#camGame')!.addEventListener('click', gameView);
 panel.querySelector('#camSpin')!.addEventListener('click', () => (controls.autoRotate = !controls.autoRotate));
 
-function frame() {
+let lastFrame = performance.now();
+function frame(now: number) {
+  const dt = Math.min(0.1, (now - lastFrame) / 1000);
+  lastFrame = now;
+  stinkFx.update(parked, dt);
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
   if (canvas.width !== Math.floor(w * renderer.getPixelRatio())) {
