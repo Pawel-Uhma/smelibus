@@ -37,6 +37,18 @@ Hook startowy (`.claude/hooks/session-start.sh`) robi `git pull` (jeśli drzewo 
 5. **Nigdy:** `git push --force`, `git reset --hard`, `git checkout -- .`, `git clean`, `--no-verify`, usuwanie cudzych plików. Te komendy kasują pracę innych.
 6. Czytaj plik przed edycją, bo inny agent mógł go zmienić 5 minut temu. Po `git pull` sprawdź, co przyszło (`git log --oneline -10`).
 
+## Testowanie: devcontainer + przeglądarka (agenci robią to sami)
+
+Na laptopach może nie być Node'a. Nie pytaj człowieka i nie każ mu niczego odpalać: wszystko z Node'a uruchamiasz w devcontainerze przez `scripts/devc.sh` (potrzebny tylko Docker).
+
+- `./scripts/devc.sh up`: start kontenera (raz na sesję, można powtarzać). Przy pierwszym razie, jeśli brak `app/node_modules/vite`: `./scripts/devc.sh exec npm ci`.
+- `./scripts/devc.sh exec npm run check` zamiast `npm run check` (komenda idzie w `app/`).
+- `./scripts/devc.sh dev` **w tle** (Bash `run_in_background`), Vite na http://localhost:5173. Otwórz to w przeglądarce agenta (`navigate`) i zrób screenshot. Zmianę w renderze, mapie, UI albo sterowaniu oglądasz na własne oczy przed pushem, testy nie wystarczą.
+- Podglądy bez serwera (lokalna symulacja, sterowanie WASD): `/demo-city.html?seed=N` (`?osm`, `?at=x,z`), `/demo-bus.html`, `/demo-bonuses.html`. Gra przez `/` potrzebuje serwera.
+- Serwer: nie odpalaj go przez `devc.sh exec` (`server/node_modules` z hosta bywa zbudowane pod macOS). Sprawdzasz go tak jak Railway: `docker build -t smelibus-server-test -f server/Dockerfile .`, potem `docker run --rm -p 2567:2567 smelibus-server-test`. Start trwa ok. 20 s, gotowy, gdy w logu pojawi się `smelibus server on :2567`.
+- smelibus.pl gra z serwerem na Railway. Jeśli produkcja zachowuje się inaczej niż lokalnie (np. mapa bez budynków i ze starymi ulicami), to najpierw podejrzewaj nieaktualny deploy serwera, a nie kod.
+- Na koniec: `./scripts/devc.sh down` albo zostaw kontener na następną sesję. Port 5173 jest jeden na wszystkie checkouty, więc w worktree najpierw sprawdź `docker ps`.
+
 ## Podział kodu = mniej konfliktów
 
 Kod gry jest w `app/`, a ścieżki poniżej są względem `app/src/`. Komendy `npm` uruchamiaj w `app/`. Obszary i ich ścieżki są w [docs/zespol.md](docs/zespol.md). Pracuj w swoim obszarze, w cudzym rób tylko minimalne zmiany i od razu je wypchnij.
