@@ -11,5 +11,5 @@ Zamiast kolorowych kostek każdy bonus ma swój mały model voxelowy: żul, keba
 
 ## Gotowe, gdy
 
-- [ ] każdy `BonusKind` ma model, geometria cache'owana per rodzaj
-- [ ] modele czytelne z kamery gry, kontroler wyraźnie inny (negatywny) 
+- [x] każdy `BonusKind` ma model, geometria cache'owana per rodzaj
+- [x] modele czytelne z kamery gry, kontroler wyraźnie inny (negatywny) 
