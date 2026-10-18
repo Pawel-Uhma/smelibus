@@ -13,4 +13,4 @@ plamy na karoserii robi model autobusu (karta 004).
 
 ## Gotowe, gdy
 
-- [ ] przy stink 0 nic nie widać, przy 100 wyraźna chmura
+- [x] przy stink 0 nic nie widać, przy 100 wyraźna chmura
