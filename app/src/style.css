@@ -15,30 +15,32 @@ button:hover { background: #ffb829; }
 .lobby #code { width: 110px; text-transform: uppercase; letter-spacing: 2px; }
 .lobby .msg { min-height: 1.4em; }
 
-.hud { position: absolute; top: 12px; left: 12px; background: #fffc; border: 2px solid #1b1b1b; border-radius: 10px; padding: 10px 12px; max-width: calc(100vw - 24px); }
-.hud .party { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.hud .party button { padding: 4px 8px; font-size: 13px; }
-.hud ul { list-style: none; margin: 8px 0; padding: 0; }
-.hud ul { min-width: 190px; }
-.hud li { position: relative; display: flex; align-items: center; gap: 6px; padding: 2px 4px; margin: 2px 0; border-radius: 4px; overflow: hidden; }
+.hud { position: absolute; top: calc(8px + env(safe-area-inset-top)); left: calc(8px + env(safe-area-inset-left)); background: #fffc; border: 2px solid #1b1b1b; border-radius: 10px; padding: 5px 7px; width: 220px; max-width: calc(100vw - 16px); font-size: 13px; }
+.hud .party { display: flex; gap: 4px; align-items: center; }
+.hud .party .code { margin-right: auto; white-space: nowrap; }
+.hud .party button { padding: 0; width: 26px; height: 26px; font-size: 14px; line-height: 1; border-width: 1.5px; border-radius: 6px; flex: none; }
+.hud .party button.contrast[aria-pressed='true'], .hud .party button.mute[aria-pressed='true'] { background: #fff; }
+.hud ul { list-style: none; margin: 4px 0 0; padding: 0; }
+.hud li { position: relative; display: flex; align-items: center; gap: 5px; padding: 1px 4px; margin: 1px 0; border-radius: 4px; overflow: hidden; }
+.hud li .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .hud li::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: var(--c); opacity: .22; z-index: -1; transition: width .3s; }
-.hud li::before { content: ''; width: 12px; height: 12px; border-radius: 3px; background: var(--c); border: 1px solid #1b1b1b; flex: none; }
+.hud li::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--c); border: 1px solid #1b1b1b; flex: none; }
 .hud li { isolation: isolate; }
 .hud li.me .name { font-weight: 700; }
 .hud li .pct { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
-.hud-clock { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none !important; }
-.hud-clock .time { background: #fffc; border: 2px solid #1b1b1b; border-radius: 10px; padding: 4px 14px; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.hud-clock .sudden { background: #1b1b1b; color: #fff; border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.hud-clock { position: absolute; top: calc(8px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none !important; }
+.hud-clock .time { background: #fffc; border: 2px solid #1b1b1b; border-radius: 10px; padding: 1px 10px; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.hud-clock .sudden { background: #1b1b1b; color: #fff; border-radius: 8px; padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .hud-clock .sudden.on { background: #c8357a; animation: sudden-pulse 1s ease-in-out infinite alternate; }
 @keyframes sudden-pulse { to { transform: scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .hud-clock .sudden.on { animation: none; } }
-.hud-stink { --s: 0; --c: hsl(58 62% 66%); position: absolute; left: 12px; bottom: 12px; width: min(260px, calc(100vw - 24px)); background: #fffc; border: 2px solid #1b1b1b; border-radius: 12px; padding: 7px 10px 9px; box-shadow: 3px 3px 0 #1b1b1b; pointer-events: none !important; }
-.stink-head { position: relative; z-index: 1; display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-.stink-icon { display: flex; width: 22px; height: 22px; color: var(--c); transition: color .3s; transform-origin: 50% 80%; animation: stink-icon-bob calc(2.4s - var(--s) * 1.6s) ease-in-out infinite; }
+.hud-stink { --s: 0; --c: hsl(58 62% 66%); position: absolute; left: calc(8px + env(safe-area-inset-left)); bottom: calc(8px + env(safe-area-inset-bottom)); width: min(210px, calc(100vw - 16px)); background: #fffc; border: 2px solid #1b1b1b; border-radius: 10px; padding: 4px 8px 6px; box-shadow: 2px 2px 0 #1b1b1b; pointer-events: none !important; }
+.stink-head { position: relative; z-index: 1; display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+.stink-icon { display: flex; width: 18px; height: 18px; color: var(--c); transition: color .3s; transform-origin: 50% 80%; animation: stink-icon-bob calc(2.4s - var(--s) * 1.6s) ease-in-out infinite; }
 .stink-icon svg { width: 100%; height: 100%; }
-.stink-tier { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
-.stink-val { margin-left: auto; font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
-.stink-tube { position: relative; height: 18px; border: 2px solid #1b1b1b; border-radius: 999px; background: #1b1b1b1f; overflow: hidden; box-shadow: inset 0 2px 0 #0002, 0 0 calc(var(--s) * 16px) var(--c); transition: box-shadow .3s; }
+.stink-tier { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.stink-val { margin-left: auto; font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+.stink-tube { position: relative; height: 13px; border: 2px solid #1b1b1b; border-radius: 999px; background: #1b1b1b1f; overflow: hidden; box-shadow: inset 0 2px 0 #0002, 0 0 calc(var(--s) * 16px) var(--c); transition: box-shadow .3s; }
 .stink-fill { position: relative; height: 100%; width: calc(var(--s) * 100%); min-width: 0; border-radius: 999px; overflow: hidden; background-color: var(--c);
   background-image: linear-gradient(#fff6, #fff0 45%, #0002), repeating-linear-gradient(-45deg, #fff0 0 7px, #ffffff2e 7px 14px);
   background-size: 100% 100%, 20px 20px;
@@ -53,7 +55,7 @@ button:hover { background: #ffb829; }
 .stink-fill i:nth-child(6) { left: 89%; animation-delay: 1.4s; }
 .stink-ticks { position: absolute; inset: 0; background: linear-gradient(90deg, #0000 calc(25% - 1px), #1b1b1b40 0 calc(25% + 1px), #0000 0 calc(50% - 1px), #1b1b1b40 0 calc(50% + 1px), #0000 0 calc(75% - 1px), #1b1b1b40 0 calc(75% + 1px), #0000 0); }
 /* Wisps rising from the fill's edge, thicker the more it stinks. */
-.stink-fumes { position: absolute; left: 10px; right: 10px; bottom: 24px; height: 0; }
+.stink-fumes { position: absolute; left: 8px; right: 8px; bottom: 18px; height: 0; }
 .stink-fumes i { position: absolute; left: calc(var(--s) * 100% - 6px); bottom: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--c); opacity: 0; filter: blur(1px); animation: stink-fume 1.8s ease-out infinite; }
 .stink-fumes i:nth-child(2) { animation-delay: .6s; margin-left: 4px; }
 .stink-fumes i:nth-child(3) { animation-delay: 1.2s; margin-left: -4px; }
@@ -99,18 +101,22 @@ button:hover { background: #ffb829; }
 .win h2 { margin: 0 0 8px; font-size: clamp(28px, 7vw, 40px); }
 .win p { margin: 0 0 16px; }
 .win .rematch-wait { margin: 12px 0 0; opacity: .75; }
-.rematch-bar { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: #fff; border: 2px solid #1b1b1b; border-radius: 10px; padding: 6px 10px; }
+.rematch-bar { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: #fff; border: 2px solid #1b1b1b; border-radius: 10px; padding: 6px 10px; }
 .rematch-bar[hidden], .rematch[hidden], .rematch-wait[hidden] { display: none; }
-.hud .help { font-size: 12px; opacity: .75; }
+.hud .help { font-size: 11px; opacity: .75; margin-top: 4px; display: none; }
+.hud.help-open .help:not(.help-touch) { display: block; }
+.hud #help-toggle[aria-expanded='true'] { background: #fff; }
 .banner { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); background: #1b1b1b; color: #fff; padding: 14px 20px; border-radius: 10px; }
-@media (max-width: 640px) { .hud-clock { top: auto; bottom: 12px; left: auto; right: 12px; transform: none; align-items: flex-end; flex-direction: column-reverse; } .hud-clock .sudden { white-space: normal; max-width: 140px; text-align: right; } .hud-stink { width: calc(100vw - 174px); } }
+/* OSM credit sits in the bottom-left corner, the stink bar moves above it. */
+body:has(#data-attribution) .hud-stink { bottom: calc(26px + env(safe-area-inset-bottom)); }
+/* Narrow screens: the clock leaves the top middle (the HUD panel is there) for the top right. */
+@media (max-width: 520px) { .hud-clock { left: auto; right: calc(8px + env(safe-area-inset-right)); transform: none; align-items: flex-end; } .hud-clock .sudden { white-space: normal; max-width: 140px; text-align: right; } .hud { width: min(190px, calc(100vw - 110px)); } }
 
 /* Touch controls (input/touch.ts), shown on phones. */
 html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 #game { touch-action: none; }
-.hud .help-touch { display: none; }
-body.touch-on .hud .help { display: none; }
-body.touch-on .hud .help-touch { display: block; }
+body.touch-on .hud.help-open .help { display: none; }
+body.touch-on .hud.help-open .help-touch { display: block; }
 .touch { position: fixed; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .touch[hidden] { display: none; }
 .touch-zone { position: absolute; left: 0; top: 0; bottom: 0; width: 60%; }
@@ -132,11 +138,15 @@ body.touch-on .hud .help-touch { display: block; }
 }
 .touch-horn.pressed { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #1b1b1b; background: #f2d04a; }
 /* The thumbs own the bottom corners: stink bar and clock go to the top right. */
-body.touch-on .hud { max-width: calc(100vw - 24px - min(170px, 38vw) - 8px); }
-body.touch-on .hud-stink { left: auto; right: 12px; top: 12px; bottom: auto; width: min(170px, 38vw); }
-body.touch-on .hud-clock { top: 76px; bottom: auto; left: auto; right: 12px; transform: none; align-items: flex-end; flex-direction: column; }
-body.touch-on .hud-clock .sudden { white-space: normal; max-width: min(170px, 38vw); text-align: right; }
-@media (max-height: 480px) { body.touch-on .hud ul { max-height: calc(100vh - 110px); overflow-y: auto; } }
+body.touch-on .hud { max-width: calc(100vw - 16px - min(160px, 38vw) - 8px); }
+body.touch-on .hud-stink { left: auto; right: calc(8px + env(safe-area-inset-right)); top: calc(8px + env(safe-area-inset-top)); bottom: auto; width: min(160px, 38vw); }
+/* Portrait phone: no room in the top middle, the clock goes under the stink bar. */
+@media (max-width: 560px) {
+  body.touch-on .hud-clock { top: calc(58px + env(safe-area-inset-top)); left: auto; right: calc(8px + env(safe-area-inset-right)); transform: none; align-items: flex-end; }
+  body.touch-on .hud-clock .sudden { white-space: normal; max-width: min(160px, 38vw); text-align: right; }
+}
+/* Landscape phone: the player list scrolls instead of reaching the joystick. */
+@media (max-height: 500px) { .hud ul { max-height: calc(100vh - 150px); overflow-y: auto; } }
 
 /* High contrast mode (render/contrast.ts, card 036): solid panels, black text, thicker frames. */
 body.hc .hud, body.hc .hud-clock .time, body.hc .hud-stink, body.hc .rematch-bar, body.hc .win .card { background: #fff; color: #000; border-width: 3px; border-color: #000; }

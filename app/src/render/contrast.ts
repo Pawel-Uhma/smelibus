@@ -49,9 +49,10 @@ export function createContrast(target: Window = window) {
     button(): HTMLButtonElement {
       const btn = target.document.createElement('button');
       btn.type = 'button';
-      btn.className = 'contrast';
+      btn.className = 'contrast icon';
+      btn.title = btn.ariaLabel = 'Wysoki kontrast (K)';
       const render = () => {
-        btn.textContent = on ? 'Kontrast: wł.' : 'Kontrast: wył.';
+        btn.textContent = '◐';
         btn.setAttribute('aria-pressed', String(on));
       };
       btn.onclick = () => {

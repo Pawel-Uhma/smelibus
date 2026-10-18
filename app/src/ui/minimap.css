@@ -1,17 +1,17 @@
 /* Minimap and the arrow to the own zone (ui/minimap.ts, card 030). */
 #ui > .minimap, #ui > .border-arrow { pointer-events: none; }
 .minimap {
-  position: absolute; right: 12px; bottom: 12px; width: var(--mm); height: var(--mm);
+  position: absolute; right: calc(8px + env(safe-area-inset-right)); bottom: calc(8px + env(safe-area-inset-bottom)); width: var(--mm); height: var(--mm);
   border: 2px solid #1b1b1b; border-radius: 10px; overflow: hidden; background: #d9d4c7;
   box-shadow: 3px 3px 0 #1b1b1b55;
 }
 .minimap canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
-/* Narrow screen without touch: the clock sits in the bottom right, the minimap goes above it. */
-@media (max-width: 640px) { .minimap { bottom: 104px; width: min(var(--mm), 34vw); height: min(var(--mm), 34vw); } }
+/* Small or short screens: smaller map, same corner. */
+@media (max-width: 640px), (max-height: 600px) { .minimap { width: min(var(--mm), 30vw, 30vh); height: min(var(--mm), 30vw, 30vh); } }
 /* Phones: the thumbs own the bottom corners (joystick left, E right), so the minimap sits in
    the bottom middle between them. It ignores touches, the joystick zone below still works. */
 body.touch-on .minimap {
-  right: auto; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom));
+  right: auto; left: 50%; transform: translateX(-50%); bottom: calc(8px + env(safe-area-inset-bottom));
   width: min(var(--mm-touch), 26vw); height: min(var(--mm-touch), 26vw);
 }
 .border-arrow {
@@ -25,4 +25,8 @@ body.touch-on .minimap {
 .border-arrow::after {
   content: ''; position: absolute; left: -13px; top: -9px; width: 26px; height: 18px;
   background: var(--c, #fff); clip-path: polygon(0 0, 100% 50%, 0 100%, 22% 50%);
+}
+/* Portrait phone: the horn button takes the bottom middle, the map goes under the clock. */
+@media (max-width: 560px) {
+  body.touch-on .minimap { left: auto; transform: none; right: calc(8px + env(safe-area-inset-right)); bottom: auto; top: calc(96px + env(safe-area-inset-top)); }
 }

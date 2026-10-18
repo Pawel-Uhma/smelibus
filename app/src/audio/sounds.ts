@@ -46,9 +46,10 @@ export function createSounds(world: World, me: PlayerId) {
     muteButton(): HTMLButtonElement {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'mute';
+      btn.className = 'mute icon';
+      btn.title = btn.ariaLabel = 'Dźwięk';
       const render = () => {
-        btn.textContent = synth.muted() ? 'Dźwięk: wył.' : 'Dźwięk: wł.';
+        btn.textContent = synth.muted() ? '🔇' : '🔊';
         btn.setAttribute('aria-pressed', String(synth.muted()));
       };
       btn.onclick = () => {

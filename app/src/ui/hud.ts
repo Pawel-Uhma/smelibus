@@ -33,7 +33,7 @@ function stinkTier(f: number): string {
 export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch?: HudRematch) {
   root.innerHTML = `
     <div class="hud">
-      <div class="party">Party <b>${code}</b> <button id="copy">Kopiuj link</button></div>
+      <div class="party"><span class="code">Party <b>${code}</b></span><button id="copy" class="icon" title="Kopiuj link" aria-label="Kopiuj link">🔗</button><button id="help-toggle" class="icon" title="Sterowanie" aria-label="Sterowanie" aria-expanded="false">?</button></div>
       <ul id="players"></ul>
       <div class="help">WASD / strzałki: jazda i chodzenie · spacja: hamulec · E: wsiądź / wysiądź · H: klakson · K: kontrast</div>
       <div class="help help-touch">Lewy kciuk: jazda i chodzenie · E: wsiądź / wysiądź · H: klakson · K: kontrast</div>
@@ -85,12 +85,27 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
   copy.onclick = async () => {
     try {
       await navigator.clipboard.writeText(location.href);
-      copy.textContent = 'Skopiowano';
+      copy.textContent = '✓';
     } catch {
-      copy.textContent = location.href;
+      prompt('Link do party', location.href);
     }
-    setTimeout(() => (copy.textContent = 'Kopiuj link'), 1500);
+    setTimeout(() => (copy.textContent = '🔗'), 1500);
   };
+  // Controls help: open for the first seconds on desktop, then folded behind the "?" button.
+  const hudBox = root.querySelector<HTMLElement>('.hud')!;
+  const helpToggle = $<HTMLButtonElement>('help-toggle');
+  const setHelp = (open: boolean) => {
+    hudBox.classList.toggle('help-open', open);
+    helpToggle.setAttribute('aria-expanded', String(open));
+  };
+  helpToggle.onclick = () => {
+    setHelp(!hudBox.classList.contains('help-open'));
+    helpToggle.blur();
+  };
+  if (!matchMedia('(pointer: coarse)').matches) {
+    setHelp(true);
+    setTimeout(() => setHelp(false), 15000);
+  }
   let dismissedWinner: PlayerId | null = null;
   $<HTMLButtonElement>('win-close').onclick = () => {
     dismissedWinner = shownWinner;

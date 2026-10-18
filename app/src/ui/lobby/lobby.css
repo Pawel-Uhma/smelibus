@@ -73,3 +73,14 @@
 .lobby #code::placeholder { letter-spacing: 2px; }
 /* Card 037: host removes a bot from the waiting room. */
 .lobby .waiting li .kick { margin-left: auto; padding: 0 8px; min-width: 0; line-height: 1.4; }
+/* Short screens (phone in landscape): tighter card so Start fits without scrolling far. */
+@media (max-height: 560px) {
+  .lobby { align-items: center; padding: 8px 16px; }
+  .lobby .card { gap: 8px; padding: 10px 14px; box-shadow: 4px 4px 0 #1b1b1b; width: min(520px, 100%); }
+  .lobby .logo { font-size: 34px; -webkit-text-stroke: 1.5px #1b1b1b; text-shadow: 2px 2px 0 #1b1b1b; }
+  .lobby .logo span { border-width: 2px; border-radius: 8px; padding: 0 6px 2px; }
+  .lobby button, .lobby input { padding: 6px 10px; }
+  .lobby #create, .lobby #start { font-size: 16px; padding: 8px 18px; }
+  .lobby .waiting li { padding: 4px 8px; }
+  .lobby .swatch { width: 26px; height: 26px; }
+}
