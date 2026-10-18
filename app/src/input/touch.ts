@@ -23,6 +23,7 @@ export function mergeInputs(a: BusInput, b: BusInput): BusInput {
     throttle: clamp1(a.throttle + b.throttle),
     steer: clamp1(a.steer + b.steer),
     use: (a.use ?? 0) + (b.use ?? 0),
+    jump: (a.jump ?? 0) + (b.jump ?? 0),
   };
 }
 

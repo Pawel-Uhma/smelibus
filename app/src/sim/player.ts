@@ -1,6 +1,6 @@
 import {
   BUS_HIT_WIDTH, BUS_LENGTH, PEDESTRIAN_ENTER_RANGE, PEDESTRIAN_HIT_SPEED, PEDESTRIAN_RADIUS,
-  PEDESTRIAN_SPEED, STUN_SECONDS,
+  PEDESTRIAN_JUMP_HEIGHT, PEDESTRIAN_JUMP_S, PEDESTRIAN_SPEED, STUN_SECONDS,
 } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId, World } from '../shared/types';
 
@@ -82,6 +82,13 @@ export const isOnFoot = (p: Player): p is Player & { x: number; z: number } =>
 
 export const isStunned = (p: Player, time: number) => (p.stunnedUntil ?? 0) > time;
 
+/** Height above the ground (tiles) of a jumping pedestrian, 0 when standing. */
+export function jumpHeight(p: Player, time: number): number {
+  if (p.jumpAt === undefined) return 0;
+  const t = (time - p.jumpAt) / PEDESTRIAN_JUMP_S;
+  return t > 0 && t < 1 ? 4 * PEDESTRIAN_JUMP_HEIGHT * t * (1 - t) : 0;
+}
+
 /**
  * Gets out by the front door: right side of the bus, next to the driver's seat. With a wall
  * there, by the left side or the back, else the nearest free spot around the bus. Frees the bus.
@@ -161,7 +168,7 @@ export function walk(player: Player, input: BusInput, dt: number, mapSize: numbe
   player.angle = Math.atan2(dx, dz);
 }
 
-/** Use key (E) presses and walking. Runs before the buses move. */
+/** Use key (E) and jump (Space) presses, and walking. Runs before the buses move. */
 export function updatePlayers(state: GameState, inputs: ReadonlyMap<PlayerId, BusInput>, dt: number): void {
   for (const player of state.players) {
     const input = inputs.get(player.id);
@@ -172,6 +179,11 @@ export function updatePlayers(state: GameState, inputs: ReadonlyMap<PlayerId, Bu
     if (pressed) {
       if (player.busId !== null) leaveBus(state, player);
       else enterBus(state, player);
+    }
+    const jumped = input.jump !== undefined && player.jumpSeen !== undefined && input.jump !== player.jumpSeen;
+    if (input.jump !== undefined) player.jumpSeen = input.jump;
+    if (jumped && isOnFoot(player) && !isStunned(player, state.time) && jumpHeight(player, state.time) === 0) {
+      player.jumpAt = state.time;
     }
     if (player.busId === null && !isStunned(player, state.time)) walk(player, input, dt, state.world.size, state.world);
   }

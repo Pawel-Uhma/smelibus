@@ -11,6 +11,8 @@ export interface BusInput {
   seq?: number;
   /** Use key (E) press counter: a change means one press (enter or leave a bus). */
   use?: number;
+  /** Jump key (Space) press counter, like `use`: a change means one jump (on foot only). */
+  jump?: number;
 }
 
 /** Last input seq the server got from a player and for how many sim ticks it has run it. */
@@ -49,6 +51,10 @@ export interface Player {
   stunnedUntil?: number;
   /** Last `BusInput.use` counter the sim has acted on. */
   useSeen?: number;
+  /** Game time of the last jump start (on foot); airborne for PEDESTRIAN_JUMP_S after it. */
+  jumpAt?: number;
+  /** Last `BusInput.jump` counter the sim has acted on. */
+  jumpSeen?: number;
   connected: boolean;
 }
 

@@ -34,9 +34,8 @@ function frame(now: number) {
   const dt = Math.min(0.1, (now - lastFrame) / 1000);
   lastFrame = now;
   const snap = party.latest();
-  const input = mergeInputs(keyboard.read(), touch.read());
-
   const me = snap.players.find((p) => p.id === party.playerId);
+  const input = mergeInputs(keyboard.read(me?.busId === null), touch.read());
   const serverBus = snap.buses.find((b) => b.id === me?.busId);
   if (!serverBus) predictor = null;
   else if (!predictor || predictor.bus.id !== serverBus.id) predictor = createBusPredictor(serverBus, party.world.size, party.world);

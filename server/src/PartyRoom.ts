@@ -40,7 +40,8 @@ export class PartyRoom extends Room {
     input: (client: Client, input: BusInput) => {
       if (typeof input?.throttle !== 'number' || typeof input?.steer !== 'number') return;
       const use = Number.isFinite(input.use) ? Number(input.use) : undefined;
-      this.busInputs.set(client.sessionId, { throttle: input.throttle, steer: input.steer, use });
+      const jump = Number.isFinite(input.jump) ? Number(input.jump) : undefined;
+      this.busInputs.set(client.sessionId, { throttle: input.throttle, steer: input.steer, use, jump });
       // Keepalives repeat the same seq; only a new one restarts the tick count.
       const seq = Number(input.seq);
       if (Number.isFinite(seq) && this.acks.get(client.sessionId)?.seq !== seq) {

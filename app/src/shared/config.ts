@@ -66,7 +66,10 @@ export const PREDICTION_SNAP_DIST = 4;
 export const PREDICTION_CORRECT_RATE = 3;
 
 // Pedestrians (card 006).
-export const PEDESTRIAN_SPEED = 4;
+export const PEDESTRIAN_SPEED = 5.2;
+/** Space on foot: a hop this high (tiles) lasting this long (s). */
+export const PEDESTRIAN_JUMP_HEIGHT = 0.8;
+export const PEDESTRIAN_JUMP_S = 0.5;
 export const PEDESTRIAN_RADIUS = 0.25;
 /** How far from the bus's side a pedestrian can get in (tiles). */
 export const PEDESTRIAN_ENTER_RANGE = 1;

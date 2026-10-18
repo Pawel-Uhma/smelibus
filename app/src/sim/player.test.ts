@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { PEDESTRIAN_RADIUS, PEDESTRIAN_SPEED, STUN_SECONDS } from '../shared/config';
+import { PEDESTRIAN_JUMP_HEIGHT, PEDESTRIAN_JUMP_S, PEDESTRIAN_RADIUS, PEDESTRIAN_SPEED, STUN_SECONDS } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, World } from '../shared/types';
-import { enterBus, hitPedestrians, isOnFoot, leaveBus, updatePlayers, walk } from './player';
+import { enterBus, hitPedestrians, isOnFoot, jumpHeight, leaveBus, updatePlayers, walk } from './player';
 
 const bus = (over: Partial<Bus> = {}): Bus => ({
   id: 0, x: 20, z: 20, angle: 0, speed: 0, driverId: null, stink: 0, ...over,
@@ -190,3 +190,33 @@ describe('buildings', () => {
   });
 });
 
+
+describe('jumping', () => {
+  const jump = (state: GameState, p: Player, n: number) =>
+    updatePlayers(state, new Map([[p.id, { throttle: 0, steer: 0, jump: n }]]), 1 / 60);
+
+  it('hops on a Space press and lands after PEDESTRIAN_JUMP_S', () => {
+    const p = player({ x: 10, z: 10 });
+    const s = game([p], []);
+    jump(s, p, 0);
+    expect(p.jumpAt).toBeUndefined();
+    s.time = 1;
+    jump(s, p, 1);
+    expect(p.jumpAt).toBe(1);
+    expect(jumpHeight(p, 1 + PEDESTRIAN_JUMP_S / 2)).toBeCloseTo(PEDESTRIAN_JUMP_HEIGHT);
+    expect(jumpHeight(p, 1 + PEDESTRIAN_JUMP_S)).toBe(0);
+  });
+
+  it("can't jump again mid-air or from inside a bus", () => {
+    const p = player({ x: 10, z: 10, jumpSeen: 0 });
+    const s = game([p], []);
+    jump(s, p, 1);
+    s.time = PEDESTRIAN_JUMP_S / 2;
+    jump(s, p, 2);
+    expect(p.jumpAt).toBe(0);
+    const driver = player({ id: 'b', busId: 0, jumpSeen: 0 });
+    const s2 = game([driver], [bus({ driverId: 'b' })]);
+    jump(s2, driver, 1);
+    expect(driver.jumpAt).toBeUndefined();
+  });
+});

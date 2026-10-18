@@ -3,6 +3,7 @@ import type { Bus, Player, PlayerId, World } from '../shared/types';
 import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
 import { createPedestrianModel, type PedestrianModel } from './models/pedestrian';
+import { jumpHeight } from '../sim/player';
 import { garbleName } from './garbleName';
 import { createNameplate, stackNameplates, type Nameplate } from './nameplate';
 import { createStinkEffect } from './stink';
@@ -65,7 +66,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       // Knocked down: lying on the back, face up.
       const stunned = (p.stunnedUntil ?? 0) > time;
       w.model.group.rotation.x = stunned ? -Math.PI / 2 : 0;
-      w.model.group.position.y = stunned ? 0.2 : 0;
+      w.model.group.position.y = stunned ? 0.2 : jumpHeight(p, time);
     }
     for (const [id, w] of walkers) {
       if (onFoot.has(id)) continue;
