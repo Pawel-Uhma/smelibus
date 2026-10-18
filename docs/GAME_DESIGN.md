@@ -27,6 +27,7 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 - Rozłączenie: 60 s na powrót, potem strefa zostaje na mapie jako neutralna (do przejęcia).
 - Gracz jest albo **pieszym**, albo **kierowcą**.
 - Pieszy: chodzi wszędzie (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest pusty.
+- Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja dalej hamuje). Prędkość pieszego: 5,2 kafelka/s.
 - Kierowca: steruje autobusem, `E` = wysiada obok autobusu.
 - **Eliminacja:** gracz z 0 kafelków nie odpada. Dalej chodzi, jeździ, kradnie autobusy,
   taranuje i potrąca, ale nie może rosnąć (nie ma strefy, do której mógłby wjechać).
