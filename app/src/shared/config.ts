@@ -265,3 +265,23 @@ export const HIGH_CONTRAST_FILL_MIX = 0.62;
 export const HIGH_CONTRAST_BORDER_TEXELS = 1;
 /** Night never gets darker than this (0 day .. 1 full night). */
 export const HIGH_CONTRAST_NIGHT_MAX = 0.35;
+
+// Computer players (sim/bot.ts, card 037). They run on the server and send BusInput like a client.
+/** Names for bots added in the waiting room, used in order (first free one). */
+export const BOT_NAMES = ['Bot Zdzisiek', 'Bot Grażyna', 'Bot Mirek', 'Bot Halina', 'Bot Janusz', 'Bot Bożena', 'Bot Waldek', 'Bot Krysia'];
+/** A bot heads home to bank its stink once it carries a random amount in this range. */
+export const BOT_BANK_STINK_MIN = 30;
+export const BOT_BANK_STINK_MAX = 65;
+/** Path to the current goal is recomputed this often, seconds. */
+export const BOT_REPATH_S = 0.4;
+/** A bot aims at a path tile up to this many tiles ahead that it can see in a straight line. */
+export const BOT_LOOKAHEAD = 5;
+/** Barely moving this long while trying to drive = stuck: it backs up for BOT_REVERSE_S. */
+export const BOT_STUCK_S = 0.7;
+export const BOT_REVERSE_S = 0.9;
+/** Rams a rival bus only while carrying less than this and when the rival has at least BOT_RAM_MIN_STINK. */
+export const BOT_RAM_MAX_OWN_STINK = 15;
+export const BOT_RAM_MIN_STINK = 30;
+/** Honks at buses closer than this (tiles), at most once per this many seconds. */
+export const BOT_HORN_RANGE = 5;
+export const BOT_HORN_COOLDOWN_S = 6;

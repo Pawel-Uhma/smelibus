@@ -33,6 +33,10 @@ export interface Party {
   rematch(): void;
   /** The game went back to the waiting room (a rematch); a new `welcome` follows. */
   onRematch(cb: () => void): void;
+  /** Host only, waiting room: a computer player takes a free seat (card 037). */
+  addBot(): void;
+  /** Host only, waiting room: the bot leaves. */
+  removeBot(id: PlayerId): void;
 }
 
 const client = new Client(SERVER_URL);
@@ -50,7 +54,8 @@ export function watchPublicParties(cb: (list: PublicParty[]) => void, onError?: 
     cb([...rooms.values()]
       .filter((r) => r.metadata?.public)
       .map((r) => ({
-        code: r.roomId, players: r.clients, maxPlayers: r.maxClients,
+        // Bots hold seats outside Colyseus's client count (card 037).
+        code: r.roomId, players: r.clients + (r.metadata?.bots ?? 0), maxPlayers: r.maxClients + (r.metadata?.bots ?? 0),
         started: !!r.metadata?.started, hostName: r.metadata?.hostName ?? '',
       })));
   let room: Room | null = null;
@@ -156,5 +161,7 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
     setMap: (kind) => room.send('map', kind),
     rematch: () => room.send('rematch'),
     onRematch: (cb) => rematchCbs.push(cb),
+    addBot: () => room.send('addBot'),
+    removeBot: (id) => room.send('removeBot', id),
   };
 }

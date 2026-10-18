@@ -71,3 +71,5 @@
 /* Join code field (card 026): 16px stops iOS from zooming in, text select must work on touch. */
 .lobby #code { font-size: 16px; touch-action: manipulation; -webkit-user-select: text; user-select: text; }
 .lobby #code::placeholder { letter-spacing: 2px; }
+/* Card 037: host removes a bot from the waiting room. */
+.lobby .waiting li .kick { margin-left: auto; padding: 0 8px; min-width: 0; line-height: 1.4; }

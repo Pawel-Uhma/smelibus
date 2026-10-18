@@ -60,6 +60,8 @@ export interface Player {
   /** Last BusInput.horn counter from this player (server relays it); a rise = one honk. */
   horn?: number;
   connected: boolean;
+  /** Computer player run by the server (sim/bot.ts, card 037). */
+  bot?: boolean;
 }
 
 /** What stands on a tile (card 002 city generator). Missing = 'grass' (flat map). */
@@ -215,6 +217,8 @@ export interface PartyMetadata {
   public: boolean;
   started: boolean;
   hostName: string;
+  /** Bots in the party; they take seats but aren't Colyseus clients (card 037). */
+  bots?: number;
 }
 
 /** One entry of the public party list. */

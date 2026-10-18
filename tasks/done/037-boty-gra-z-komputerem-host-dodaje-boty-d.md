@@ -13,9 +13,9 @@ pustym autobusem taranują śmierdzących rywali.
 
 ## Gotowe, gdy
 
-- [ ] w poczekalni host ma przyciski „+ Bot” i „×” przy bocie
-- [ ] bot zajmuje miejsce w party (MAX_PLAYERS liczy ludzi i boty)
-- [ ] bot jeździ po mieście bez zakleszczania się na budynkach (BFS po kafelkach + wycofanie)
-- [ ] bot zbiera bonusy i wjeżdża do swojej strefy, gdy ma dość smrodu
-- [ ] host nigdy nie przechodzi na bota; boty przeżywają rewanż
-- [ ] testy Vitest dla `sim/bot.ts`
+- [x] w poczekalni host ma przyciski „+ Bot” i „×” przy bocie
+- [x] bot zajmuje miejsce w party (MAX_PLAYERS liczy ludzi i boty)
+- [x] bot jeździ po mieście bez zakleszczania się na budynkach (BFS po kafelkach + wycofanie)
+- [x] bot zbiera bonusy i wjeżdża do swojej strefy, gdy ma dość smrodu
+- [x] host nigdy nie przechodzi na bota; boty przeżywają rewanż
+- [x] testy Vitest dla `sim/bot.ts`

@@ -1,7 +1,7 @@
 import { createMenuBackdrop, type MenuBackdrop } from '../../render/menuScene';
 import { createParty, joinParty, rejoinParty, watchPublicParties, type Party } from '../../net/client';
 import { joinErrorMessage, normalizePartyCode } from '../../net/partyCode';
-import { PLAYER_COLORS } from '../../shared/config';
+import { MAX_PLAYERS, PLAYER_COLORS } from '../../shared/config';
 import type { MapKind, Player, PublicParty } from '../../shared/types';
 import { isOldDefaultName, stinkyName } from './stinkyName';
 import './lobby.css';
@@ -200,6 +200,7 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
         <button id="copy">Kopiuj link</button>
       </div>
       <ul class="waiting" id="players"></ul>
+      <button id="add-bot" type="button" hidden>+ Bot</button>
       <div class="map-pick" role="group" aria-label="Mapa">
         <button type="button" data-map="city">Miasto</button>
         <button type="button" data-map="flat">Płaska</button>
@@ -222,6 +223,8 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
     }
     setTimeout(() => (copy.textContent = 'Kopiuj link'), 1500);
   };
+  const addBot = $<HTMLButtonElement>('add-bot');
+  addBot.onclick = () => party.addBot();
   start.onclick = () => {
     start.disabled = true;
     party.start();
@@ -235,21 +238,35 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
     const info = party.lobby();
     const players = party.latest().players;
     const isHost = info.hostId === party.playerId;
-    const key = JSON.stringify([info, players.map((p) => [p.id, p.name, p.color, p.connected])]);
+    const key = JSON.stringify([info, players.map((p) => [p.id, p.name, p.color, p.connected, p.bot])]);
     if (key === lastKey) return;
     lastKey = key;
     $('kind').textContent = info.public ? 'publiczne' : 'prywatne';
     start.hidden = !isHost;
+    addBot.hidden = !isHost;
+    addBot.disabled = players.length >= MAX_PLAYERS;
     for (const b of mapButtons) {
       b.setAttribute('aria-pressed', String(b.dataset.map === (info.map ?? 'city')));
       b.disabled = !isHost;
     }
     msg.textContent = isHost
-      ? players.length < 2 ? 'Możesz zacząć sam albo poczekać na innych' : ''
+      ? players.length < 2 ? 'Zacznij sam, poczekaj na innych albo dodaj boty' : ''
       : 'Czekamy, aż host kliknie Start';
     backdrop.setColors(players.map((p) => p.color));
     list.innerHTML = '';
-    for (const p of players) list.append(playerItem(p, p.id === party.playerId, p.id === info.hostId));
+    for (const p of players) {
+      const li = playerItem(p, p.id === party.playerId, p.id === info.hostId);
+      if (p.bot && isHost) {
+        const kick = document.createElement('button');
+        kick.type = 'button';
+        kick.className = 'kick';
+        kick.textContent = '×';
+        kick.title = kick.ariaLabel = `Usuń: ${p.name}`;
+        kick.onclick = () => party.removeBot(p.id);
+        li.append(kick);
+      }
+      list.append(li);
+    }
   };
   render();
 
@@ -276,7 +293,7 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
 function playerItem(p: Player, me: boolean, host: boolean): HTMLLIElement {
   const li = document.createElement('li');
   li.style.setProperty('--c', hex(p.color));
-  li.textContent = p.name + (me ? ' (ty)' : '') + (host ? ' · host' : '') + (p.connected ? '' : ' …');
+  li.textContent = (p.bot ? '🤖 ' : '') + p.name + (me ? ' (ty)' : '') + (host ? ' · host' : '') + (p.connected ? '' : ' …');
   return li;
 }
 

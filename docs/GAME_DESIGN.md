@@ -29,6 +29,12 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
   „Czekamy na hosta…”. Party zostaje to samo (kod i link bez zmian). Serwer losuje nową mapę,
   zeruje zegar, sudden death, autobusy i bonusy, a wszyscy wracają do poczekalni, gdzie można
   dołączyć albo wyjść. Gra rusza znowu, gdy host kliknie Start; sudden death liczy się od tego Startu.
+- **Boty (gra z komputerem):** w poczekalni host dodaje boty przyciskiem „+ Bot” i usuwa je „×”.
+  Bot zajmuje miejsce w party (razem z ludźmi do 8), ma własny kolor i strefę i gra jak gracz:
+  zbiera bonusy (omija kontrolera), po uzbieraniu 30–65 smrodu wraca przez granicę do swojej
+  strefy, z prawie pustym autobusem taranuje rywali, którzy wiozą ≥ 30 smrodu, i trąbi na bliskie
+  autobusy. Liczy się do zwycięstwa, więc gra „sam + bot” to normalny mecz. Host nigdy nie
+  przechodzi na bota, a party znika razem z ostatnim człowiekiem. Boty zostają na rewanż.
 - Gracz jest albo **pieszym**, albo **kierowcą**.
 - Pieszy: chodzi wszędzie (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest pusty.
 - Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja dalej hamuje). Prędkość pieszego: 5,2 kafelka/s.

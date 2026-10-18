@@ -1,10 +1,11 @@
 import { Room, type Client } from 'colyseus';
-import { CITY_ENABLED, MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
+import { BOT_NAMES, CITY_ENABLED, MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
 import type {
   BusInput, GameState, InputAck, JoinOptions, LobbyInfo, MapKind, PartyMetadata, PlayerId, Snapshot, Welcome,
 } from '../../app/src/shared/types';
 import { rematchGame } from '../../app/src/net/rematch';
 import { createTileTracker } from '../../app/src/net/tiles';
+import { createBot, type Bot } from '../../app/src/sim/bot';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
 import { parkBus } from '../../app/src/sim/bus';
 import { nearestDrivable } from '../../app/src/sim/world';
@@ -25,6 +26,8 @@ export class PartyRoom extends Room {
   private lastBonuses = '';
   /** Room sim step (Snapshot.serverTick). */
   private serverTick = 0;
+  /** Computer players (card 037): seats in the game, not Colyseus clients. */
+  private bots = new Map<PlayerId, Bot>();
   private lobby: LobbyInfo = { hostId: null, started: false, public: false, map: CITY_ENABLED ? 'city' : 'flat' };
 
   messages = {
@@ -53,6 +56,26 @@ export class PartyRoom extends Room {
       this.acks.clear();
       this.syncLobby();
       this.newGame();
+    },
+    // Card 037: the host fills free seats with computer players in the waiting room.
+    addBot: (client: Client) => {
+      if (client.sessionId !== this.lobby.hostId || this.lobby.started) return;
+      // Counts seats reserved by clients still joining; maxClients already excludes the bots.
+      if (this.hasReachedMaxClients()) return;
+      const names = new Set(this.game.players.map((p) => p.name));
+      const name = BOT_NAMES.find((n) => !names.has(n)) ?? `Bot ${this.bots.size + 1}`;
+      let n = 1;
+      while (this.game.players.some((p) => p.id === `bot-${n}`)) n++;
+      const id = `bot-${n}`;
+      addPlayer(this.game, id, name).bot = true;
+      this.bots.set(id, createBot(Math.floor(Math.random() * 2 ** 31)));
+      this.seatsChanged();
+    },
+    removeBot: (client: Client, id: PlayerId) => {
+      if (client.sessionId !== this.lobby.hostId || this.lobby.started || !this.bots.has(id)) return;
+      this.bots.delete(id);
+      removePlayer(this.game, id);
+      this.seatsChanged();
     },
     input: (client: Client, input: BusInput) => {
       if (typeof input?.throttle !== 'number' || typeof input?.steer !== 'number') return;
@@ -87,6 +110,12 @@ export class PartyRoom extends Room {
       this.serverTick = ctx.tick;
       // Waiting room until the host clicks Start: the clock and sudden death don't run yet.
       if (this.lobby.started) {
+        for (const [id, bot] of this.bots) {
+          const input = bot.think(this.game, id, SIM_DT);
+          this.busInputs.set(id, input);
+          const player = this.game.players.find((p) => p.id === id);
+          if (player) player.horn = input.horn;
+        }
         stepGame(this.game, this.busInputs, SIM_DT);
         for (const ack of this.acks.values()) ack.ticks++;
       }
@@ -132,7 +161,8 @@ export class PartyRoom extends Room {
     this.busInputs.delete(client.sessionId);
     this.acks.delete(client.sessionId);
     removePlayer(this.game, client.sessionId);
-    if (this.lobby.hostId === client.sessionId) this.lobby.hostId = this.game.players[0]?.id ?? null;
+    // Never a bot: the room closes with its last human anyway.
+    if (this.lobby.hostId === client.sessionId) this.lobby.hostId = this.game.players.find((p) => !p.bot)?.id ?? null;
     this.syncLobby();
   }
 
@@ -143,6 +173,8 @@ export class PartyRoom extends Room {
    */
   private newGame() {
     this.game = rematchGame(this.game, Math.floor(Math.random() * 2 ** 31), this.lobby.map === 'city');
+    // Fresh brains: the old ones still remember paths on the previous map.
+    for (const id of this.bots.keys()) this.bots.set(id, createBot(Math.floor(Math.random() * 2 ** 31)));
     this.tiles = createTileTracker(this.game.world.tiles);
     this.lastBonuses = '';
     for (const c of this.clients) c.send('welcome', { playerId: c.sessionId, world: this.game.world } satisfies Welcome);
@@ -167,9 +199,18 @@ export class PartyRoom extends Room {
 
   private syncLobby() {
     const host = this.game.players.find((p) => p.id === this.lobby.hostId);
-    const meta: PartyMetadata = { public: this.lobby.public, started: this.lobby.started, hostName: host?.name ?? '' };
+    const meta: PartyMetadata = {
+      public: this.lobby.public, started: this.lobby.started, hostName: host?.name ?? '', bots: this.bots.size,
+    };
     this.setMetadata(meta);
     this.broadcast('lobby', this.lobby);
+  }
+
+  /** Bots take seats, so fewer are left for real clients; then everyone sees the new list. */
+  private seatsChanged() {
+    this.maxClients = MAX_PLAYERS - this.bots.size;
+    this.syncLobby();
+    this.broadcastSnapshot();
   }
 
   private setConnected(id: PlayerId, connected: boolean) {
