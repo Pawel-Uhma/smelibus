@@ -100,3 +100,36 @@ export interface Welcome {
   playerId: PlayerId;
   world: World;
 }
+
+/** Options a client sends with `create` / `joinById` (card 016). */
+export interface JoinOptions {
+  name?: string;
+  /** Preferred color from PLAYER_COLORS; the server falls back to a free one. */
+  color?: number;
+  /** Only read on create: public parties show up on the home screen list. */
+  public?: boolean;
+}
+
+/** Party lobby state, sent as a `lobby` message on `hello` and whenever it changes. */
+export interface LobbyInfo {
+  hostId: PlayerId | null;
+  /** false = waiting room, the sim is paused until the host clicks Start. */
+  started: boolean;
+  public: boolean;
+}
+
+/** Room metadata of a party, as seen on the public list. */
+export interface PartyMetadata {
+  public: boolean;
+  started: boolean;
+  hostName: string;
+}
+
+/** One entry of the public party list. */
+export interface PublicParty {
+  code: string;
+  players: number;
+  maxPlayers: number;
+  started: boolean;
+  hostName: string;
+}

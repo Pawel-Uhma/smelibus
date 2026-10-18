@@ -11,6 +11,6 @@ Strona główna: „Stwórz party” (z przełącznikiem publiczne/prywatne), wp
 
 ## Gotowe, gdy
 
-- [ ] dwie przeglądarki: jedna tworzy party, druga dołącza przez link i przez kod
-- [ ] publiczne party widać na liście, prywatnego nie
-- [ ] dołączenie do trwającej gry działa
+- [x] dwie przeglądarki: jedna tworzy party, druga dołącza przez link i przez kod
+- [x] publiczne party widać na liście, prywatnego nie
+- [x] dołączenie do trwającej gry działa

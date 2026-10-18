@@ -1,0 +1,24 @@
+/* Lobby-only styles (card 016). Base .lobby layout lives in style.css. */
+.lobby { overflow-y: auto; justify-content: flex-start; padding-top: max(16px, 8vh); }
+.lobby .colors { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.lobby .swatch { width: 32px; height: 32px; padding: 0; border-radius: 50%; background: var(--c); }
+.lobby .swatch:hover { background: var(--c); transform: scale(1.1); }
+.lobby .swatch[aria-checked='true'] { outline: 3px solid #1b1b1b; outline-offset: 2px; }
+.lobby .create { display: flex; gap: 10px; align-items: center; }
+.lobby .check { font-weight: 400; }
+.lobby .check input { width: 18px; height: 18px; }
+.lobby .public-list { width: min(420px, 100%); }
+.lobby .public-list h2 { font-size: 16px; margin: 8px 0; }
+.lobby .public-list ul, .lobby .waiting { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.lobby .public-list li { display: flex; align-items: center; gap: 10px; background: #fffc; border: 2px solid #1b1b1b; border-radius: 8px; padding: 6px 6px 6px 10px; }
+.lobby .public-list li.empty { justify-content: center; opacity: .7; padding: 10px; }
+.lobby .public-list .code { font-weight: 700; letter-spacing: 2px; }
+.lobby .public-list .host { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby .public-list button { padding: 6px 10px; }
+.lobby button:disabled { background: #ccc; cursor: default; }
+.lobby .party-code { letter-spacing: 3px; font-size: 1.2em; }
+.lobby #link { width: min(280px, 60vw); }
+.lobby .waiting { width: min(320px, 100%); }
+.lobby .waiting li { display: flex; align-items: center; gap: 8px; background: #fffc; border: 2px solid #1b1b1b; border-radius: 8px; padding: 8px 10px; }
+.lobby .waiting li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: var(--c); border: 1px solid #1b1b1b; }
+.lobby #start { font-size: 20px; padding: 12px 32px; }

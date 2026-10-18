@@ -18,6 +18,10 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 - Gra online w przeglądarce na komputerze, do **8 graczy** w party. Jeden gracz na komputer.
 - Host tworzy party i dostaje link z kodem (`/p/ABCD`). Bez kont: nick i kolor.
   Party może być **publiczne** — wtedy widać je na liście na stronie głównej.
+- Po wejściu do party jest poczekalnia (kod, link, lista graczy). Gra rusza, gdy host kliknie
+  **Start**: mapa dzieli się wtedy od nowa na strefy wszystkich obecnych, a autobusy stają w
+  punktach startowych. Host, który wyjdzie, przekazuje rolę następnemu graczowi. Kolor wybierasz
+  na stronie głównej; jeśli jest zajęty, dostajesz pierwszy wolny.
 - **Dołączanie w trakcie gry** (do 8): nowy gracz dostaje strefę startową wyciętą z terenu lidera.
   Mapa nie rośnie.
 - Rozłączenie: 60 s na powrót, potem strefa zostaje na mapie jako neutralna (do przejęcia).

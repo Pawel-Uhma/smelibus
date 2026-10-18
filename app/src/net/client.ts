@@ -1,6 +1,8 @@
 import { Client, type Room } from '@colyseus/sdk';
 import { INTERP_DELAY_MS } from '../shared/config';
-import type { Bus, BusInput, PlayerId, Snapshot, Welcome, World } from '../shared/types';
+import type {
+  Bus, BusInput, JoinOptions, LobbyInfo, PartyMetadata, PlayerId, PublicParty, Snapshot, Welcome, World,
+} from '../shared/types';
 import { applyTileChanges } from './tiles';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'ws://localhost:2567';
@@ -18,13 +20,55 @@ export interface Party {
   sendInput(input: BusInput): void;
   onClose(cb: (reason: string) => void): void;
   leave(): void;
+  /** Host, started flag, public flag (card 016). */
+  lobby(): LobbyInfo;
+  onLobby(cb: (info: LobbyInfo) => void): void;
+  /** Host only: ends the waiting room. */
+  start(): void;
 }
 
 const client = new Client(SERVER_URL);
 
-export const createParty = (name: string) => connect(() => client.create('party', { name }));
-export const joinParty = (code: string, name: string) =>
-  connect(() => client.joinById(code.toUpperCase(), { name }));
+export const createParty = (name: string, opts: Omit<JoinOptions, 'name'> = {}) =>
+  connect(() => client.create('party', { ...opts, name }));
+export const joinParty = (code: string, name: string, color?: number) =>
+  connect(() => client.joinById(code.toUpperCase(), { name, color }));
+
+/** Streams the public party list (Colyseus LobbyRoom). Returns an unsubscribe function. */
+export function watchPublicParties(cb: (list: PublicParty[]) => void, onError?: (e: Error) => void): () => void {
+  type Listing = { roomId: string; clients: number; maxClients: number; metadata?: PartyMetadata };
+  const rooms = new Map<string, Listing>();
+  const emit = () =>
+    cb([...rooms.values()]
+      .filter((r) => r.metadata?.public)
+      .map((r) => ({
+        code: r.roomId, players: r.clients, maxPlayers: r.maxClients,
+        started: !!r.metadata?.started, hostName: r.metadata?.hostName ?? '',
+      })));
+  let room: Room | null = null;
+  let closed = false;
+  client.joinOrCreate('lobby', { filter: { name: 'party' } }).then((r) => {
+    if (closed) return void r.leave();
+    room = r;
+    r.onMessage('rooms', (list: Listing[]) => {
+      rooms.clear();
+      for (const l of list) rooms.set(l.roomId, l);
+      emit();
+    });
+    r.onMessage('+', ([id, l]: [string, Listing]) => {
+      rooms.set(id, l);
+      emit();
+    });
+    r.onMessage('-', (id: string) => {
+      rooms.delete(id);
+      emit();
+    });
+  }, (e: Error) => onError?.(e));
+  return () => {
+    closed = true;
+    room?.leave();
+  };
+}
 
 /** Comes back to the same seat after a page refresh (RECONNECT_SECONDS). */
 export async function rejoinParty(code: string): Promise<Party | null> {
@@ -45,6 +89,12 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ code: room.roomId, token: room.reconnectionToken }));
 
   const buffer: { at: number; snap: Snapshot }[] = [];
+  let lobby: LobbyInfo = { hostId: null, started: true, public: false };
+  const lobbyCbs: ((info: LobbyInfo) => void)[] = [];
+  room.onMessage('lobby', (info: LobbyInfo) => {
+    lobby = info;
+    lobbyCbs.forEach((cb) => cb(info));
+  });
   let world: World | null = null;
   const welcome = new Promise<Welcome>((resolve) =>
     room.onMessage('welcome', (w: Welcome) => {
@@ -101,6 +151,9 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
       sessionStorage.removeItem(TOKEN_KEY);
       room.leave(true);
     },
+    lobby: () => lobby,
+    onLobby: (cb) => lobbyCbs.push(cb),
+    start: () => room.send('start'),
   };
 }
 
