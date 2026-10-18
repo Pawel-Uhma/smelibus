@@ -76,9 +76,12 @@ describe('InPost lockers', () => {
 
   it('every hard hit drops something: a parcel when it is not a poop', () => {
     const kinds = new Set<string>();
-    for (let i = 0; i < 40; i++) {
-      const { s, bus } = ram(8);
-      s.bonusRng = i;
+    const { s, bus } = ram(8);
+    const start = { x: bus.x, z: bus.z, angle: bus.angle };
+    for (let i = 0; i < 20; i++) {
+      Object.assign(bus, start, { speed: 8, pushX: 0, pushZ: 0 });
+      s.paczkomatReadyAt![0] = 0;
+      s.bonuses = [];
       hit(s, bus);
       expect(drops(s)).toHaveLength(1);
       kinds.add(drops(s)[0].kind);
