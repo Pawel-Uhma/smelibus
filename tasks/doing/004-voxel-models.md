@@ -1,7 +1,7 @@
 # Voxelowy model autobusu i ludzika
 
 obszar: autobus
-kto: -
+kto: Szczpan
 zależy od: 001
 ścieżki: render/models/
 
