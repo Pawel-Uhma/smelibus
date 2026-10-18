@@ -1,6 +1,6 @@
 import {
   BUS_ACCEL, BUS_BOUNCE, BUS_BRAKE, BUS_DRAG, BUS_MAX_REVERSE, BUS_MAX_SPEED,
-  BUS_RADIUS, BUS_TURN_FULL_SPEED, BUS_TURN_RATE,
+  BUS_RADIUS, BUS_TURN_FULL_SPEED, BUS_TURN_RATE, RAM_MIN_SPEED, RAM_STINK_LOSS,
 } from '../shared/config';
 import type { Bus, BusInput } from '../shared/types';
 
@@ -39,8 +39,30 @@ export function updateBus(bus: Bus, input: BusInput, dt: number, mapSize: number
   }
 }
 
-/** Pushes overlapping buses apart and bounces them. Card 007 adds ramming (stink loss). */
-export function collideBuses(buses: Bus[]): void {
+/** Stink knocked out of a rammed bus, at the contact point. Becomes a bonus on the ground. */
+export interface StinkDrop {
+  x: number;
+  z: number;
+  amount: number;
+}
+
+/** How fast `bus` moves along the unit direction (nx, nz). */
+const speedAlong = (bus: Bus, nx: number, nz: number) =>
+  bus.speed * (Math.sin(bus.angle) * nx + Math.cos(bus.angle) * nz);
+
+function ram(victim: Bus, x: number, z: number, drops: StinkDrop[]): void {
+  const amount = victim.stink * RAM_STINK_LOSS;
+  if (amount <= 0) return;
+  victim.stink -= amount;
+  drops.push({ x, z, amount });
+}
+
+/**
+ * Pushes overlapping buses apart. A bus driving into another bounces back; if it hit at
+ * RAM_MIN_SPEED or more, the other bus loses RAM_STINK_LOSS of its stink (returned as drops).
+ */
+export function collideBuses(buses: Bus[]): StinkDrop[] {
+  const drops: StinkDrop[] = [];
   const minDist = BUS_RADIUS * 2;
   for (let i = 0; i < buses.length; i++) {
     for (let j = i + 1; j < buses.length; j++) {
@@ -57,8 +79,16 @@ export function collideBuses(buses: Bus[]): void {
       a.z -= nz * push;
       b.x += nx * push;
       b.z += nz * push;
-      a.speed *= BUS_BOUNCE;
-      b.speed *= BUS_BOUNCE;
+
+      const hitA = speedAlong(a, nx, nz);
+      const hitB = speedAlong(b, -nx, -nz);
+      a.speed *= hitA > 0 ? -BUS_BOUNCE : BUS_BOUNCE;
+      b.speed *= hitB > 0 ? -BUS_BOUNCE : BUS_BOUNCE;
+      const cx = a.x + nx * BUS_RADIUS;
+      const cz = a.z + nz * BUS_RADIUS;
+      if (hitA >= RAM_MIN_SPEED) ram(b, cx, cz, drops);
+      if (hitB >= RAM_MIN_SPEED) ram(a, cx, cz, drops);
     }
   }
+  return drops;
 }
