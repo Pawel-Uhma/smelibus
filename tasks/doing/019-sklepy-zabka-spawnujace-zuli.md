@@ -1,7 +1,7 @@
 # Sklepy Żabka spawnujące żuli
 
 obszar: smrod
-kto: -
+kto: Jasiek
 zależy od: 002, 008
 ścieżki: sim/zabka.ts, shared/config.ts
 
