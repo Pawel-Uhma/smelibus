@@ -1,7 +1,7 @@
 # Pogoda: deszcz zmywa smród
 
 obszar: swiat
-kto: -
+kto: antpop
 zależy od: 001, 008
 ścieżki: sim/weather.ts, render/weather.ts
 
