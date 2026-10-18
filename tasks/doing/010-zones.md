@@ -1,7 +1,7 @@
 # Strefy: podział, skok przy wjeździe, sudden death, zwycięstwo
 
 obszar: strefy
-kto: -
+kto: Pawel
 zależy od: 001
 ścieżki: sim/zones.ts
 
