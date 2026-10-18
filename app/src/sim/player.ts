@@ -42,8 +42,13 @@ function offBuildings(world: World, x: number, z: number): { x: number; z: numbe
     for (let j = Math.floor(z - r); j <= Math.floor(z + r); j++) {
       for (let i = Math.floor(x - r); i <= Math.floor(x + r); i++) {
         if (!isBuilding(world, i, j)) continue;
-        const cx = clamp(x, i, i + 1);
-        const cz = clamp(z, j, j + 1);
+        // A corner shared with the next building is a seam, not a corner: push straight off the wall.
+        let cx = clamp(x, i, i + 1);
+        let cz = clamp(z, j, j + 1);
+        if ((x < i && isBuilding(world, i - 1, j)) || (x > i + 1 && isBuilding(world, i + 1, j))) cx = x;
+        if ((z < j && isBuilding(world, i, j - 1)) || (z > j + 1 && isBuilding(world, i, j + 1))) cz = z;
+        // Centre over the neighbour: that tile pushes it out.
+        if (cx === x && cz === z && (x < i || x > i + 1 || z < j || z > j + 1)) continue;
         const d = Math.hypot(x - cx, z - cz);
         if (d >= r) continue;
         if (d > 1e-6) {
