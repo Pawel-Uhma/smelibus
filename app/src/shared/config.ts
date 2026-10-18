@@ -15,14 +15,14 @@ export const CITY_ENABLED = true;
  * green strip and the sidewalk on one side of some streets.
  */
 export const CITY_STREETS = {
-  avenue: { median: 0.8, road: 3.6, green: 0.7, walk: 1.1 },
-  street: { median: 0, road: 2.7, green: 0.7, walk: 1 },
-  lane: { median: 0, road: 2.2, green: 0, walk: 1 },
+  avenue: { median: 0.8, road: 4.8, green: 0.7, walk: 1.1 },
+  street: { median: 0, road: 3.6, green: 0.7, walk: 1 },
+  lane: { median: 0, road: 3, green: 0, walk: 1 },
 } as const;
 export const CITY_BIKE_WIDTH = 1;
 /** Street grid: node spacing, how far nodes are shaken off the grid (share of the spacing) and
  *  the largest tilt of the whole grid, radians. */
-export const CITY_GRID_SPACING = 36;
+export const CITY_GRID_SPACING = 40;
 export const CITY_GRID_JITTER = 0.2;
 export const CITY_GRID_TILT = 0.4;
 /** Chance a street is dropped (two blocks merge) and a block gets a diagonal street across. */
@@ -31,10 +31,10 @@ export const CITY_DIAGONAL_CHANCE = 0.08;
 /** Chance a plain junction of four streets is a roundabout; the avenue crossing always is. */
 export const CITY_ROUNDABOUT_CHANCE = 0.35;
 /** Roundabout outer radius (edge of the ring road) for streets and for the avenue crossing. */
-export const CITY_ROUNDABOUT_R = 6;
-export const CITY_ROUNDABOUT_BIG_R = 8;
+export const CITY_ROUNDABOUT_R = 8.5;
+export const CITY_ROUNDABOUT_BIG_R = 10.5;
 /** Width of the ring road; the rest of the circle is a green island. */
-export const CITY_ROUNDABOUT_RING = 4.5;
+export const CITY_ROUNDABOUT_RING = 5.8;
 /** Chance a block is a park. */
 export const CITY_PARK_CHANCE = 0.13;
 /** Height of one storey, tiles. */
@@ -79,7 +79,7 @@ export const OSM_STREET_KINDS: Record<string, readonly ['avenue' | 'street' | 'l
   living_street: ['lane', 'lane'],
 };
 /** Real roundabout radius is clamped to this range, tiles. */
-export const OSM_ROUNDABOUT_R_MAX = 10;
+export const OSM_ROUNDABOUT_R_MAX = 12;
 /** An OSM stop snaps to a road tile at most this far away, tiles. */
 export const OSM_STOP_SNAP = 6;
 
