@@ -3,6 +3,7 @@ import type { Bus, Player, PlayerId, World } from '../shared/types';
 import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
 import { createPedestrianModel, type PedestrianModel } from './models/pedestrian';
+import { createNameplate, type Nameplate } from './nameplate';
 import { createStinkEffect } from './stink';
 import { createZabkaRender } from './zabka';
 
@@ -34,6 +35,8 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   createZabkaRender(scene, world);
 
   const meshes = new Map<number, BusModel>();
+  // Driver nick above each bus; separate from the bus group so it does not spin with it.
+  const plates = new Map<number, Nameplate>();
   const stink = createStinkEffect(scene);
 
   // Pedestrians: snapshots come 20×/s, so the drawn position eases toward the latest one.
@@ -71,7 +74,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
     }
   }
 
-  function syncBus(bus: Bus, color: number) {
+  function syncBus(bus: Bus, color: number, driver: Player | undefined) {
     let m = meshes.get(bus.id);
     if (!m) {
       m = createBusModel(color);
@@ -82,6 +85,18 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
     m.setStink(bus.stink);
     m.group.position.set(bus.x, 0, bus.z);
     m.group.rotation.y = bus.angle;
+
+    let plate = plates.get(bus.id);
+    if (!plate) {
+      plate = createNameplate();
+      scene.add(plate.sprite);
+      plates.set(bus.id, plate);
+    }
+    plate.sprite.visible = !!driver;
+    if (driver) {
+      plate.set(driver.name, driver.color);
+      plate.sprite.position.set(bus.x, 2.3, bus.z);
+    }
   }
 
   const camTarget = new THREE.Vector3(s / 2, 0, s / 2);
@@ -101,8 +116,11 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
     scene,
     render(buses: Bus[], players: Player[], follow: { x: number; z: number } | undefined, dt: number, time = 0) {
       resize();
-      const colorOf = new Map<PlayerId, number>(players.map((p) => [p.id, p.color]));
-      for (const bus of buses) syncBus(bus, (bus.driverId && colorOf.get(bus.driverId)) || 0xbbbbbb);
+      const byId = new Map<PlayerId, Player>(players.map((p) => [p.id, p]));
+      for (const bus of buses) {
+        const driver = bus.driverId ? byId.get(bus.driverId) : undefined;
+        syncBus(bus, driver?.color || 0xbbbbbb, driver);
+      }
       syncPedestrians(players, time, dt);
       stink.update(buses, dt);
       if (follow) {
