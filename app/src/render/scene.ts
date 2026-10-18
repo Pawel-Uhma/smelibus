@@ -139,5 +139,11 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       stackNameplates(shownPlates.map(([, p]) => p), camera, dt);
       renderer.render(scene, camera);
     },
+    /** Screen position (CSS px) of a world point as of the last render, null when behind the camera. */
+    toScreen(x: number, y: number, z: number): { x: number; y: number } | null {
+      const v = new THREE.Vector3(x, y, z).project(camera);
+      if (v.z > 1) return null;
+      return { x: (v.x + 1) / 2 * canvas.clientWidth, y: (1 - v.y) / 2 * canvas.clientHeight };
+    },
   };
 }

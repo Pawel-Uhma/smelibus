@@ -62,7 +62,9 @@ function frame(now: number) {
   // On foot the camera follows the pedestrian (card 006).
   const onFoot = me && me.busId === null && me.x !== undefined && me.z !== undefined ? { x: me.x, z: me.z } : undefined;
   scene.render(buses, snap.players, ownBus ?? onFoot, dt, snap.time);
-  hud.update({ time: snap.time, players: snap.players, buses, tiles: party.world.tiles, winnerId: snap.winnerId });
+  // Stink pops rise from just above the own bus.
+  const ownScreen = ownBus ? scene.toScreen(ownBus.x, 2.6, ownBus.z) : null;
+  hud.update({ time: snap.time, players: snap.players, buses, tiles: party.world.tiles, winnerId: snap.winnerId, ownScreen });
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

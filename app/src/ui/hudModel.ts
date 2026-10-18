@@ -9,6 +9,8 @@ export interface HudView {
   buses: Bus[];
   tiles: Tile[];
   winnerId?: PlayerId | null;
+  /** Own bus on screen (CSS px), where the stink pops rise from. */
+  ownScreen?: { x: number; y: number } | null;
 }
 
 export interface HudPlayerRow {
