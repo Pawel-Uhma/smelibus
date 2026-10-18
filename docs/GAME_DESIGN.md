@@ -57,6 +57,7 @@ miejsce odnawia się po czasie (np. 15 s).
 | Śmietnik | +8 | wjechanie przewraca śmietnik, wraca po czasie |
 | Kontroler biletów | −20 | bonus negatywny, trzeba go omijać |
 | Wytrącony smród | ile wypadło | zostaje po taranowaniu |
+| Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej |
 
 Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),
 widoczna zielona chmura wokół autobusu skalowana smrodem.
