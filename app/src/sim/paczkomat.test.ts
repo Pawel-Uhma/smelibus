@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BONUS_STINK, PACZKOMAT_COOLDOWN_S, PACZKOMAT_DROP_TTL_S, PACZKOMAT_POOP_CHANCE } from '../shared/config';
+import { BONUS_RADIUS, BONUS_STINK, BUS_RADIUS, PACZKOMAT_COOLDOWN_S, PACZKOMAT_DROP_TTL_S, PACZKOMAT_POOP_CHANCE } from '../shared/config';
 import type { Bus, GameState } from '../shared/types';
 import { updateBonuses } from './bonus';
 import { addPlayer, createGame } from './game';
@@ -50,6 +50,8 @@ describe('InPost lockers', () => {
     expect(d.amount).toBe(BONUS_STINK[d.kind as 'parcel' | 'poop']);
     const p = s.world.paczkomats![0];
     expect((d.x - p.x) * p.fx + (d.z - p.z) * p.fz).toBeGreaterThan(0);
+    // Away from the bus that bounced off, so it doesn't swallow the drop unseen.
+    expect(Math.hypot(d.x - bus.x, d.z - bus.z)).toBeGreaterThan(BUS_RADIUS + BONUS_RADIUS);
     // The bus bounced off the doors.
     expect(Math.hypot(bus.x - p.x, bus.z - p.z)).toBeGreaterThan(0.2);
 
@@ -72,6 +74,22 @@ describe('InPost lockers', () => {
     expect((bus.x - p.x) * p.fx + (bus.z - p.z) * p.fz).toBeGreaterThan(0.2);
   });
 
+  it('every hard hit drops something: a parcel when it is not a poop', () => {
+    const kinds = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      const { s, bus } = ram(8);
+      s.bonusRng = i;
+      hit(s, bus);
+      expect(drops(s)).toHaveLength(1);
+      kinds.add(drops(s)[0].kind);
+      // The bus stays where it bounced: the drop is still lying there after the pickup delay.
+      s.time += 1.5;
+      updateBonuses(s, 0);
+      expect(drops(s)).toHaveLength(1);
+    }
+    expect([...kinds].sort()).toEqual(['parcel', 'poop']);
+  });
+
   it('about PACZKOMAT_POOP_CHANCE of the drops are poop', () => {
     const { s, bus } = ram(8);
     const start = { x: bus.x, z: bus.z, angle: bus.angle };
@@ -92,7 +110,8 @@ describe('InPost lockers', () => {
     const { s, bus } = ram(8);
     hit(s, bus);
     const d = drops(s)[0];
-    s.time += 1;
+    s.bonuses = [d]; // nothing else nearby to pick up
+    s.time += 1.5;
     bus.x = d.x;
     bus.z = d.z;
     const before = bus.stink;

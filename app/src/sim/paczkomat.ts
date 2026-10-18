@@ -1,5 +1,5 @@
 import {
-  BONUS_STINK, PACZKOMAT_COOLDOWN_S, PACZKOMAT_DROP_DIST, PACZKOMAT_DROP_PICKUP_DELAY_S,
+  BONUS_STINK, PACZKOMAT_COOLDOWN_S, PACZKOMAT_DROP_OUT, PACZKOMAT_DROP_PICKUP_DELAY_S, PACZKOMAT_DROP_SIDE,
   PACZKOMAT_DROP_TTL_S, PACZKOMAT_HIT_MIN_SPEED, PACZKOMAT_POOP_CHANCE, PACZKOMATS_PER_TILE,
 } from '../shared/config';
 import type { Bus, GameState, World } from '../shared/types';
@@ -139,8 +139,8 @@ export function busVelocity(bus: Bus): { x: number; z: number } {
 
 /**
  * A driven bus moving at `v` (busVelocity before the bounce) rammed lockers: each one hit
- * head-on hard enough and not on cooldown drops a parcel, or with PACZKOMAT_POOP_CHANCE a poop,
- * on the side it was hit from. Scraping along the side doesn't count.
+ * head-on hard enough and not on cooldown drops a poop (PACZKOMAT_POOP_CHANCE) or else a parcel,
+ * just out of the hit face and off to one side, clear of the bus. Scraping along doesn't count.
  */
 export function hitPaczkomats(
   state: GameState, bus: Bus, hits: readonly PaczkomatHit[], v: { x: number; z: number },
@@ -156,7 +156,11 @@ export function hitPaczkomats(
     const kind = rand(state) < PACZKOMAT_POOP_CHANCE ? 'poop' : 'parcel';
     const size = state.world.size;
     const clampIn = (v: number) => Math.max(0.5, Math.min(size - 0.5, v));
-    const at = nearestDrivable(state.world, clampIn(p.x + h.nx * PACZKOMAT_DROP_DIST), clampIn(p.z + h.nz * PACZKOMAT_DROP_DIST));
+    const side = rand(state) < 0.5 ? -1 : 1;
+    const out = PACZKOMAT_DROP_OUT, across = PACZKOMAT_DROP_SIDE * side;
+    const at = nearestDrivable(
+      state.world, clampIn(p.x + h.nx * out - h.nz * across), clampIn(p.z + h.nz * out + h.nx * across),
+    );
     (state.bonuses ??= []).push({
       id: nextId(state), spot: 'paczkomat', kind, amount: BONUS_STINK[kind], x: at.x, z: at.z,
       active: true, respawnAt: state.time + PACZKOMAT_DROP_TTL_S,

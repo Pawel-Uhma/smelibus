@@ -202,11 +202,13 @@ export const PACZKOMAT_POOP_CHANCE = 0.3;
 export const PACZKOMAT_HIT_MIN_SPEED = 3;
 /** After a drop the locker is empty for this long. */
 export const PACZKOMAT_COOLDOWN_S = 6;
-/** The drop lands this far (tiles) from the locker, on the side it was hit from. */
-export const PACZKOMAT_DROP_DIST = 1.1;
+/** The drop lands this far (tiles) out of the hit face and this far to a random side of the
+ *  locker, so it isn't under the bus that bounced off (BUS_RADIUS + BONUS_RADIUS away). */
+export const PACZKOMAT_DROP_OUT = 0.6;
+export const PACZKOMAT_DROP_SIDE = 1.8;
 /** A drop on the ground vanishes after this long and can't be picked up for the first moment. */
 export const PACZKOMAT_DROP_TTL_S = 20;
-export const PACZKOMAT_DROP_PICKUP_DELAY_S = 0.4;
+export const PACZKOMAT_DROP_PICKUP_DELAY_S = 1;
 /** Spawn weights for regular bonuses on map spots and stops (durian is rare, kebab common). */
 export const BONUS_WEIGHTS = { kebab: 5, dog: 3, fan: 2, herring: 3, durian: 1 } as const;
 
