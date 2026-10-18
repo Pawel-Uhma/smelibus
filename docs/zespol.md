@@ -10,7 +10,7 @@ Obszary to podział z myślą o pracy równoległej. Własność jest miękka: c
 |---|---|---|
 | Paweł | Pawel | siec |
 | Szczepan | Szczpan | autobus |
-| Janek | Jasiek | - |
+| Janek | Jasiek | smrod |
 | Antek | antpop | swiat (+ pogoda) |
 
 ## Obszary
