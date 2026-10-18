@@ -1,7 +1,7 @@
 # Prawdziwe miasto: szersze ulice, ronda, warszawskie budynki
 
 obszar: swiat
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: sim/world.ts, sim/city.ts, render/city.ts, render/buildings.ts, shared/
 
