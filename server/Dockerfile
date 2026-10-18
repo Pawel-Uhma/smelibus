@@ -5,8 +5,8 @@ COPY server/package.json server/package-lock.json server/
 RUN cd server && npm ci --omit=dev
 COPY server/tsconfig.json server/
 COPY server/src server/src
-COPY app/src/shared app/src/shared
-COPY app/src/sim app/src/sim
+# Whole app/src: the room imports sim/, shared/ and pure helpers from net/ (no browser deps needed at runtime).
+COPY app/src app/src
 WORKDIR /repo/server
 ENV NODE_ENV=production
 CMD ["npx", "tsx", "src/index.ts"]
