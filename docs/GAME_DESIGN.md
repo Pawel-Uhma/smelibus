@@ -96,6 +96,37 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 - Voxele renderowane przez `InstancedMesh` / merge geometrii — nie jeden `Mesh` na voxel.
 - Tryb wysokiego kontrastu: **nie w MVP** (był prośbą ze spotkania 1, odłożony).
 
+### Model autobusu: niskopodłogowiec
+
+Wybrany z 4 propozycji (przegubowiec, ogórek, niskopodłogowiec, minibus). Kanciasta bryła
+daje się złożyć z kilku prostopadłościanów, a dach w kolorze gracza widać z kamery od góry.
+
+- Wymiar 18 (długość, przód w +x) × 5 (szerokość) × 8 (wysokość) voxeli.
+- Warstwy od dołu: `z0` koła 3×3 z piastą w środku (osie na x 1–3 i 12–14), `z1` ciemniejszy
+  kolor gracza, `z2` kolor gracza, `z3–5` szyby ze słupkami w kolorze gracza co 4 voxele,
+  `z6` dach w kolorze gracza, `z7` klimatyzator 6×3 na środku dachu.
+- Przód: szyba na całą szerokość (`z3–5`), reflektory po bokach w `z2`, bursztynowy wyświetlacz
+  linii w `z6`. Tył: światła stop w `z2`, mała szyba w `z5`.
+- 3 pary drzwi po prawej stronie, od ziemi do `z5`.
+- Paleta: kolor gracza i jego wersja ciemniejsza o 30%, szyby boczne `#3B5566`, szyba przednia
+  `#628598`, drzwi `#22303A`, opony `#202024`, piasty `#B8BEC4`, wyświetlacz `#FFB000`,
+  reflektory `#FFE7A0`, stop `#D8432F`, klimatyzator `#C3C7CB`.
+
+### Smród na autobusie
+
+Smród rysujemy tymi samymi voxelami co autobus, bez systemu cząsteczek. Trzy stopnie wg `stink`
+(progi to liczby balansu → `config.ts`):
+
+| `stink` | Nazwa | Wygląd |
+|---|---|---|
+| 0–30 | Świeżak | czysty lakier |
+| 31–70 | Zalatuje | ok. 1/7 voxeli karoserii to oliwkowe plamy `#6F7A2E`; pojedyncze zielone obłoczki nad dachem i z rury wydechowej |
+| 71–100 | Durian | plamy na ok. 1/3 karoserii, ok. 1/4 szyb pękniętych (`#C9D6DC`), półprzezroczysta chmura zielonych voxeli (`#8CC846`, krycie ok. 0.4) do 2 voxeli wokół autobusu |
+
+- Plamy i pęknięcia wybiera hash pozycji voxela, więc są stałe i nie migają przy zmianie `stink`.
+- Plamy i szyby to podmiana kolorów w modelu autobusu (`render/models/`), chmura to osobny
+  efekt (`render/stink.ts`).
+
 ## Po MVP
 
 - Siatka ulic i budynki, autobus jeździ tylko po ulicach.

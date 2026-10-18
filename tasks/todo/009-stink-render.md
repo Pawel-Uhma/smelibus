@@ -8,6 +8,8 @@ zależy od: 001
 ## Cel
 
 Zielona chmura lub cząsteczki wokół autobusu, wielkość i gęstość zależne od `stink`.
+Projekt: docs/GAME_DESIGN.md (Grafika → Smród na autobusie). Chmura z półprzezroczystych voxeli;
+plamy na karoserii robi model autobusu (karta 004).
 
 ## Gotowe, gdy
 

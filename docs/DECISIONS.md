@@ -37,3 +37,6 @@ Bez budynków i ulic, ruch wszędzie, ok. 400 kafelków na gracza. Najszybsza dr
 ### 2026-10-18 — Modele voxel generowane w kodzie, bez trybu wysokiego kontrastu w MVP
 Prostopadłościany w Three.js z jednej palety: grywalne od pierwszego dnia, bez czekania na grafikę. Tryb wysokiego kontrastu odłożony na po MVP (decyzja Pawła).
 
+
+### 2026-10-18 — Autobus: niskopodłogowiec, smród jako voxele
+Z 4 propozycji (przegubowiec, ogórek, niskopodłogowiec, minibus) wybrany niskopodłogowiec: najprostsza bryła do złożenia w kodzie, a dach w kolorze gracza czytelny z kamery od góry. Smród pokazujemy w 3 stopniach tymi samymi voxelami (plamy na karoserii, pęknięte szyby, półprzezroczysta chmura), bez systemu cząsteczek. Specyfikacja w GAME_DESIGN, sekcja Grafika.

@@ -8,6 +8,8 @@ zależy od: 001
 ## Cel
 
 Modele voxel autobusu i pieszego, kolorowane kolorem gracza.
+Autobus: niskopodłogowiec wg docs/GAME_DESIGN.md (Grafika → Model autobusu), razem z plamami
+i pękniętymi szybami dla stopni smrodu.
 
 ## Gotowe, gdy
 
