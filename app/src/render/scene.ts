@@ -4,7 +4,7 @@ import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
 import { createPedestrianModel, type PedestrianModel } from './models/pedestrian';
 import { garbleName } from './garbleName';
-import { createNameplate, type Nameplate } from './nameplate';
+import { createNameplate, stackNameplates, type Nameplate } from './nameplate';
 import { createStinkEffect } from './stink';
 import { createZabkaRender } from './zabka';
 
@@ -93,10 +93,12 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       scene.add(plate.sprite);
       plates.set(bus.id, plate);
     }
-    plate.sprite.visible = !!driver;
-    if (driver) {
-      plate.set(garbleName(driver.name, bus.stink), driver.color);
-      plate.sprite.position.set(bus.x, 2.3, bus.z);
+    // Only over the bus the player is really in, so a stale interpolated bus never shows a second copy.
+    const named = driver?.busId === bus.id ? driver : undefined;
+    plate.sprite.visible = !!named;
+    if (named) {
+      plate.set(garbleName(named.name, bus.stink), named.color);
+      plate.anchor.set(bus.x, 2.3, bus.z);
     }
   }
 
@@ -131,6 +133,9 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       // Top-down view, slightly tilted so boxes read as 3D.
       camera.position.set(camTarget.x, 34, camTarget.z - 14);
       camera.lookAt(camTarget);
+      camera.updateMatrixWorld();
+      const shownPlates = [...plates.entries()].filter(([, p]) => p.sprite.visible).sort((a, b) => a[0] - b[0]);
+      stackNameplates(shownPlates.map(([, p]) => p), camera, dt);
       renderer.render(scene, camera);
     },
   };

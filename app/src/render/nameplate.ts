@@ -7,6 +7,10 @@ const WORLD_HEIGHT = 0.7;
 
 export interface Nameplate {
   sprite: THREE.Sprite;
+  /** Where the label wants to be (above its bus), before stacking. */
+  anchor: THREE.Vector3;
+  /** Current shift along the camera's up axis, eased toward the stacked target. */
+  lift: number;
   set(name: string, color: number): void;
   dispose(): void;
 }
@@ -23,6 +27,8 @@ export function createNameplate(): Nameplate {
 
   return {
     sprite,
+    anchor: new THREE.Vector3(),
+    lift: 0,
     set(name, color) {
       const next = `${name}|${color}`;
       if (next === key) return;
@@ -51,4 +57,38 @@ export function createNameplate(): Nameplate {
       material.dispose();
     },
   };
+}
+
+const right = new THREE.Vector3();
+const up = new THREE.Vector3();
+
+/**
+ * Stacks labels that would overlap on screen (buses side by side, rams) one above the other.
+ * Works in the camera plane: x along the camera's right axis, y along its up axis.
+ * Order is fixed by the caller (bus id), so labels do not swap places while driving.
+ */
+export function stackNameplates(plates: Nameplate[], camera: THREE.Camera, dt: number) {
+  right.setFromMatrixColumn(camera.matrixWorld, 0);
+  up.setFromMatrixColumn(camera.matrixWorld, 1);
+  const placed: { x: number; y: number; w: number; h: number }[] = [];
+  const k = 1 - Math.exp(-dt * 12);
+  for (const p of plates) {
+    const w = p.sprite.scale.x;
+    const h = p.sprite.scale.y;
+    const x = p.anchor.dot(right);
+    const base = p.anchor.dot(up);
+    let y = base;
+    for (let moved = true, guard = 0; moved && guard < plates.length; guard++) {
+      moved = false;
+      for (const q of placed) {
+        if (Math.abs(q.x - x) < (q.w + w) / 2 + 0.1 && Math.abs(q.y - y) < (q.h + h) / 2 + 0.05) {
+          y = q.y + (q.h + h) / 2 + 0.05;
+          moved = true;
+        }
+      }
+    }
+    placed.push({ x, y, w, h });
+    p.lift += (y - base - p.lift) * k;
+    p.sprite.position.copy(p.anchor).addScaledVector(up, p.lift);
+  }
 }
