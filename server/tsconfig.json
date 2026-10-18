@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "types": ["node"]
+  },
+  "include": ["src", "../app/src/sim", "../app/src/shared"],
+  "exclude": ["../app/src/**/*.test.ts"]
+}

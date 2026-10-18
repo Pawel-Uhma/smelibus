@@ -43,3 +43,5 @@ Z 4 propozycji (przegubowiec, ogórek, niskopodłogowiec, minibus) wybrany nisko
 
 ### 2026-10-18 — 8 kolorów graczy
 Party do 8 osób, więc 8 kolorów: niebieski, pomarańczowy, magenta, żółty, potem błękitny, różowy, grafitowy, biały. Nowe cztery to jasne lub skrajne warianty, żeby różnice były widoczne także w jasności (sprawdzone dla deuteranopii, protanopii i tritanopii). Zielenie zostają dla smrodu. Paleta w GAME_DESIGN, sekcja Grafika.
+### 2026-10-18 — Stan z serwera jako zwykły JSON, nie Colyseus Schema
+Pokój rozsyła co 50 ms snapshot (`Snapshot` z `shared/types.ts`), mapa idzie raz w `welcome`. Dzięki temu `sim/` operuje na zwykłych obiektach i te same typy są w kliencie, serwerze i testach. Przy 8 autobusach to kilka KB/s. Klient przewiduje własny autobus lokalnie (`sim/bus.ts`) i dociąga go do stanu z serwera, cudze interpoluje 100 ms wstecz. Serwer importuje `app/src/sim` i `app/src/shared` przez `tsx`, deploy na Railway z `server/Dockerfile` (kontekst = root repo).
