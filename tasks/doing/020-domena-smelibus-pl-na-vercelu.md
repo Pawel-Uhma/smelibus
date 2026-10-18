@@ -4,7 +4,7 @@ obszar: wspolne
 kto: Pawel
 zależy od: -
 ścieżki: - (tylko panel Vercela, bez zmian w kodzie)
-pytanie: @Pawel Antek kupił smelibus.pl (nazwa.pl). Tylko Ty masz dostęp do projektu `smelibus` na Vercelu — weź tę kartę albo dodaj Antka do teamu.
+pytanie: @Antek rekordy DNS są niżej, wpisz je w nazwa.pl. (było: @Pawel Antek kupił smelibus.pl (nazwa.pl). Tylko Ty masz dostęp do projektu `smelibus` na Vercelu — weź tę kartę albo dodaj Antka do teamu.)
 
 ## Cel
 
@@ -20,11 +20,21 @@ Kod nie wymaga zmian: nigdzie nie ma zaszytego `vercel.app`, a serwer Colyseus n
 
 ## Rekordy DNS
 
-(do uzupełnienia przez Pawła)
+Obie domeny są dodane do projektu `smelibus` na Vercelu (18.10.2026). @Antek, wpisz w nazwa.pl:
+
+| Typ | Host | Wartość |
+|---|---|---|
+| A | `@` (smelibus.pl) | `216.150.1.1` |
+| A | `@` (smelibus.pl) | `216.150.16.1` |
+| CNAME | `www` | `443a31c64ed8ec71.vercel-dns-016.com.` |
+
+Teraz `@` i `www` mają rekord A `85.128.236.16` (parking nazwa.pl). **Usuń go**, bo inaczej Vercel nie wystawi certyfikatu. Jeśli nazwa.pl nie przyjmie dwóch rekordów A, wpisz jeden: `76.76.21.21`.
+
+Do zrobienia przez Pawła: przekierowanie 301 `www.smelibus.pl` → `smelibus.pl` (Vercel → Settings → Domains → www → Edit → Redirect to smelibus.pl, 301). Na razie www pokazuje grę bez przekierowania.
 
 ## Gotowe, gdy
 
-- [ ] obie domeny dodane w Vercelu, rekordy wpisane w tę kartę
+- [x] obie domeny dodane w Vercelu, rekordy wpisane w tę kartę
 - [ ] Antek wpisał rekordy w nazwa.pl
 - [ ] https://smelibus.pl działa z ważnym certyfikatem, www przekierowuje na smelibus.pl
 - [ ] `smelibus.vercel.app` → `smelibus.pl` w CLAUDE.md i README.md
