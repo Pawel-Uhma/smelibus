@@ -1,7 +1,7 @@
 # Rewanż: nowa gra w tym samym party
 
 obszar: siec
-kto: -
+kto: Pawel
 zależy od: 016
 ścieżki: ../../server/, net/, ui/lobby/, ui/hud.ts
 
