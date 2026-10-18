@@ -1,7 +1,7 @@
 # Lobby: tworzenie party, link z kodem, publiczna lista, dołączanie w trakcie
 
 obszar: siec
-kto: -
+kto: Pawel
 zależy od: 018
 ścieżki: ui/lobby/, server/
 
