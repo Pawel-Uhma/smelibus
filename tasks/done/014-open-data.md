@@ -11,5 +11,7 @@ zależy od: 002
 
 ## Gotowe, gdy
 
-- [ ] wpis w DECISIONS.md
-- [ ] generator mapy umie wczytać dane z `data/`
+- [x] wpis w DECISIONS.md
+- [x] generator mapy umie wczytać dane z `data/` (za flagą `CITY_OSM_ENABLED`, domyślnie wyłączoną)
+- [x] podpis „© OpenStreetMap contributors” przy mapie z OSM
+- [x] test: mapa z wycinka jest spójna i przejezdna

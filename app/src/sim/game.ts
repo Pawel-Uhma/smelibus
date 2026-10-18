@@ -10,8 +10,8 @@ import { generateWorld, nearestDrivable } from './world';
 import { assignJoinZone, tileIndexAt, updateZones } from './zones';
 
 /** Sandbox party: the map is sized for a full party, players drop straight into a bus. */
-export function createGame(seed: number, city = CITY_ENABLED): GameState {
-  const world = generateWorld(seed, MAX_PLAYERS, city);
+export function createGame(seed: number, city = CITY_ENABLED, osm?: boolean): GameState {
+  const world = generateWorld(seed, MAX_PLAYERS, city, osm);
   const state: GameState = { tick: 0, time: 0, world, players: [], buses: [] };
   for (let i = 0; i < EXTRA_BUSES; i++) state.buses.push(spawnBus(state));
   spawnBonuses(state);

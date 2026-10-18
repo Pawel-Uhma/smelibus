@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Bus, Player, PlayerId, World } from '../shared/types';
+import { showAttribution } from '../ui/attribution';
 import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
 import { createPedestrianModel, type PedestrianModel } from './models/pedestrian';
@@ -35,6 +36,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   grid.position.set(s / 2, 0.01, s / 2);
   scene.add(grid);
   if (world.tiles.some((t) => t.kind)) createCityRender(scene, world);
+  if (world.attribution) showAttribution(world.attribution);
   createZabkaRender(scene, world);
   createPaczkomatRender(scene, world);
 

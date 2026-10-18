@@ -1,5 +1,5 @@
 // Standalone city viewer: `npm run dev`, then open /demo-city.html (?seed=N, ?at=x,z puts the bus
-// there). Drive with the arrows or WASD through a local sim, no server. `?shot` swaps the canvas for
+// there, ?osm = real Warsaw streets from OpenStreetMap, card 014). Drive with the arrows or WASD through a local sim, no server. `?shot` swaps the canvas for
 // a still image after a moment, for headless screenshots. Not part of the game.
 import '../style.css';
 import type { BusInput } from '../shared/types';
@@ -8,7 +8,7 @@ import { createScene } from './scene';
 
 const params = new URLSearchParams(location.search);
 const seed = Number(params.get('seed') ?? 1);
-const state = createGame(seed, true);
+const state = createGame(seed, true, params.has('osm') || undefined);
 const me = addPlayer(state, 'me', 'Ja');
 const at = params.get('at')?.split(',').map(Number);
 const mine = state.buses.find((b) => b.id === me.busId);
