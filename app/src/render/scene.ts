@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Bus, Player, PlayerId, World } from '../shared/types';
 import { createBusModel, type BusModel } from './models/bus';
+import { createStinkEffect } from './stink';
 
 /** Placeholder render: flat ground, buses as plain boxes. Cards 003/004 replace it with voxels. */
 export function createScene(canvas: HTMLCanvasElement, world: World) {
@@ -28,6 +29,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   scene.add(grid);
 
   const meshes = new Map<number, BusModel>();
+  const stink = createStinkEffect(scene);
 
   function syncBus(bus: Bus, color: number) {
     let m = meshes.get(bus.id);
@@ -59,6 +61,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       resize();
       const colorOf = new Map<PlayerId, number>(players.map((p) => [p.id, p.color]));
       for (const bus of buses) syncBus(bus, (bus.driverId && colorOf.get(bus.driverId)) || 0xbbbbbb);
+      stink.update(buses, dt);
       if (follow) {
         const k = 1 - Math.exp(-dt * 6);
         camTarget.lerp(new THREE.Vector3(follow.x, 0, follow.z), k);
