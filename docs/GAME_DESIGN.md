@@ -124,12 +124,13 @@ się z zielenią smrodu ani przy najczęstszych typach daltonizmu.
 | 2 | pomarańczowy | `#EE7F1E` |
 | 3 | magenta | `#C8357A` |
 | 4 | żółty | `#E5BC1F` |
-| 5 | błękitny | `#7FC4F0` |
-| 6 | różowy | `#F59AC0` |
-| 7 | grafitowy | `#3C3F4A` |
-| 8 | biały | `#F2F0EA` |
+| 5 | turkusowy | `#1FA9C9` |
+| 6 | karminowy | `#A3203A` |
+| 7 | granatowy | `#1E2F7A` |
+| 8 | grafitowy | `#3C3F4A` |
 
-Zarezerwowane, nie dla graczy: zieleń smrodu `#8CC846`, plamy `#6F7A2E`, wyświetlacz `#FFB000`.
+Zarezerwowane, nie dla graczy: zieleń smrodu `#8CC846`, plamy `#6F7A2E`, wyświetlacz `#FFB000`,
+szarości niczyich autobusów i kafelków (`#BBBBBB`, `#D9D4C7`). Wartości w `shared/config.ts` (`PLAYER_COLORS`).
 
 ### Smród na autobusie
 
