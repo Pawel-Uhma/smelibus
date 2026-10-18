@@ -1,5 +1,5 @@
 import {
-  BUS_ACCEL, BUS_BOUNCE, BUS_BRAKE, BUS_CAPSULE_RADIUS, BUS_DRAG, BUS_LENGTH, BUS_MAX_REVERSE,
+  BUS_ACCEL, BUS_BOUNCE, BUS_BRAKE, BUS_DRAG, BUS_HIT_WIDTH, BUS_LENGTH, BUS_MAX_REVERSE,
   BUS_MAX_SPEED, BUS_TURN_FULL_SPEED, BUS_TURN_RATE, RAM_MIN_SPEED, RAM_STINK_LOSS,
 } from '../shared/config';
 import type { Bus, BusInput } from '../shared/types';
@@ -8,14 +8,17 @@ export const NO_INPUT: BusInput = { throttle: 0, steer: 0 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-/** Half length of the capsule's inner segment, so the rounded ends reach the bumpers. */
-const CAPSULE_HALF = BUS_LENGTH / 2 - BUS_CAPSULE_RADIUS;
+const HALF_L = BUS_LENGTH / 2;
+const HALF_W = BUS_HIT_WIDTH / 2;
 
-/** Rear and front centres of the bus capsule: [rx, rz, fx, fz]. */
-function capsule(bus: Bus): [number, number, number, number] {
-  const hx = Math.sin(bus.angle) * CAPSULE_HALF;
-  const hz = Math.cos(bus.angle) * CAPSULE_HALF;
-  return [bus.x - hx, bus.z - hz, bus.x + hx, bus.z + hz];
+/** The four corners of the bus rectangle, as [x, z] pairs. */
+function corners(bus: Bus): [number, number][] {
+  const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
+  const out: [number, number][] = [];
+  for (const l of [-HALF_L, HALF_L]) {
+    for (const w of [-HALF_W, HALF_W]) out.push([bus.x + fx * l + fz * w, bus.z + fz * l - fx * w]);
+  }
+  return out;
 }
 
 /** How much the bus heading points along the unit direction (nx, nz), -1..1. */
@@ -55,12 +58,12 @@ export function updateBus(bus: Bus, input: BusInput, dt: number, mapSize: number
   bus.x += Math.sin(bus.angle) * bus.speed * dt;
   bus.z += Math.cos(bus.angle) * bus.speed * dt;
 
-  // Keep both capsule ends inside the map.
-  const [rx, rz, fx, fz] = capsule(bus);
-  const lo = BUS_CAPSULE_RADIUS;
-  const hi = mapSize - BUS_CAPSULE_RADIUS;
-  const dx = Math.max(0, lo - Math.min(rx, fx)) - Math.max(0, Math.max(rx, fx) - hi);
-  const dz = Math.max(0, lo - Math.min(rz, fz)) - Math.max(0, Math.max(rz, fz) - hi);
+  // Keep all four corners inside the map.
+  const cs = corners(bus);
+  const xs = cs.map((c) => c[0]);
+  const zs = cs.map((c) => c[1]);
+  const dx = Math.max(0, -Math.min(...xs)) - Math.max(0, Math.max(...xs) - mapSize);
+  const dz = Math.max(0, -Math.min(...zs)) - Math.max(0, Math.max(...zs) - mapSize);
   if (dx) {
     bus.x += dx;
     bounceOff(bus, -Math.sign(dx), 0);
@@ -85,78 +88,114 @@ function ram(victim: Bus, x: number, z: number, drops: StinkDrop[]): void {
   drops.push({ x, z, amount });
 }
 
-/** Closest points between segments p1–q1 and p2–q2 (Ericson, Real-Time Collision Detection 5.1.9). */
-function closestPoints(
-  p1x: number, p1z: number, q1x: number, q1z: number,
-  p2x: number, p2z: number, q2x: number, q2z: number,
-): [number, number, number, number] {
-  const d1x = q1x - p1x, d1z = q1z - p1z;
-  const d2x = q2x - p2x, d2z = q2z - p2z;
-  const rx = p1x - p2x, rz = p1z - p2z;
-  const a = d1x * d1x + d1z * d1z;
-  const e = d2x * d2x + d2z * d2z;
-  const f = d2x * rx + d2z * rz;
-  const c = d1x * rx + d1z * rz;
-  const b = d1x * d2x + d1z * d2z;
-  const denom = a * e - b * b;
-  let s = denom > 1e-9 ? clamp((b * f - c * e) / denom, 0, 1) : 0;
-  let t = (b * s + f) / e;
-  if (t < 0) {
-    t = 0;
-    s = clamp(-c / a, 0, 1);
-  } else if (t > 1) {
-    t = 1;
-    s = clamp((b - c) / a, 0, 1);
+interface Contact {
+  /** Unit normal from a to b. */
+  nx: number;
+  nz: number;
+  depth: number;
+  /** Contact point. */
+  x: number;
+  z: number;
+}
+
+/** Overlap of two bus rectangles by separating axes, or null when they don't touch. */
+function contact(a: Bus, b: Bus): Contact | null {
+  const axes: [number, number, Bus][] = [];
+  for (const bus of [a, b]) {
+    const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
+    axes.push([fx, fz, bus], [fz, -fx, bus]);
   }
-  return [p1x + d1x * s, p1z + d1z * s, p2x + d2x * t, p2z + d2z * t];
+  const reach = (bus: Bus, nx: number, nz: number) => {
+    const f = Math.abs(Math.sin(bus.angle) * nx + Math.cos(bus.angle) * nz);
+    const r = Math.abs(Math.cos(bus.angle) * nx - Math.sin(bus.angle) * nz);
+    return HALF_L * f + HALF_W * r;
+  };
+  let best: Contact | null = null;
+  let owner: Bus = a;
+  for (const [ax, az, bus] of axes) {
+    const d = (b.x - a.x) * ax + (b.z - a.z) * az;
+    const depth = reach(a, ax, az) + reach(b, ax, az) - Math.abs(d);
+    if (depth <= 0) return null;
+    if (!best || depth < best.depth - 1e-9) {
+      const s = d < 0 ? -1 : 1;
+      best = { nx: ax * s, nz: az * s, depth, x: 0, z: 0 };
+      owner = bus;
+    }
+  }
+  const c = best!;
+  // Contact point: the corners of the other bus that dig deepest into the face, averaged
+  // (a whole edge when the buses touch flat, e.g. nose to tail).
+  const other = owner === a ? b : a;
+  const sign = owner === a ? 1 : -1;
+  const dots = corners(other).map(([x, z]) => ({ x, z, d: sign * (x * c.nx + z * c.nz) }));
+  const min = Math.min(...dots.map((p) => p.d));
+  const deep = dots.filter((p) => p.d < min + 1e-3);
+  c.x = deep.reduce((s, p) => s + p.x, 0) / deep.length;
+  c.z = deep.reduce((s, p) => s + p.z, 0) / deep.length;
+  return c;
 }
 
 /**
- * Pushes overlapping buses apart (capsule shapes). The hit trades speed like two equal masses
- * with restitution BUS_BOUNCE, along each bus's own heading: a rear-end hit shoves the bus in
- * front, a head-on hit bounces both back, a scrape barely slows anyone down. A bus that drove
- * into the other at RAM_MIN_SPEED or more knocks RAM_STINK_LOSS of its stink out (returned as drops).
+ * Resolves one bus–bus overlap. Positions are pushed apart until the rectangles just touch, the
+ * bus that can't roll along the normal (hit side-on) moving less. Speed is traded like two equal
+ * masses with restitution BUS_BOUNCE, along each bus's own heading (buses don't slide sideways):
+ * a rear-end hit shoves the bus in front, a head-on or side-on hit bounces the rammer back, a
+ * scrape barely slows anyone down. With `bFixed` only `a` moves (client prediction, where `b` is
+ * someone else's bus). Returns the contact point and how fast each bus drove into the other.
+ */
+function collidePair(a: Bus, b: Bus, bFixed: boolean): { x: number; z: number; hitA: number; hitB: number } | null {
+  const c = contact(a, b);
+  if (!c) return null;
+  const { nx, nz } = c;
+  const fa = facing(a, nx, nz);
+  const fb = facing(b, nx, nz);
+  const wa = fa * fa + 0.1;
+  const wb = bFixed ? 0 : fb * fb + 0.1;
+  const pa = (c.depth * wa) / (wa + wb);
+  const pb = c.depth - pa;
+  a.x -= nx * pa;
+  a.z -= nz * pa;
+  if (!bFixed) {
+    b.x += nx * pb;
+    b.z += nz * pb;
+  }
+
+  const hitA = speedAlong(a, nx, nz);
+  const hitB = speedAlong(b, -nx, -nz);
+  const closing = hitA + hitB;
+  if (closing > 0) {
+    const impulse = ((1 + BUS_BOUNCE) * closing) / Math.max(fa * fa + fb * fb, 1e-3);
+    a.speed -= impulse * fa;
+    if (!bFixed) b.speed += impulse * fb;
+  }
+  return { x: c.x, z: c.z, hitA, hitB };
+}
+
+/** Separation passes per step, so a bus wedged between two others ends up clear of both. */
+const COLLISION_PASSES = 4;
+
+/**
+ * Keeps buses from overlapping (see collidePair). A bus that drove into the other at
+ * RAM_MIN_SPEED or more knocks RAM_STINK_LOSS of its stink out (returned as drops).
  */
 export function collideBuses(buses: Bus[]): StinkDrop[] {
   const drops: StinkDrop[] = [];
-  const minDist = BUS_CAPSULE_RADIUS * 2;
-  for (let i = 0; i < buses.length; i++) {
-    for (let j = i + 1; j < buses.length; j++) {
-      const a = buses[i];
-      const b = buses[j];
-      const [cax, caz, cbx, cbz] = closestPoints(...capsule(a), ...capsule(b));
-      let dx = cbx - cax;
-      let dz = cbz - caz;
-      let dist = Math.hypot(dx, dz);
-      if (dist >= minDist) continue;
-      if (dist < 1e-6) {
-        // Segments cross: fall back to the centre-to-centre direction.
-        dx = b.x - a.x;
-        dz = b.z - a.z;
-        dist = 0;
+  for (let pass = 0; pass < COLLISION_PASSES; pass++) {
+    for (let i = 0; i < buses.length; i++) {
+      for (let j = i + 1; j < buses.length; j++) {
+        const hit = collidePair(buses[i], buses[j], false);
+        if (!hit || hit.hitA + hit.hitB <= 0) continue;
+        if (hit.hitA >= RAM_MIN_SPEED) ram(buses[j], hit.x, hit.z, drops);
+        if (hit.hitB >= RAM_MIN_SPEED) ram(buses[i], hit.x, hit.z, drops);
       }
-      const len = Math.hypot(dx, dz);
-      const nx = len > 1e-6 ? dx / len : 1;
-      const nz = len > 1e-6 ? dz / len : 0;
-      const push = (minDist - dist) / 2;
-      a.x -= nx * push;
-      a.z -= nz * push;
-      b.x += nx * push;
-      b.z += nz * push;
-
-      const hitA = speedAlong(a, nx, nz);
-      const hitB = speedAlong(b, -nx, -nz);
-      const closing = hitA + hitB;
-      if (closing <= 0) continue;
-      const impulse = ((1 + BUS_BOUNCE) / 2) * closing;
-      a.speed -= impulse * facing(a, nx, nz);
-      b.speed += impulse * facing(b, nx, nz);
-
-      const cx = (cax + cbx) / 2;
-      const cz = (caz + cbz) / 2;
-      if (hitA >= RAM_MIN_SPEED) ram(b, cx, cz, drops);
-      if (hitB >= RAM_MIN_SPEED) ram(a, cx, cz, drops);
     }
   }
   return drops;
+}
+
+/** Client prediction: pushes `bus` out of buses it doesn't control, which stay where they are. */
+export function collideWithOthers(bus: Bus, others: readonly Bus[]): void {
+  for (let pass = 0; pass < COLLISION_PASSES; pass++) {
+    for (const other of others) if (other.id !== bus.id) collidePair(bus, { ...other }, true);
+  }
 }

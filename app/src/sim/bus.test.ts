@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BUS_BOUNCE, BUS_CAPSULE_RADIUS, BUS_LENGTH, BUS_MAX_SPEED, RAM_MIN_SPEED, RAM_STINK_LOSS,
+  BUS_BOUNCE, BUS_HIT_WIDTH, BUS_LENGTH, BUS_MAX_SPEED, RAM_MIN_SPEED, RAM_STINK_LOSS,
 } from '../shared/config';
 import type { Bus } from '../shared/types';
-import { collideBuses, NO_INPUT, updateBus } from './bus';
+import { collideBuses, collideWithOthers, NO_INPUT, updateBus } from './bus';
 
 const bus = (over: Partial<Bus> = {}): Bus => ({
   id: 0, x: 20, z: 20, angle: 0, speed: 0, driverId: null, stink: 0, ...over,
@@ -71,15 +71,15 @@ describe('collideBuses', () => {
     const a = bus({ x: 10, speed: 8 });
     const b = bus({ x: 10.5 });
     collideBuses([a, b]);
-    expect(Math.hypot(b.x - a.x, b.z - a.z)).toBeCloseTo(BUS_CAPSULE_RADIUS * 2);
+    expect(Math.hypot(b.x - a.x, b.z - a.z)).toBeCloseTo(BUS_HIT_WIDTH);
     expect(a.speed).toBe(8);
   });
 
   it('lets buses park side by side closer than their length', () => {
     const a = bus({ x: 10 });
-    const b = bus({ x: 10 + BUS_CAPSULE_RADIUS * 2 + 0.05 });
+    const b = bus({ x: 10 + BUS_HIT_WIDTH + 0.05 });
     collideBuses([a, b]);
-    expect(b.x - a.x).toBeCloseTo(BUS_CAPSULE_RADIUS * 2 + 0.05);
+    expect(b.x - a.x).toBeCloseTo(BUS_HIT_WIDTH + 0.05);
   });
 
   it('keeps buses from overlapping nose to tail', () => {
@@ -103,12 +103,38 @@ describe('collideBuses', () => {
     expect(b.speed).toBeCloseTo(impulse);
   });
 
-  it('only slows down a bus hitting another one side-on', () => {
+  it('bounces a bus hitting another one side-on, the hit one stays put', () => {
     const a = bus({ id: 0, x: 10, z: 10, speed: 10 });
-    const b = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH / 2 + BUS_CAPSULE_RADIUS - 0.1, angle: Math.PI / 2 });
+    const b = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH / 2 + BUS_HIT_WIDTH / 2 - 0.1, angle: Math.PI / 2 });
+    const bz = b.z;
     collideBuses([a, b]);
-    expect(a.speed).toBeLessThan(10);
+    expect(a.speed).toBeCloseTo(-10 * BUS_BOUNCE);
     expect(b.speed).toBeCloseTo(0);
+    expect(bz - b.z).toBeLessThan(0.01);
+    expect(b.z - a.z).toBeCloseTo(BUS_LENGTH / 2 + BUS_HIT_WIDTH / 2);
+  });
+
+  it('stops corners from cutting into another bus', () => {
+    // a's front-right corner pokes into b's rear-left corner; a capsule would let them pass.
+    const a = bus({ id: 0, x: 10, z: 10 });
+    const b = bus({ id: 1, x: 10 + BUS_HIT_WIDTH - 0.1, z: 10 + BUS_LENGTH - 0.1 });
+    collideBuses([a, b]);
+    const gapX = Math.abs(b.x - a.x) - BUS_HIT_WIDTH;
+    const gapZ = Math.abs(b.z - a.z) - BUS_LENGTH;
+    expect(Math.max(gapX, gapZ)).toBeGreaterThan(-1e-6);
+  });
+
+  it('never lets a bus drive through another one', () => {
+    for (const angle of [Math.PI / 2, Math.PI / 4, Math.PI, 0]) {
+      const a = bus({ id: 0, x: 10, z: 5 });
+      const b = bus({ id: 1, x: 10, z: 12, angle });
+      for (let f = 0; f < 300; f++) {
+        updateBus(a, { throttle: 1, steer: 0 }, 1 / 60, 1000);
+        updateBus(b, NO_INPUT, 1 / 60, 1000);
+        collideBuses([a, b]);
+      }
+      expect(a.z).toBeLessThan(b.z);
+    }
   });
 
   it('knocks stink out of the rammed bus onto the ground', () => {
@@ -156,5 +182,22 @@ describe('collideBuses', () => {
     expect(frames.length).toBeGreaterThan(0);
     // The rammer bounces back, so the next hit (if any) needs a fresh run-up.
     for (let i = 1; i < frames.length; i++) expect(frames[i] - frames[i - 1]).toBeGreaterThan(10);
+  });
+});
+
+describe('collideWithOthers', () => {
+  it('pushes only the own bus out and bounces it', () => {
+    const own = bus({ id: 0, x: 10, z: 10, speed: 10 });
+    const other = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH - 0.2 });
+    collideWithOthers(own, [other]);
+    expect(other).toMatchObject({ z: 10 + BUS_LENGTH - 0.2, speed: 0 });
+    expect(other.z - own.z).toBeCloseTo(BUS_LENGTH);
+    expect(own.speed).toBeLessThan(10);
+  });
+
+  it('ignores the own bus in the list', () => {
+    const own = bus({ id: 0, speed: 5 });
+    collideWithOthers(own, [{ ...own }]);
+    expect(own).toMatchObject({ x: 20, z: 20, speed: 5 });
   });
 });

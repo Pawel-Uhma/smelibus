@@ -1,6 +1,6 @@
 import { PREDICTION_CORRECT_RATE, PREDICTION_SNAP_DIST, SIM_DT } from '../shared/config';
 import type { Bus, BusInput } from '../shared/types';
-import { updateBus } from './bus';
+import { collideWithOthers, updateBus } from './bus';
 
 /** Local ticks kept for matching against the server (covers pings up to ~1.5 s). */
 const HISTORY_TICKS = 90;
@@ -17,8 +17,8 @@ const angleDiff = (from: number, to: number) => Math.atan2(Math.sin(to - from), 
 export interface BusPredictor {
   /** The locally predicted bus to draw. */
   readonly bus: Bus;
-  /** Runs the sim for `dt` seconds of local input (fixed SIM_DT steps). */
-  step(input: BusInput, dt: number): void;
+  /** Runs the sim for `dt` seconds of local input (fixed SIM_DT steps), blocked by `others` as drawn. */
+  step(input: BusInput, dt: number, others?: readonly Bus[]): void;
   /** Eases toward the server's version of the bus. */
   reconcile(server: Bus, dt: number): void;
 }
@@ -32,6 +32,7 @@ export function createBusPredictor(start: Bus, mapSize: number): BusPredictor {
   const bus: Bus = { ...start };
   let history: Sample[] = [];
   let acc = 0;
+  let lastOthers: readonly Bus[] = [];
 
   function record() {
     history.push({ x: bus.x, z: bus.z, angle: bus.angle, speed: bus.speed });
@@ -41,10 +42,12 @@ export function createBusPredictor(start: Bus, mapSize: number): BusPredictor {
 
   return {
     bus,
-    step(input, dt) {
+    step(input, dt, others = []) {
       acc += dt;
       while (acc >= SIM_DT) {
         updateBus(bus, input, SIM_DT, mapSize);
+        collideWithOthers(bus, others);
+        lastOthers = others;
         record();
         acc -= SIM_DT;
       }
@@ -81,6 +84,8 @@ export function createBusPredictor(start: Bus, mapSize: number): BusPredictor {
         s.angle += ea * k;
         s.speed += es * k;
       }
+      // Easing must not pull the bus into one it was blocked by.
+      collideWithOthers(bus, lastOthers);
     },
   };
 }

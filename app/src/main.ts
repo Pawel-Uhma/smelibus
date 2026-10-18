@@ -33,8 +33,10 @@ function frame(now: number) {
   const serverBus = snap.buses.find((b) => b.id === me?.busId);
   if (!serverBus) predictor = null;
   else if (!predictor || predictor.bus.id !== serverBus.id) predictor = createBusPredictor(serverBus, party.world.size);
+  const shown = party.interpolatedBuses(now);
   if (predictor && serverBus) {
-    predictor.step(input, dt);
+    // Collide with the other buses where they are drawn, so ours never visibly drives into them.
+    predictor.step(input, dt, shown);
     predictor.reconcile(serverBus, dt);
     // Only movement is predicted; stink and the rest come straight from the server.
     predictor.bus.stink = serverBus.stink;
@@ -43,7 +45,7 @@ function frame(now: number) {
   }
   const ownBus = predictor?.bus ?? null;
 
-  const buses = party.interpolatedBuses(now).map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));
+  const buses = shown.map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));
   zones.update(party.world, snap.players, dt);
   bonuses.update(snap.bonuses ?? [], dt);
   scene.render(buses, snap.players, ownBus ?? undefined, dt);

@@ -28,8 +28,8 @@ export const BUS_TURN_RATE = 2.4;
 export const BUS_TURN_FULL_SPEED = 4;
 /** Reach of a bus around its centre, used for picking up bonuses. */
 export const BUS_RADIUS = 1.1;
-/** Bus–bus and bus–edge collisions use a capsule: a segment along the bus, this radius around it. */
-export const BUS_CAPSULE_RADIUS = 0.45;
+/** Bus–bus and bus–edge collisions use the bus rectangle: BUS_LENGTH by this, the voxel model's width (5 of 18 voxels). */
+export const BUS_HIT_WIDTH = (BUS_LENGTH * 5) / 18;
 /** Fraction of speed kept after hitting another bus or the map edge. */
 export const BUS_BOUNCE = 0.4;
 /** Fraction of a rammed bus's stink knocked onto the ground. */

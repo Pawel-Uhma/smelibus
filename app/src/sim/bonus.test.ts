@@ -134,7 +134,7 @@ describe('stink bonuses', () => {
     const victim = s.buses.find((b) => b.id === pb.busId)!;
     // Rammer drives along +z straight into a parked victim full of stink.
     Object.assign(rammer, { x: 20, z: 20, angle: 0, speed: 12, stink: 0 });
-    Object.assign(victim, { x: 20, z: 22, angle: 0, speed: 0, stink: 50 });
+    Object.assign(victim, { x: 20, z: 22.8, angle: 0, speed: 0, stink: 50 });
     stepGame(s, new Map(), 1 / 60);
     const drop = s.bonuses!.find((b) => b.kind === 'dropped')!;
     expect(drop).toBeDefined();
