@@ -53,7 +53,7 @@ function frame(now: number) {
   const buses = party.interpolatedBuses(now).map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));
   zones.update(party.world, snap.players, dt);
   scene.render(buses, snap.players, ownBus ?? undefined, dt);
-  hud.update(snap.players);
+  hud.update({ time: snap.time, players: snap.players, buses, tiles: party.world.tiles, winnerId: snap.winnerId });
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
