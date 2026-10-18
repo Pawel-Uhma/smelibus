@@ -1,0 +1,25 @@
+{
+  "name": "smelibus",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "workspaceFolder": "/workspaces/smelibus",
+  // node_modules in a named volume: bind-mounted node_modules on macOS is slow
+  // and native binaries (esbuild, rollup) built for Linux must not leak to the host.
+  "mounts": [
+    "source=smelibus-node_modules,target=/workspaces/smelibus/app/node_modules,type=volume"
+  ],
+  // appPort publishes the port at container creation (works with the plain CLI);
+  // forwardPorts is what VS Code uses.
+  "appPort": ["5173:5173"],
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": { "label": "vite dev", "onAutoForward": "notify" }
+  },
+  // Volume is created as root; give it to the node user, then install deps once the scaffold exists.
+  "postCreateCommand": "sudo chown node:node app/node_modules && if [ -f app/package.json ]; then cd app && npm install; fi",
+  "remoteUser": "node",
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "vitest.explorer"]
+    }
+  }
+}

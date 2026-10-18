@@ -26,6 +26,17 @@ npm run check    # typecheck + testy — musi przechodzić przed każdym pushem
 npm run build    # build produkcyjny
 ```
 
+**Bez Node na hoście (devcontainer, wystarczy Docker):** VS Code „Reopen in Container” albo z terminala:
+
+```bash
+./scripts/devc.sh up                 # buduje i startuje kontener (.devcontainer/)
+./scripts/devc.sh exec npm run check # dowolna komenda w app/ w kontenerze
+./scripts/devc.sh dev                # vite na http://localhost:5173
+./scripts/devc.sh down
+```
+
+`node_modules` siedzi w wolumenie Dockera (Linuksowe binarki nie mieszają się z hostem). Po pierwszym `package.json` zrób `down` + `up` albo `exec npm install`.
+
 > Skrypty powstaną w karcie 001 (scaffold): `./scripts/kanban.sh tablica`.
 
 ## Struktura
