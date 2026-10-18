@@ -2,7 +2,7 @@
 
 obszar: siec
 kto: -
-zależy od: 015
+zależy od: 018
 ścieżki: net/, server/
 
 ## Cel
