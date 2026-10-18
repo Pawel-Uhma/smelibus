@@ -41,4 +41,13 @@ describe('createBusPredictor', () => {
     predictor.reconcile(bus({ x: 80, stink: 40 }), SIM_DT);
     expect(predictor.bus).toMatchObject({ x: 80, stink: 40 });
   });
+
+  it('takes stink from the server right away while easing', () => {
+    // Otherwise the driver sees a clean bus while everyone else sees it stinking.
+    const predictor = createBusPredictor(bus(), 1000);
+    predictor.step({ throttle: 0, steer: 0 }, SIM_DT);
+    predictor.reconcile(bus({ x: 50.5, stink: 85 }), SIM_DT);
+    expect(predictor.bus.stink).toBe(85);
+    expect(predictor.bus.x).toBeLessThan(50.5);
+  });
 });
