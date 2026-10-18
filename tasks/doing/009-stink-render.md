@@ -1,7 +1,7 @@
 # Efekt smrodu: zielona chmura skalowana stink
 
 obszar: smrod
-kto: -
+kto: Jasiek
 zależy od: 001
 ścieżki: render/stink.ts
 
