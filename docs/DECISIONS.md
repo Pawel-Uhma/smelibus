@@ -40,3 +40,6 @@ Prostopadłościany w Three.js z jednej palety: grywalne od pierwszego dnia, bez
 
 ### 2026-10-18 — Autobus: niskopodłogowiec, smród jako voxele
 Z 4 propozycji (przegubowiec, ogórek, niskopodłogowiec, minibus) wybrany niskopodłogowiec: najprostsza bryła do złożenia w kodzie, a dach w kolorze gracza czytelny z kamery od góry. Smród pokazujemy w 3 stopniach tymi samymi voxelami (plamy na karoserii, pęknięte szyby, półprzezroczysta chmura), bez systemu cząsteczek. Specyfikacja w GAME_DESIGN, sekcja Grafika.
+
+### 2026-10-18 — 8 kolorów graczy
+Party do 8 osób, więc 8 kolorów: niebieski, pomarańczowy, magenta, żółty, potem błękitny, różowy, grafitowy, biały. Nowe cztery to jasne lub skrajne warianty, żeby różnice były widoczne także w jasności (sprawdzone dla deuteranopii, protanopii i tritanopii). Zielenie zostają dla smrodu. Paleta w GAME_DESIGN, sekcja Grafika.

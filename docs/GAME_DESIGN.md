@@ -112,6 +112,25 @@ daje się złożyć z kilku prostopadłościanów, a dach w kolorze gracza wida�
   `#628598`, drzwi `#22303A`, opony `#202024`, piasty `#B8BEC4`, wyświetlacz `#FFB000`,
   reflektory `#FFE7A0`, stop `#D8432F`, klimatyzator `#C3C7CB`.
 
+### Kolory graczy
+
+8 kolorów, przydzielanych w tej kolejności (w grze na 4 osoby są tylko pierwsze cztery, najbardziej
+od siebie różne). Dobrane tak, żeby różniły się też jasnością, a nie tylko odcieniem, i nie myliły
+się z zielenią smrodu ani przy najczęstszych typach daltonizmu.
+
+| # | Kolor | Hex |
+|---|---|---|
+| 1 | niebieski | `#2F6BD6` |
+| 2 | pomarańczowy | `#EE7F1E` |
+| 3 | magenta | `#C8357A` |
+| 4 | żółty | `#E5BC1F` |
+| 5 | błękitny | `#7FC4F0` |
+| 6 | różowy | `#F59AC0` |
+| 7 | grafitowy | `#3C3F4A` |
+| 8 | biały | `#F2F0EA` |
+
+Zarezerwowane, nie dla graczy: zieleń smrodu `#8CC846`, plamy `#6F7A2E`, wyświetlacz `#FFB000`.
+
 ### Smród na autobusie
 
 Smród rysujemy tymi samymi voxelami co autobus, bez systemu cząsteczek. Trzy stopnie wg `stink`
