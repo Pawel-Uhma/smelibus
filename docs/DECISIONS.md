@@ -76,3 +76,6 @@ Klient numeruje każdą zmianę sterowania (`BusInput.seq`). Serwer zapamiętuje
 
 ### 2026-10-18 — Pieszy: Służbista [004]
 Z 4 ludzików i 4 wariantów kierowcy wybrany Służbista: mundur, złote guziki, wysoka czapka z denkiem w kolorze gracza (jedyna część w kolorze, bo tylko ją widać z kamery z góry). 8 voxeli wysokości przy voxelu autobusu (1/6 kafelka). Model w `render/models/pedestrian.ts`, w grze pojawi się z kartą 006 (pieszy w symulacji).
+
+### 2026-10-18 — Pieszy: E przez licznik, chodzenie względem ekranu [006]
+Klawisz E wysyłamy jako licznik naciśnięć (`BusInput.use`), a nie flagę, więc szybkie naciśnięcie nie zginie między dwiema wiadomościami. WASD pieszego działa względem ekranu (kamera nie obraca się), nie jak skręt autobusu. Wysiadanie przednimi drzwiami po prawej stronie; wysiadający zwalnia autobus (`driverId = null`, rysuje się na szaro), a wsiąść do pustego może każdy, także do cudzego, razem z jego smrodem. Pieszy jest kołem `PEDESTRIAN_RADIUS`, autobus prostokątem jak w zderzeniach; autobus jadący co najmniej `PEDESTRIAN_HIT_SPEED` ogłusza na `STUN_SECONDS`. Gracz nadal zaczyna w autobusie (start w zajezdni jako pieszy — osobno).

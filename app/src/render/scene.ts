@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { Bus, Player, PlayerId, World } from '../shared/types';
 import { createCityRender } from './city';
 import { createBusModel, type BusModel } from './models/bus';
+import { createPedestrianModel, type PedestrianModel } from './models/pedestrian';
 import { createStinkEffect } from './stink';
 import { createZabkaRender } from './zabka';
 
@@ -35,6 +36,41 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   const meshes = new Map<number, BusModel>();
   const stink = createStinkEffect(scene);
 
+  // Pedestrians: snapshots come 20×/s, so the drawn position eases toward the latest one.
+  const walkers = new Map<PlayerId, { model: PedestrianModel; pivot: THREE.Group }>();
+  function syncPedestrians(players: Player[], time: number, dt: number) {
+    const k = 1 - Math.exp(-dt * 15);
+    const onFoot = new Set<PlayerId>();
+    for (const p of players) {
+      if (p.busId !== null || p.x === undefined || p.z === undefined) continue;
+      onFoot.add(p.id);
+      let w = walkers.get(p.id);
+      if (!w) {
+        const model = createPedestrianModel(p.color);
+        const pivot = new THREE.Group();
+        pivot.add(model.group);
+        pivot.position.set(p.x, 0, p.z);
+        scene.add(pivot);
+        w = { model, pivot };
+        walkers.set(p.id, w);
+      }
+      w.model.setColor(p.color);
+      w.pivot.position.x += (p.x - w.pivot.position.x) * k;
+      w.pivot.position.z += (p.z - w.pivot.position.z) * k;
+      w.pivot.rotation.y = p.angle ?? 0;
+      // Knocked down: lying on the back, face up.
+      const stunned = (p.stunnedUntil ?? 0) > time;
+      w.model.group.rotation.x = stunned ? -Math.PI / 2 : 0;
+      w.model.group.position.y = stunned ? 0.2 : 0;
+    }
+    for (const [id, w] of walkers) {
+      if (onFoot.has(id)) continue;
+      scene.remove(w.pivot);
+      w.model.dispose();
+      walkers.delete(id);
+    }
+  }
+
   function syncBus(bus: Bus, color: number) {
     let m = meshes.get(bus.id);
     if (!m) {
@@ -63,10 +99,11 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   return {
     /** Lets other render modules (render/zones.ts) add their own meshes. */
     scene,
-    render(buses: Bus[], players: Player[], follow: Bus | undefined, dt: number) {
+    render(buses: Bus[], players: Player[], follow: { x: number; z: number } | undefined, dt: number, time = 0) {
       resize();
       const colorOf = new Map<PlayerId, number>(players.map((p) => [p.id, p.color]));
       for (const bus of buses) syncBus(bus, (bus.driverId && colorOf.get(bus.driverId)) || 0xbbbbbb);
+      syncPedestrians(players, time, dt);
       stink.update(buses, dt);
       if (follow) {
         const k = 1 - Math.exp(-dt * 6);

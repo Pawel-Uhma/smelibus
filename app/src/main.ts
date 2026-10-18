@@ -58,7 +58,9 @@ function frame(now: number) {
   bonuses.update(snap.bonuses ?? [], dt);
   zuls.update(snap.bonuses ?? [], snap.time, dt);
   weather.update(snap.weather ?? [], snap.time, dt);
-  scene.render(buses, snap.players, ownBus ?? undefined, dt);
+  // On foot the camera follows the pedestrian (card 006).
+  const onFoot = me && me.busId === null && me.x !== undefined && me.z !== undefined ? { x: me.x, z: me.z } : undefined;
+  scene.render(buses, snap.players, ownBus ?? onFoot, dt, snap.time);
   hud.update({ time: snap.time, players: snap.players, buses, tiles: party.world.tiles, winnerId: snap.winnerId });
   requestAnimationFrame(frame);
 }

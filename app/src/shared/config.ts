@@ -65,6 +65,15 @@ export const PREDICTION_SNAP_DIST = 4;
 /** How fast the remaining error to the server is eased away, 1/s. */
 export const PREDICTION_CORRECT_RATE = 3;
 
+// Pedestrians (card 006).
+export const PEDESTRIAN_SPEED = 4;
+export const PEDESTRIAN_RADIUS = 0.25;
+/** How far from the bus's side a pedestrian can get in (tiles). */
+export const PEDESTRIAN_ENTER_RANGE = 1;
+/** A bus moving at least this fast (tiles/s) knocks a pedestrian down. */
+export const PEDESTRIAN_HIT_SPEED = 2;
+export const STUN_SECONDS = 3;
+
 export const STINK_MAX = 100;
 /** Upper bounds of the clean and smelly look stages; above the last one the bus is filthy. */
 export const STINK_STAGE_LIMITS = [30, 70] as const;

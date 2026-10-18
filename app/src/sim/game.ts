@@ -2,6 +2,7 @@ import { EXTRA_BUSES, MAX_PLAYERS, PLAYER_COLORS } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types';
 import { dropStink, spawnBonuses, updateBonuses } from './bonus';
 import { collideBuses, NO_INPUT, updateBus } from './bus';
+import { hitPedestrians, updatePlayers } from './player';
 import { updateWeather } from './weather';
 import { collideZabkas, spawnZabkas, updateZabkas } from './zabka';
 import { generateWorld, nearestDrivable } from './world';
@@ -52,12 +53,14 @@ export function removePlayer(state: GameState, id: PlayerId): void {
 
 export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInput>, dt: number): void {
   const prevTiles = new Map(state.buses.map((b) => [b.id, tileIndexAt(state.world, b.x, b.z)]));
+  updatePlayers(state, inputs, dt);
   for (const bus of state.buses) {
     const input = (bus.driverId && inputs.get(bus.driverId)) || NO_INPUT;
     updateBus(bus, input, dt, state.world.size);
     collideZabkas(bus, state.world.zabkas);
   }
   for (const d of collideBuses(state.buses, state.world.size)) dropStink(state, d.x, d.z, d.amount);
+  hitPedestrians(state);
   updateZabkas(state);
   updateBonuses(state, dt);
   updateWeather(state, dt);

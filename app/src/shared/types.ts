@@ -9,6 +9,8 @@ export interface BusInput {
   steer: number;
   /** Client prediction: grows by one on every input change, the server acks it (InputAck). */
   seq?: number;
+  /** Use key (E) press counter: a change means one press (enter or leave a bus). */
+  use?: number;
 }
 
 /** Last input seq the server got from a player and for how many sim ticks it has run it. */
@@ -39,6 +41,14 @@ export interface Player {
   name: string;
   color: number;
   busId: number | null;
+  /** On foot (busId null): position and facing, like a bus. */
+  x?: number;
+  z?: number;
+  angle?: number;
+  /** Game time until which the pedestrian is knocked down (hit by a bus). */
+  stunnedUntil?: number;
+  /** Last `BusInput.use` counter the sim has acted on. */
+  useSeen?: number;
   connected: boolean;
 }
 
