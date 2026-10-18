@@ -1,7 +1,7 @@
 # Boty: gra z komputerem, host dodaje boty do party
 
 obszar: siec
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: `sim/bot.ts`, `../../server/src/PartyRoom.ts`, `net/client.ts`, `ui/lobby/`
 
