@@ -1,6 +1,7 @@
 import { PREDICTION_CORRECT_RATE, PREDICTION_SNAP_DIST, SIM_DT } from '../shared/config';
 import type { Bus, BusInput, InputAck, World } from '../shared/types';
 import { collideWithOthers, updateBus } from './bus';
+import { collidePaczkomats } from './paczkomat';
 import { collideZabkas } from './zabka';
 
 /** Local ticks kept for replaying on top of the server (covers pings up to ~1.5 s). */
@@ -44,6 +45,7 @@ export function createBusPredictor(start: Bus, mapSize: number, world?: World): 
     // Same buildings and shops as the server, or the own bus would keep jumping out of walls.
     updateBus(sim, input, SIM_DT, mapSize, world);
     collideZabkas(sim, world?.zabkas);
+    collidePaczkomats(sim, world?.paczkomats);
     collideWithOthers(sim, others, mapSize, world);
   };
   const draw = () => {

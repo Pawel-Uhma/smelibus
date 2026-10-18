@@ -7,6 +7,7 @@ import { jumpHeight } from '../sim/player';
 import { garbleName } from './garbleName';
 import { createNameplate, stackNameplates, type Nameplate } from './nameplate';
 import { createStinkEffect } from './stink';
+import { createPaczkomatRender } from './paczkomat';
 import { createZabkaRender } from './zabka';
 
 /** Placeholder render: flat ground, buses as plain boxes. Cards 003/004 replace it with voxels. */
@@ -35,6 +36,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   scene.add(grid);
   if (world.tiles.some((t) => t.kind)) createCityRender(scene, world);
   createZabkaRender(scene, world);
+  createPaczkomatRender(scene, world);
 
   const meshes = new Map<number, BusModel>();
   // Driver nick above each bus; separate from the bus group so it does not spin with it.

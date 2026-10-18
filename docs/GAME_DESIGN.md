@@ -64,6 +64,7 @@ miejsce odnawia się po czasie (np. 15 s).
 | Kontroler biletów | −20 | bonus negatywny, trzeba go omijać |
 | Wytrącony smród | ile wypadło | zostaje po taranowaniu |
 | Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej (odstęp 30 s → 8 s, limit przy sklepie 1 → 4). Żul wychodzi drzwiami, idzie 1–2,5 kafelka w losową stronę od sklepu i się przewraca; leżący daje **+40**. Po zebraniu znika, „siedzi” jak ten z przystanku. Trzy wersje żula (niżej, Grafika → Żul) |
+| Paczka z Paczkomatu | +5 | paczkomaty InPost stoją przy ulicach; uderzenie w drzwi z prędkością ≥ 3 kafelki/s wybija przed paczkomat paczkę, a w **30%** przypadków **kupę (+30)**. Potem paczkomat jest pusty przez 6 s. Ocieranie bokiem się nie liczy. Wybite leży 20 s |
 
 Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),
 widoczna zielona chmura wokół autobusu skalowana smrodem.
@@ -185,6 +186,13 @@ klientów). Voxel bonusu (`BONUS_VOXEL_SIZE`), wspólne: siwe włosy z tyłu, za
 Żul z przystanku od razu jest w pozie „na miejscu” i nie kręci się ani nie podskakuje jak inne
 bonusy. Nad leżącym/siedzącym unosi się zielona chmurka. Kod: `render/bonusModels.ts`
 (`zulGeometry`), `render/zul.ts`, `render/bonuses.ts`.
+
+### Paczkomat InPost
+
+Szafka 5 × 2 × 6 voxeli (wielkość voxela jak w autobusie): żółta obudowa `#FFCD00`, z przodu
+szare drzwiczki skrytek w szachownicę i ciemny ekran, ciemne rogi daszku. Drzwi do sąsiedniej
+ulicy. Paczka to karton z taśmą i żółtą etykietą, kupa to brązowy zawijas z muchami.
+Kod: `sim/paczkomat.ts`, `render/paczkomat.ts`, modele wybitych rzeczy w `render/bonusModels.ts`.
 
 ### Smród na autobusie
 

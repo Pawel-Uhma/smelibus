@@ -343,8 +343,32 @@ function dropped(): BonusVoxel[] {
   return b.voxels();
 }
 
+/** Cardboard box knocked out of an InPost locker: brown tape cross and a yellow label. */
+function parcel(): BonusVoxel[] {
+  const b = new Builder();
+  b.box(-3, 3, 0, 4, -2, 2, 0xc49a6c);
+  b.box(0, 0, 0, 4, -2, 2, 0x9c7448); // tape around the box
+  b.box(-3, 3, 4, 4, 0, 0, 0x9c7448);
+  b.box(-3, -1, 1, 3, 2, 2, 0xffcd00); // label on the front
+  b.box(-2, -2, 2, 2, 2, 2, 0x404040);
+  return b.voxels();
+}
+
+/** Swirled poop with flies, the 30% surprise from an InPost locker. */
+function poop(): BonusVoxel[] {
+  const b = new Builder();
+  const brown = (x: number, y: number, z: number) => (hash(x, y, z) % 4 === 0 ? 0x5a3418 : 0x7a4a22);
+  for (const [y, r] of [[0, 3.2], [1, 3], [2, 2.4], [3, 2.2], [4, 1.6], [5, 1.2]] as const) {
+    for (let x = -3; x <= 3; x++) for (let z = -3; z <= 3; z++) if (x * x + z * z <= r * r) b.set(x, y, z, brown(x, y, z));
+  }
+  b.set(0, 6, 0, 0x7a4a22);
+  b.set(1, 7, 0, 0x7a4a22); // the tip curls over
+  for (const [x, y, z] of [[3, 8, -1], [-3, 9, 1], [0, 10, 3]]) b.set(x, y, z, 0x202020); // flies
+  return b.voxels();
+}
+
 const MODELS: Record<BonusKind, () => BonusVoxel[]> = {
-  zul, kebab, dog, fan, herring, durian, trash, controller, dropped,
+  zul, kebab, dog, fan, herring, durian, trash, controller, dropped, parcel, poop,
 };
 
 export function bonusVoxels(kind: BonusKind): BonusVoxel[] {

@@ -78,6 +78,9 @@ export interface World {
   stops?: { x: number; z: number }[];
   /** Żabka shops (sim/zabka.ts), fixed for the match, so they travel with the world on join. */
   zabkas?: { x: number; z: number }[];
+  /** InPost parcel lockers (sim/paczkomat.ts): centre and the axis-aligned unit direction the
+   *  locker doors face. Fixed for the match. */
+  paczkomats?: { x: number; z: number; fx: number; fz: number }[];
 }
 
 export interface GameState {
@@ -94,6 +97,8 @@ export interface GameState {
   bonusRng?: number;
   /** Game time when each shop in world.zabkas lets out its next drunk (same order). */
   zabkaNextAt?: number[];
+  /** Game time from which each locker in world.paczkomats can drop again (same order). */
+  paczkomatReadyAt?: number[];
   /** Rain / Harnaś clouds drifting over the map (sim/weather.ts). */
   weather?: WeatherCell[];
   /** RNG state of the weather spawner. */
@@ -119,11 +124,14 @@ export interface WeatherCell {
 }
 
 export type BonusKind =
-  | 'zul' | 'kebab' | 'dog' | 'fan' | 'herring' | 'durian' | 'trash' | 'controller' | 'dropped';
+  | 'zul' | 'kebab' | 'dog' | 'fan' | 'herring' | 'durian' | 'trash' | 'controller' | 'dropped'
+  | 'parcel' | 'poop';
 
 /** Where a bonus lives: decides what respawns there. `dropped` (from a ram) and `zabka`
  *  (a drunk let out by a shop) are one-offs. */
-export type BonusSpot = 'stop' | 'map' | 'trash' | 'controller' | 'dropped' | 'zabka';
+export type BonusSpot = 'stop' | 'map' | 'trash' | 'controller' | 'dropped' | 'zabka'
+  /** A parcel or poop knocked out of an InPost locker (sim/paczkomat.ts), one-off. */
+  | 'paczkomat';
 
 export interface Bonus {
   id: number;

@@ -33,6 +33,7 @@ function kindFor(state: GameState, spot: BonusSpot): BonusKind {
     case 'controller': return 'controller';
     case 'dropped': return 'dropped';
     case 'zabka': return 'zul';
+    case 'paczkomat': return 'parcel';
   }
 }
 
@@ -140,9 +141,9 @@ export function updateBonuses(state: GameState, dt: number): void {
       break;
     }
   }
-  // Dropped stink and Żabka drunks are one-offs: gone once collected (or, dropped, expired).
+  // Dropped stink, locker drops and Żabka drunks are one-offs: gone once collected (or expired).
   state.bonuses = bonuses.filter((b) => {
-    if (b.spot === 'dropped') return b.active && state.time < b.respawnAt;
+    if (b.spot === 'dropped' || b.spot === 'paczkomat') return b.active && state.time < b.respawnAt;
     if (b.spot === 'zabka') return b.active;
     return true;
   });

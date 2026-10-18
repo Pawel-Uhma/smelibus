@@ -134,7 +134,23 @@ export const BONUS_STINK = {
   durian: 40,
   trash: 8,
   controller: -20,
+  parcel: 5,
+  poop: 30,
 } as const;
+// InPost parcel lockers (sim/paczkomat.ts): ramming one knocks out a parcel or, sometimes, a poop.
+/** Lockers per map tile (×size², at least 1). */
+export const PACZKOMATS_PER_TILE = 1 / 500;
+/** Chance that a hit knocks out a poop (BONUS_STINK.poop) instead of a parcel. */
+export const PACZKOMAT_POOP_CHANCE = 0.3;
+/** Slowest hit (tiles/s into the locker, before the bounce) that still knocks something out. */
+export const PACZKOMAT_HIT_MIN_SPEED = 3;
+/** After a drop the locker is empty for this long. */
+export const PACZKOMAT_COOLDOWN_S = 6;
+/** The drop lands this far (tiles) from the locker, on the side it was hit from. */
+export const PACZKOMAT_DROP_DIST = 1.1;
+/** A drop on the ground vanishes after this long and can't be picked up for the first moment. */
+export const PACZKOMAT_DROP_TTL_S = 20;
+export const PACZKOMAT_DROP_PICKUP_DELAY_S = 0.4;
 /** Spawn weights for regular bonuses on map spots and stops (durian is rare, kebab common). */
 export const BONUS_WEIGHTS = { kebab: 5, dog: 3, fan: 2, herring: 3, durian: 1 } as const;
 
