@@ -5,6 +5,7 @@ description: Bierze następną wolną kartę z kanbanu (tasks/todo) dla obszaru 
 
 # Weź kartę
 
+0. **Świeży main.** `git pull --rebase --autostash`, potem `git log --oneline -10`, żeby zobaczyć, co przyszło.
 1. **Najpierw swoje.** Jeśli w `tasks/doing/` jest Twoja karta (`kto:` = Twoje `git config user.name`), dokończ ją. Masz niewypchniętą pracę? Najpierw `/oddaj`. Jedna karta naraz.
 2. **Obszar.** Weź go z `docs/zespol.md`. Jeśli jest `-`, pokaż obszary i to, kto które już wziął, zapytaj użytkownika, wpisz wybór i wypchnij (`docs: <imię> bierze obszar <kod>`).
 3. **Wybierz.** `./scripts/kanban.sh tablica <obszar>`. Bierz najniższy numer, którego `zależy od:` jest w `tasks/done/`. Jeśli zależność jest dopiero w `doing/` (np. scaffold 001), też możesz wziąć kartę: zacznij od czystej logiki w `sim/` z testami albo od planu, a podłącz po pushu zależności. Jeśli w Twoim obszarze nic nie ma, pokaż całą tablicę i zaproponuj kartę, której nikt nie ruszył.

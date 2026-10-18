@@ -29,6 +29,7 @@ Hook startowy (`.claude/hooks/session-start.sh`) robi `git pull` (jeśli drzewo 
 
 ## Workflow: małe kroki, częsty push
 
+0. **Zawsze `git pull --rebase` na początku pracy i przed każdą nową kartą.** Hook robi to sam na starcie sesji, ale tylko przy czystym drzewie. Jeśli zgłosi niezacommitowane pliki, najpierw je zacommituj i zrób pull, dopiero potem pracuj.
 1. **Commituj i pushuj sam, bez pytania**, po każdym działającym kroku i co najmniej co 30–60 minut. Zespół dał na to stałą zgodę. Długo trzymane lokalne zmiany oznaczają konflikty.
 2. Przed pushem: `npm run check` (w `app/`), potem `git pull --rebase`. Jeśli coś przyszło, `check` jeszcze raz, potem `git push`.
 3. **Każdy commit na `main` musi się budować.** Niedokończoną funkcję schowaj za flagą w `src/shared/config.ts` albo po prostu jej nie podłączaj w `main.ts`.
