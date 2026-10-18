@@ -25,7 +25,7 @@ npm run check    # typecheck + testy — musi przechodzić przed każdym pushem
 npm run build    # build produkcyjny
 ```
 
-> Skrypty powstaną w zadaniu T-01 (scaffold) — patrz [TASKS.md](TASKS.md).
+> Skrypty powstaną w karcie 001 (scaffold): `./scripts/kanban.sh tablica`.
 
 ## Struktura
 
@@ -41,11 +41,26 @@ brain/         # lokalnie, poza gitem: PRD, wymagania (patrz CLAUDE.md)
 docs/
   GAME_DESIGN.md   # mechaniki gry
   DECISIONS.md     # log decyzji
-TASKS.md       # tablica zadań (kto co robi)
+  zespol.md        # kto ma który obszar
+tasks/         # kanban: todo/ → doing/ → done/, jedna karta = jeden plik
+scripts/kanban.sh  # tablica | wez N | gotowe N | nowe <obszar> "tytuł"
 AGENTS.md      # zasady współpracy — dla ludzi i agentów AI
 ```
 
 ## Współpraca
 
-4 osoby, każda z agentem AI, wszyscy pushują na `main`.
-Zasady: **[AGENTS.md](AGENTS.md)** (agenci czytają go automatycznie — `CLAUDE.md` go importuje).
+4 osoby, każda z agentem Claude Code, wszyscy pushują prosto na `main`. Zasady: **[AGENTS.md](AGENTS.md)** (agenci czytają go automatycznie, bo `CLAUDE.md` go importuje).
+
+**Start dla każdego:**
+1. `git clone https://github.com/Pawel-Uhma/smelibus && cd smelibus`
+2. Sprawdź, że `git config user.name` zgadza się z wierszem w [docs/zespol.md](docs/zespol.md)
+3. `claude`, potem `/zadanie`. Agent zapyta o obszar, weźmie kartę i zacznie.
+
+**Pętla:**
+```
+/zadanie  →  agent bierze kartę z Twojego obszaru (kanban.sh wez: od razu push, kto pierwszy, ten lepszy)
+   ...    →  praca, push po każdym działającym kroku
+/oddaj    →  npm run check, karta do done, pull --rebase, push
+/sync     →  co zrobili inni, zmiany w shared/
+```
+`/spotkanie` zamienia notatkę z rozmowy na decyzje i karty.
