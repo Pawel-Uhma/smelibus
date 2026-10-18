@@ -1,7 +1,7 @@
 # Dźwięk: efekty z Web Audio i klakson
 
 obszar: wspolne
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: audio/ (nowy), main.ts, input/keyboard.ts, shared/types.ts, ui/hud.ts
 
