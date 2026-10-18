@@ -53,6 +53,8 @@
 .lobby .card .msg { margin: -6px 0; text-align: center; }
 .lobby .card > label { width: 100%; justify-content: center; }
 .lobby #name { width: min(220px, 60vw); }
+.lobby .nick { width: 100%; display: flex; gap: 8px; align-items: center; justify-content: center; }
+.lobby #reroll { padding: 4px 8px; font-size: 18px; line-height: 1; }
 .lobby .card button:not(.swatch) { box-shadow: 3px 3px 0 #1b1b1b; transition: transform .08s, box-shadow .08s; }
 .lobby .card button:not(.swatch):not(:disabled):active { transform: translate(3px, 3px); box-shadow: 0 0 0 #1b1b1b; }
 .lobby #create, .lobby #start { font-size: 18px; padding: 12px 22px; background: #6fa82b; color: #fff; text-shadow: 1px 1px 0 #1b1b1b; }

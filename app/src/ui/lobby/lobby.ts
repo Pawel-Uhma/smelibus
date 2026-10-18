@@ -3,6 +3,7 @@ import { createParty, joinParty, rejoinParty, watchPublicParties, type Party } f
 import { joinErrorMessage, normalizePartyCode } from '../../net/partyCode';
 import { PLAYER_COLORS } from '../../shared/config';
 import type { Player, PublicParty } from '../../shared/types';
+import { isOldDefaultName, stinkyName } from './stinkyName';
 import './lobby.css';
 
 const NAME_KEY = 'smelibus.name';
@@ -36,7 +37,10 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
       <div class="card">
       <h1 class="logo">Smeli<span>bus</span></h1>
       <p class="tag">Śmierdzące autobusy przejmują miasto</p>
-      <label>Nick <input id="name" maxlength="16" autocomplete="off"></label>
+      <div class="nick">
+        <label>Nick <input id="name" maxlength="16" autocomplete="off"></label>
+        <button id="reroll" type="button" title="Losuj śmierdzący nick" aria-label="Losuj śmierdzący nick">🎲</button>
+      </div>
       <div class="colors" id="colors" role="radiogroup" aria-label="Kolor"></div>
       <div class="create">
         <button id="create">Stwórz party</button>
@@ -61,7 +65,12 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
   const publicInput = $<HTMLInputElement>('public');
   const msg = $('msg');
   const list = $<HTMLUListElement>('list');
-  nameInput.value = safeGet(NAME_KEY) ?? `Kierowca${Math.floor(Math.random() * 90 + 10)}`;
+  const saved = safeGet(NAME_KEY);
+  nameInput.value = saved && !isOldDefaultName(saved) ? saved : stinkyName();
+  $('reroll').onclick = () => {
+    nameInput.value = stinkyName();
+    safeSet(NAME_KEY, nameInput.value);
+  };
   publicInput.checked = safeGet(PUBLIC_KEY) === '1';
 
   let color = Number(safeGet(COLOR_KEY));
