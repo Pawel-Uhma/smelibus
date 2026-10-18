@@ -118,7 +118,7 @@ export class PartyRoom extends Room {
   }
 
   private snapshot(): Snapshot {
-    const { tick, time, players, buses, winnerId, bonuses } = this.game;
-    return { tick, time, players, buses, winnerId: winnerId ?? null, bonuses: bonuses ?? [] };
+    const { tick, time, players, buses, winnerId, bonuses, weather } = this.game;
+    return { tick, time, players, buses, winnerId: winnerId ?? null, bonuses: bonuses ?? [], weather: weather ?? [] };
   }
 }

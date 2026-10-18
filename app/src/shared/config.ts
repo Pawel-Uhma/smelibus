@@ -97,3 +97,23 @@ export const SUDDEN_DEATH = [
 export const TILES_PER_STINK = 1;
 /** Start points sit on a ring this far from the center, as a fraction of map size. */
 export const START_RING = 0.3;
+
+// Weather (sim/weather.ts): rain and Harnaś clouds over part of the map.
+/** At most this many clouds at once. */
+export const WEATHER_MAX_CELLS = 3;
+/** Chance per second that a new cloud appears (while below the max). */
+export const WEATHER_SPAWN_PER_S = 1 / 12;
+/** Share of clouds that rain Harnaś instead of water. */
+export const HARNAS_CHANCE = 0.25;
+export const WEATHER_RADIUS_MIN = 6;
+export const WEATHER_RADIUS_MAX = 11;
+/** Drift speed range, tiles/s. */
+export const WEATHER_SPEED_MIN = 0.6;
+export const WEATHER_SPEED_MAX = 2;
+/** Lifetime range of a cloud, seconds. */
+export const WEATHER_LIFE_MIN_S = 20;
+export const WEATHER_LIFE_MAX_S = 45;
+/** Stink washed off per second under rain (on top of normal decay). */
+export const RAIN_STINK_PER_S = 3;
+/** Stink added per second under Harnaś. */
+export const HARNAS_STINK_PER_S = 2;

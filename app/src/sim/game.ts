@@ -2,6 +2,7 @@ import { EXTRA_BUSES, MAX_PLAYERS, PLAYER_COLORS } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId } from '../shared/types';
 import { dropStink, spawnBonuses, updateBonuses } from './bonus';
 import { collideBuses, NO_INPUT, updateBus } from './bus';
+import { updateWeather } from './weather';
 import { generateWorld } from './world';
 import { assignJoinZone, tileIndexAt, updateZones } from './zones';
 
@@ -57,6 +58,7 @@ export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInpu
   }
   for (const d of collideBuses(state.buses)) dropStink(state, d.x, d.z, d.amount);
   updateBonuses(state, dt);
+  updateWeather(state, dt);
   updateZones(state, prevTiles);
   state.tick++;
   state.time += dt;

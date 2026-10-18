@@ -54,6 +54,28 @@ export interface GameState {
   bonuses?: Bonus[];
   /** RNG state of the bonus spawner, so the sim stays deterministic. */
   bonusRng?: number;
+  /** Rain / Harnaś clouds drifting over the map (sim/weather.ts). */
+  weather?: WeatherCell[];
+  /** RNG state of the weather spawner. */
+  weatherRng?: number;
+}
+
+/** rain washes stink off, harnas (cans of beer falling from the sky) adds it. */
+export type WeatherKind = 'rain' | 'harnas';
+
+/** A circular cloud drifting over part of the map; buses under it are affected. */
+export interface WeatherCell {
+  id: number;
+  kind: WeatherKind;
+  x: number;
+  z: number;
+  radius: number;
+  /** Drift velocity, tiles/s. */
+  vx: number;
+  vz: number;
+  /** Game time when it appeared and when it dissolves (render fades in/out). */
+  bornAt: number;
+  endsAt: number;
 }
 
 export type BonusKind =
@@ -90,6 +112,8 @@ export interface Snapshot {
   winnerId?: PlayerId | null;
   /** All bonuses (GameState.bonuses). The server omits it when unchanged; net/client fills it from the previous snapshot. */
   bonuses?: Bonus[];
+  /** Same as GameState.weather (a few cells, sent every snapshot). */
+  weather?: WeatherCell[];
 }
 
 /** [tile index in World.tiles, new ownerId]. */
