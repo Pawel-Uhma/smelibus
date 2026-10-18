@@ -123,6 +123,18 @@ daje się złożyć z kilku prostopadłościanów, a dach w kolorze gracza wida�
   `#628598`, drzwi `#22303A`, opony `#202024`, piasty `#B8BEC4`, wyświetlacz `#FFB000`,
   reflektory `#FFE7A0`, stop `#D8432F`, klimatyzator `#C3C7CB`.
 
+### Model pieszego: Służbista
+
+Wybrany z propozycji ludzików (kierowca, kibic, chibi, pionek i 4 warianty kierowcy). Gracz to kierowca
+autobusu, a kolor gracza jest na denku czapki, czyli tam, gdzie patrzy kamera z góry.
+
+- Wymiar 3 (głębokość, przód w +x) × 3 (szerokość) × 8 (wysokość) voxeli, ten sam voxel co autobus
+  (1/6 kafelka), więc ludzik ma 1,33 kafelka wysokości, tyle co autobus z klimatyzatorem. To ok. 3×
+  więcej niż w prawdziwej skali, żeby był widoczny z kamery z góry.
+- Warstwy od dołu: `z0` buty (dwie nogi), `z1–3` granatowy mundur `#2B3448` ze złotymi guzikami
+  `#FFB000` na piersi, `z4–5` głowa (skóra `#F0C39E`, włosy z tyłu `#4A3426`, oczy w `z5`),
+  `z6` czarny otok i daszek, `z7` denko czapki w kolorze gracza, wysunięte do przodu.
+
 ### Kolory graczy
 
 8 kolorów, przydzielanych w tej kolejności (w grze na 4 osoby są tylko pierwsze cztery, najbardziej

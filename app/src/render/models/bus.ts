@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { BUS_LENGTH, STINK_STAGE_LIMITS } from '../../shared/config';
 import { BUS_VOXELS_X, BUS_VOXELS_Y, busVoxels, type BusPart, type StinkStage, type Voxel } from './busVoxels';
+import { buildVoxelGeometry } from './voxelGeometry';
 
 /** Voxels are cubes; the model is as long as the bus in the sim. */
 export const BUS_VOXEL_SIZE = BUS_LENGTH / BUS_VOXELS_X;
@@ -22,54 +23,13 @@ const FIXED_COLORS: Partial<Record<BusPart, number>> = {
 };
 const PLAYER_SHADE: Partial<Record<BusPart, number>> = { body: 1, bodyDark: 0.7 };
 
-// Unit cube faces: outward normal and corners in counter-clockwise order seen from outside.
-const FACES: { n: [number, number, number]; c: [number, number, number][] }[] = [
-  { n: [1, 0, 0], c: [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]] },
-  { n: [-1, 0, 0], c: [[0, 0, 0], [0, 0, 1], [0, 1, 1], [0, 1, 0]] },
-  { n: [0, 1, 0], c: [[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]] },
-  { n: [0, -1, 0], c: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]] },
-  { n: [0, 0, 1], c: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]] },
-  { n: [0, 0, -1], c: [[1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 1, 0]] },
-];
-
 /**
  * Model space: the bus faces +z (bus.angle = 0), y is up, origin at the centre of the footprint.
  * Voxel y = 4 (doors) maps to -x, which is the bus's right side when facing +z.
  */
-function toGrid(v: Voxel): [number, number, number] {
-  return [BUS_VOXELS_Y - 1 - v.y, v.z, v.x];
-}
-
 function buildGeometry(voxels: Voxel[], colorOf: (part: BusPart) => THREE.Color | null): THREE.BufferGeometry {
-  const filled = new Set(voxels.map((v) => toGrid(v).join(',')));
-  const pos: number[] = [];
-  const nor: number[] = [];
-  const col: number[] = [];
-  const idx: number[] = [];
-  const s = BUS_VOXEL_SIZE;
-  const ox = -BUS_VOXELS_Y / 2;
-  const oz = -BUS_VOXELS_X / 2;
-  for (const v of voxels) {
-    const color = colorOf(v.part);
-    if (!color) continue;
-    const [gx, gy, gz] = toGrid(v);
-    for (const f of FACES) {
-      if (filled.has(`${gx + f.n[0]},${gy + f.n[1]},${gz + f.n[2]}`)) continue;
-      const base = pos.length / 3;
-      for (const [cx, cy, cz] of f.c) {
-        pos.push((gx + cx + ox) * s, (gy + cy) * s, (gz + cz + oz) * s);
-        nor.push(...f.n);
-        col.push(color.r, color.g, color.b);
-      }
-      idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
-    }
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  geo.setIndex(idx);
-  return geo;
+  const grid = voxels.map((v) => ({ x: BUS_VOXELS_Y - 1 - v.y, y: v.z, z: v.x, color: colorOf(v.part) }));
+  return buildVoxelGeometry(grid, BUS_VOXEL_SIZE, [-BUS_VOXELS_Y / 2, 0, -BUS_VOXELS_X / 2]);
 }
 
 interface StageGeometries {

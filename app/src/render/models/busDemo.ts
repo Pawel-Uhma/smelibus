@@ -6,6 +6,7 @@ import { PLAYER_COLORS, STINK_MAX } from '../../shared/config';
 import type { Bus } from '../../shared/types';
 import { createStinkEffect } from '../stink';
 import { createBusModel, stinkStage } from './bus';
+import { createPedestrianModel } from './pedestrian';
 
 const STAGE_NAMES = ['Świeżak', 'Zalatuje', 'Durian'];
 
@@ -34,6 +35,12 @@ const buses = PLAYER_COLORS.map((color, i) => {
   scene.add(bus.group);
   return bus;
 });
+// A driver in the same colour by the front door (right side of the bus, -x when facing +z).
+PLAYER_COLORS.forEach((color, i) => {
+  const driver = createPedestrianModel(color);
+  driver.group.position.set(buses[i].group.position.x - 0.9, 0, buses[i].group.position.z + 0.9);
+  scene.add(driver.group);
+});
 // Same stink puffs and cloud as in the game (render/stink.ts), fed with parked buses.
 const stinkFx = createStinkEffect(scene);
 const parked: Bus[] = buses.map((b, id) => ({
@@ -59,7 +66,7 @@ freeView();
 const panel = document.createElement('div');
 panel.className = 'hud';
 panel.innerHTML = `
-  <strong>Niskopodłogowiec — demo modelu</strong>
+  <strong>Niskopodłogowiec i Służbista — demo modeli</strong>
   <label style="display:flex;gap:8px;align-items:center;margin:8px 0">
     Smród <input id="stink" type="range" min="0" max="${STINK_MAX}" value="0" style="padding:0">
     <span id="stinkVal"></span>
