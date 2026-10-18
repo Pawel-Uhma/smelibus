@@ -1,7 +1,7 @@
 # Wersja mobilna i joystick dotykowy
 
 obszar: autobus
-kto: -
+kto: Jasiek
 zależy od: -
 ścieżki: input/touch.ts (nowy), input/keyboard.ts, main.ts, ui/hud.ts, ui/lobby/, index.html
 
