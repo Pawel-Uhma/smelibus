@@ -1,6 +1,6 @@
 import {
   BUS_ACCEL, BUS_BOUNCE, BUS_BRAKE, BUS_DRAG, BUS_HIT_WIDTH, BUS_LENGTH, BUS_MAX_REVERSE,
-  BUS_MAX_SPEED, BUS_TURN_FULL_SPEED, BUS_TURN_RATE, RAM_MIN_SPEED, RAM_STINK_LOSS,
+  BUS_MAX_SPEED, BUS_SIDE_FRICTION, BUS_TURN_FULL_SPEED, BUS_TURN_RATE, RAM_MIN_SPEED, RAM_STINK_LOSS,
 } from '../shared/config';
 import type { Bus, BusInput } from '../shared/types';
 
@@ -21,19 +21,55 @@ function corners(bus: Bus): [number, number][] {
   return out;
 }
 
-/** How much the bus heading points along the unit direction (nx, nz), -1..1. */
-const facing = (bus: Bus, nx: number, nz: number) => Math.sin(bus.angle) * nx + Math.cos(bus.angle) * nz;
+/** How fast `bus` moves along the unit direction (nx, nz): driving plus sideways knock-back. */
+const speedAlong = (bus: Bus, nx: number, nz: number) =>
+  (Math.sin(bus.angle) * bus.speed + (bus.pushX ?? 0)) * nx + (Math.cos(bus.angle) * bus.speed + (bus.pushZ ?? 0)) * nz;
 
-/** How fast `bus` moves along the unit direction (nx, nz). */
-const speedAlong = (bus: Bus, nx: number, nz: number) => bus.speed * facing(bus, nx, nz);
+function setPush(bus: Bus, px: number, pz: number): void {
+  if (Math.abs(px) < 1e-3 && Math.abs(pz) < 1e-3) {
+    delete bus.pushX;
+    delete bus.pushZ;
+  } else {
+    bus.pushX = px;
+    bus.pushZ = pz;
+  }
+}
 
 /**
- * Bounce off a wall in direction (nx, nz). Only the part of the speed going into the wall bounces,
- * so a head-on hit reverses at BUS_BOUNCE and a scrape along the wall barely slows down.
+ * Changes the bus velocity by (dvx, dvz): the part along the heading goes into `speed`, the part
+ * sideways into the knock-back, which the tyres scrub away over the next moments.
+ */
+function kick(bus: Bus, dvx: number, dvz: number): void {
+  const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
+  const along = dvx * fx + dvz * fz;
+  bus.speed += along;
+  setPush(bus, (bus.pushX ?? 0) + dvx - along * fx, (bus.pushZ ?? 0) + dvz - along * fz);
+}
+
+/**
+ * Bounce off a wall in direction (nx, nz). Only the part of the velocity going into the wall
+ * bounces, so a head-on hit reverses at BUS_BOUNCE and a scrape along the wall barely slows down.
  */
 function bounceOff(bus: Bus, nx: number, nz: number): void {
   const into = speedAlong(bus, nx, nz);
-  if (into > 0) bus.speed -= (1 + BUS_BOUNCE) * into * facing(bus, nx, nz);
+  if (into > 0) kick(bus, -(1 + BUS_BOUNCE) * into * nx, -(1 + BUS_BOUNCE) * into * nz);
+}
+
+/** Moves all four corners back inside the map and bounces off the edge that was hit. */
+function keepInside(bus: Bus, mapSize: number): void {
+  const cs = corners(bus);
+  const xs = cs.map((c) => c[0]);
+  const zs = cs.map((c) => c[1]);
+  const dx = Math.max(0, -Math.min(...xs)) - Math.max(0, Math.max(...xs) - mapSize);
+  const dz = Math.max(0, -Math.min(...zs)) - Math.max(0, Math.max(...zs) - mapSize);
+  if (dx) {
+    bus.x += dx;
+    bounceOff(bus, -Math.sign(dx), 0);
+  }
+  if (dz) {
+    bus.z += dz;
+    bounceOff(bus, 0, -Math.sign(dz));
+  }
 }
 
 /** Arcade driving on a flat map: gas, brake/reverse, steering, edge bounce. Mutates `bus`. */
@@ -58,20 +94,16 @@ export function updateBus(bus: Bus, input: BusInput, dt: number, mapSize: number
   bus.x += Math.sin(bus.angle) * bus.speed * dt;
   bus.z += Math.cos(bus.angle) * bus.speed * dt;
 
-  // Keep all four corners inside the map.
-  const cs = corners(bus);
-  const xs = cs.map((c) => c[0]);
-  const zs = cs.map((c) => c[1]);
-  const dx = Math.max(0, -Math.min(...xs)) - Math.max(0, Math.max(...xs) - mapSize);
-  const dz = Math.max(0, -Math.min(...zs)) - Math.max(0, Math.max(...zs) - mapSize);
-  if (dx) {
-    bus.x += dx;
-    bounceOff(bus, -Math.sign(dx), 0);
+  if (bus.pushX !== undefined || bus.pushZ !== undefined) {
+    const px = bus.pushX ?? 0;
+    const pz = bus.pushZ ?? 0;
+    bus.x += px * dt;
+    bus.z += pz * dt;
+    const k = Math.max(0, 1 - (BUS_SIDE_FRICTION * dt) / Math.hypot(px, pz));
+    setPush(bus, px * k, pz * k);
   }
-  if (dz) {
-    bus.z += dz;
-    bounceOff(bus, 0, -Math.sign(dz));
-  }
+
+  keepInside(bus, mapSize);
 }
 
 /** Stink knocked out of a rammed bus, at the contact point. Becomes a bonus on the ground. */
@@ -136,66 +168,72 @@ function contact(a: Bus, b: Bus): Contact | null {
 }
 
 /**
- * Resolves one bus–bus overlap. Positions are pushed apart until the rectangles just touch, the
- * bus that can't roll along the normal (hit side-on) moving less. Speed is traded like two equal
- * masses with restitution BUS_BOUNCE, along each bus's own heading (buses don't slide sideways):
- * a rear-end hit shoves the bus in front, a head-on or side-on hit bounces the rammer back, a
- * scrape barely slows anyone down. With `bFixed` only `a` moves (client prediction, where `b` is
- * someone else's bus). Returns the contact point and how fast each bus drove into the other.
+ * Resolves one bus–bus overlap: positions are pushed apart until the rectangles just touch, and
+ * velocity is traded like two equal masses with restitution BUS_BOUNCE. A rear-end hit shoves the
+ * bus in front, a head-on hit bounces both back, a T-bone knocks the victim sideways, a scrape
+ * nudges both apart without braking. With `bFixed` only `a` moves and `b` acts like a wall (client
+ * prediction, where `b` is someone else's bus). Returns the contact point, how fast each bus drove
+ * into the other and their closing speed.
  */
-function collidePair(a: Bus, b: Bus, bFixed: boolean): { x: number; z: number; hitA: number; hitB: number } | null {
+function collidePair(
+  a: Bus, b: Bus, bFixed: boolean, mapSize: number,
+): { x: number; z: number; hitA: number; hitB: number; closing: number } | null {
   const c = contact(a, b);
   if (!c) return null;
   const { nx, nz } = c;
-  const fa = facing(a, nx, nz);
-  const fb = facing(b, nx, nz);
-  const wa = fa * fa + 0.1;
-  const wb = bFixed ? 0 : fb * fb + 0.1;
-  const pa = (c.depth * wa) / (wa + wb);
-  const pb = c.depth - pa;
+  const pa = bFixed ? c.depth : c.depth / 2;
   a.x -= nx * pa;
   a.z -= nz * pa;
   if (!bFixed) {
-    b.x += nx * pb;
-    b.z += nz * pb;
+    b.x += nx * (c.depth - pa);
+    b.z += nz * (c.depth - pa);
+  }
+  if (mapSize < Infinity) {
+    keepInside(a, mapSize);
+    if (!bFixed) keepInside(b, mapSize);
   }
 
   const hitA = speedAlong(a, nx, nz);
   const hitB = speedAlong(b, -nx, -nz);
   const closing = hitA + hitB;
   if (closing > 0) {
-    const impulse = ((1 + BUS_BOUNCE) * closing) / Math.max(fa * fa + fb * fb, 1e-3);
-    a.speed -= impulse * fa;
-    if (!bFixed) b.speed += impulse * fb;
+    const impulse = (bFixed ? 1 + BUS_BOUNCE : (1 + BUS_BOUNCE) / 2) * closing;
+    kick(a, -impulse * nx, -impulse * nz);
+    if (!bFixed) kick(b, impulse * nx, impulse * nz);
   }
-  return { x: c.x, z: c.z, hitA, hitB };
+  return { x: c.x, z: c.z, hitA, hitB, closing };
 }
 
 /** Separation passes per step, so a bus wedged between two others ends up clear of both. */
 const COLLISION_PASSES = 4;
 
 /**
- * Keeps buses from overlapping (see collidePair). A bus that drove into the other at
- * RAM_MIN_SPEED or more knocks RAM_STINK_LOSS of its stink out (returned as drops).
+ * Keeps buses from overlapping (see collidePair); with `mapSize` nobody is pushed off the map.
+ * When two buses close in at RAM_MIN_SPEED or more, each one that drove into the other knocks
+ * RAM_STINK_LOSS of the other's stink out (returned as drops). Pushing a bus along is not a ram.
  */
-export function collideBuses(buses: Bus[]): StinkDrop[] {
+export function collideBuses(buses: Bus[], mapSize = Infinity): StinkDrop[] {
   const drops: StinkDrop[] = [];
   for (let pass = 0; pass < COLLISION_PASSES; pass++) {
+    let touched = false;
     for (let i = 0; i < buses.length; i++) {
       for (let j = i + 1; j < buses.length; j++) {
-        const hit = collidePair(buses[i], buses[j], false);
-        if (!hit || hit.hitA + hit.hitB <= 0) continue;
-        if (hit.hitA >= RAM_MIN_SPEED) ram(buses[j], hit.x, hit.z, drops);
-        if (hit.hitB >= RAM_MIN_SPEED) ram(buses[i], hit.x, hit.z, drops);
+        const hit = collidePair(buses[i], buses[j], false, mapSize);
+        if (!hit) continue;
+        touched = true;
+        if (hit.closing < RAM_MIN_SPEED) continue;
+        if (hit.hitA > 0) ram(buses[j], hit.x, hit.z, drops);
+        if (hit.hitB > 0) ram(buses[i], hit.x, hit.z, drops);
       }
     }
+    if (!touched) break;
   }
   return drops;
 }
 
 /** Client prediction: pushes `bus` out of buses it doesn't control, which stay where they are. */
-export function collideWithOthers(bus: Bus, others: readonly Bus[]): void {
+export function collideWithOthers(bus: Bus, others: readonly Bus[], mapSize = Infinity): void {
   for (let pass = 0; pass < COLLISION_PASSES; pass++) {
-    for (const other of others) if (other.id !== bus.id) collidePair(bus, { ...other }, true);
+    for (const other of others) if (other.id !== bus.id) collidePair(bus, { ...other }, true, mapSize);
   }
 }

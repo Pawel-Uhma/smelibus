@@ -50,4 +50,22 @@ describe('createBusPredictor', () => {
     expect(predictor.bus.stink).toBe(85);
     expect(predictor.bus.x).toBeLessThan(50.5);
   });
+
+  it('does not drive through another bus while waiting for the server', () => {
+    const predictor = createBusPredictor(bus(), 1000);
+    const parked = bus({ id: 1, z: 56 });
+    for (let tick = 0; tick < 120; tick++) predictor.step({ throttle: 1, steer: 0 }, SIM_DT, [parked]);
+    expect(predictor.bus.z).toBeLessThan(56 - 2.9);
+    expect(parked.z).toBe(56);
+  });
+
+  it('follows a knock-back only the server saw', () => {
+    // Someone rammed us on the server: our copy should start sliding the same way.
+    const predictor = createBusPredictor(bus(), 1000);
+    for (let tick = 0; tick < 10; tick++) {
+      predictor.step({ throttle: 0, steer: 0 }, SIM_DT);
+      predictor.reconcile(bus({ pushX: 6 }), SIM_DT);
+    }
+    expect(predictor.bus.pushX).toBeGreaterThan(0);
+  });
 });

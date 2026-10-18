@@ -53,6 +53,8 @@ export const BUS_RADIUS = 1.1;
 export const BUS_HIT_WIDTH = (BUS_LENGTH * 5) / 18;
 /** Fraction of speed kept after hitting another bus or the map edge. */
 export const BUS_BOUNCE = 0.4;
+/** How fast tyres scrub away sideways knock-back after a hit, tiles/s². */
+export const BUS_SIDE_FRICTION = 20;
 /** Fraction of a rammed bus's stink knocked onto the ground. */
 export const RAM_STINK_LOSS = 0.3;
 /** Minimum closing speed (tiles/s) for a bus–bus hit to count as ramming. */

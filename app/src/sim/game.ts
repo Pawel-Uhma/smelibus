@@ -54,7 +54,7 @@ export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInpu
     const input = (bus.driverId && inputs.get(bus.driverId)) || NO_INPUT;
     updateBus(bus, input, dt, state.world.size);
   }
-  for (const d of collideBuses(state.buses)) dropStink(state, d.x, d.z, d.amount);
+  for (const d of collideBuses(state.buses, state.world.size)) dropStink(state, d.x, d.z, d.amount);
   updateBonuses(state, dt);
   updateWeather(state, dt);
   updateZones(state, prevTiles);

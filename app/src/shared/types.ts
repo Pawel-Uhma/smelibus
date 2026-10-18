@@ -21,6 +21,9 @@ export interface Bus {
   stink: number;
   /** Game time until which stink decays slower (a drunk is sitting inside). */
   slowDecayUntil?: number;
+  /** Sideways knock-back velocity from a hit (tiles/s, world axes); tyres scrub it away. */
+  pushX?: number;
+  pushZ?: number;
 }
 
 export interface Player {

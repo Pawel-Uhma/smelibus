@@ -103,15 +103,20 @@ describe('collideBuses', () => {
     expect(b.speed).toBeCloseTo(impulse);
   });
 
-  it('bounces a bus hitting another one side-on, the hit one stays put', () => {
+  it('knocks a bus hit side-on sideways, without turning or rolling it', () => {
     const a = bus({ id: 0, x: 10, z: 10, speed: 10 });
     const b = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH / 2 + BUS_HIT_WIDTH / 2 - 0.1, angle: Math.PI / 2 });
-    const bz = b.z;
     collideBuses([a, b]);
-    expect(a.speed).toBeCloseTo(-10 * BUS_BOUNCE);
+    const impulse = ((1 + BUS_BOUNCE) / 2) * 10;
+    expect(a.speed).toBeCloseTo(10 - impulse);
     expect(b.speed).toBeCloseTo(0);
-    expect(bz - b.z).toBeLessThan(0.01);
+    expect(b.pushZ).toBeCloseTo(impulse);
     expect(b.z - a.z).toBeCloseTo(BUS_LENGTH / 2 + BUS_HIT_WIDTH / 2);
+    // The victim slides away faster than the rammer follows, so it isn't hit twice.
+    run(b, 0, 0, 0.2);
+    run(a, 0, 0, 0.2);
+    expect(b.angle).toBeCloseTo(Math.PI / 2);
+    expect(b.z - a.z).toBeGreaterThan(BUS_LENGTH / 2 + BUS_HIT_WIDTH / 2);
   });
 
   it('stops corners from cutting into another bus', () => {
@@ -132,8 +137,13 @@ describe('collideBuses', () => {
         updateBus(a, { throttle: 1, steer: 0 }, 1 / 60, 1000);
         updateBus(b, NO_INPUT, 1 / 60, 1000);
         collideBuses([a, b]);
+        // Resolved: colliding the same pair again has nothing left to push apart.
+        const [a2, b2] = [{ ...a }, { ...b }];
+        collideBuses([a2, b2]);
+        expect(Math.hypot(a2.x - a.x, a2.z - a.z, b2.x - b.x, b2.z - b.z)).toBeLessThan(1e-3);
       }
-      expect(a.z).toBeLessThan(b.z);
+      // Straight on, a pushes b ahead of it; at an angle b may be shoved aside, never driven through.
+      if (angle % (Math.PI / 2) === 0) expect(a.z).toBeLessThan(b.z);
     }
   });
 
@@ -199,5 +209,67 @@ describe('collideWithOthers', () => {
     const own = bus({ id: 0, speed: 5 });
     collideWithOthers(own, [{ ...own }]);
     expect(own).toMatchObject({ x: 20, z: 20, speed: 5 });
+  });
+
+  // Drives a few buses for `frames` ticks, colliding them like stepGame does.
+  const drive = (buses: Bus[], throttles: number[], frames: number, size = 1000) => {
+    let rams = 0;
+    for (let f = 0; f < frames; f++) {
+      buses.forEach((b, i) => updateBus(b, { throttle: throttles[i] ?? 0, steer: 0 }, 1 / 60, size));
+      rams += collideBuses(buses, size).length;
+    }
+    return rams;
+  };
+
+  it('does not keep ramming a bus it is pushing along', () => {
+    // Both already rolling fast, bumper to bumper: only the speed difference counts.
+    const a = bus({ id: 0, x: 10, z: 10, speed: 12 });
+    const b = bus({ id: 1, x: 10, z: 10 + BUS_LENGTH, speed: 11, stink: 50 });
+    expect(drive([a, b], [1, 0], 30)).toBe(0);
+    expect(b.stink).toBe(50);
+    expect(b.z - a.z).toBeGreaterThan(BUS_LENGTH - 0.01);
+  });
+
+  it('keeps going after scraping another bus at a shallow angle', () => {
+    const a = bus({ id: 0, x: 10, z: 10, speed: 14, angle: 0.14 });
+    const b = bus({ id: 1, x: 12.6, z: 25 });
+    let slowest = a.speed;
+    for (let f = 0; f < 120; f++) {
+      drive([a, b], [1, 0], 1);
+      slowest = Math.min(slowest, a.speed);
+    }
+    expect(slowest).toBeGreaterThan(12);
+    expect(a.z).toBeGreaterThan(b.z + BUS_LENGTH);
+  });
+
+  it('sideways knock-back fades out', () => {
+    const b = bus({ pushX: 8 });
+    run(b, 0, 0, 1);
+    expect(b.pushX).toBeUndefined();
+    expect(b.x).toBeGreaterThan(21);
+    expect(b.x).toBeLessThan(23);
+  });
+
+  it('does not push a bus off the map', () => {
+    const size = 60;
+    const a = bus({ id: 0, x: 30, z: 40 });
+    const b = bus({ id: 1, x: 30, z: 57 });
+    for (let f = 0; f < 300; f++) {
+      drive([a, b], [1, 0], 1, size);
+      expect(b.z + BUS_LENGTH / 2).toBeLessThanOrEqual(size + 1e-6);
+    }
+    expect(b.z - a.z).toBeGreaterThan(BUS_LENGTH - 0.01);
+  });
+
+  it('separates a pile-up of buses', () => {
+    const buses = [0, 1, 2, 3, 4].map((k) => {
+      const angle = (k * 2 * Math.PI) / 5;
+      return bus({ id: k, x: 30 - Math.sin(angle) * 15, z: 30 - Math.cos(angle) * 15, angle, speed: 14 });
+    });
+    drive(buses, [1, 1, 1, 1, 1], 240, 60);
+    const copy = buses.map((b) => ({ ...b }));
+    collideBuses(copy, 60);
+    copy.forEach((c, i) => expect(Math.hypot(c.x - buses[i].x, c.z - buses[i].z)).toBeLessThan(0.01));
+    for (const b of buses) expect(Math.hypot(b.x - 30, b.z - 30)).toBeLessThan(6);
   });
 });
