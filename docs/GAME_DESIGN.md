@@ -68,10 +68,16 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 
 ## Pogoda
 
-- Pogoda zmienia się cyklicznie: **sucho** albo **deszcz** (czasy trwania losowe, z `config.ts`).
-- W deszczu smród autobusów wietrzeje szybciej (mnożnik wietrzenia, np. ×3), więc strefy rosną wolniej
-  i trzeba agresywniej zbierać bonusy.
-- Deszcz jest globalny (cała mapa). Wariant na później: lokalne chmury deszczowe przesuwające się po mapie.
+- Nad mapą losowo pojawiają się **chmury** (okrąg o promieniu ~6–11 kafelków), które powoli
+  dryfują w losowym kierunku i po 20–45 s się rozpływają albo wypływają poza mapę. Naraz max 3.
+- **Deszcz** (~75% chmur): autobus pod chmurą traci smród szybciej (−3/s ponad zwykłe wietrzenie).
+  Omijasz deszcz albo w nim tracisz przewagę.
+- **Harnaś** (~25% chmur): z nieba lecą puszki, autobus pod chmurą **zyskuje** smród (+2/s).
+  Opłaca się gonić chmurę Harnasia.
+- Działa na wszystkie autobusy pod chmurą, także zaparkowane (zmoknięty pusty autobus jest czystszy
+  do przejęcia, oblany Harnasiem — cenniejszy).
+- Obszar chmury widać jako zabarwioną ziemię (niebieską / bursztynową) pod rzadką chmurą z voxeli.
+- Liczby w `config.ts` (`WEATHER_*`, `RAIN_STINK_PER_S`, `HARNAS_STINK_PER_S`, `HARNAS_CHANCE`).
 
 ## Strefy i mapa
 

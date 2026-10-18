@@ -9,8 +9,8 @@
   ],
   // appPort publishes the port at container creation (works with the plain CLI);
   // forwardPorts is what VS Code uses.
-  "appPort": ["5173:5173"],
-  "forwardPorts": [5173],
+  "appPort": ["5173:5173", "2567:2567"],
+  "forwardPorts": [5173, 2567],
   "portsAttributes": {
     "5173": { "label": "vite dev", "onAutoForward": "notify" }
   },
