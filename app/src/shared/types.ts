@@ -125,6 +125,9 @@ export interface Bonus {
   pickableAt?: number;
   /** Index in world.zabkas of the shop that let this drunk out (spot 'zabka'). */
   zabka?: number;
+  /** A Żabka drunk walking from (x, z) here to the bonus x, z between game times `from` and
+   *  `until`, then lying there. Clients compute the position from this, no per-tick updates. */
+  walk?: { x: number; z: number; from: number; until: number };
 }
 
 /** What the server broadcasts every SNAPSHOT_INTERVAL_MS. The world is sent once on join. */

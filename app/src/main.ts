@@ -1,6 +1,7 @@
 import './style.css';
 import { createKeyboard } from './input/keyboard';
 import { createBonusesRender } from './render/bonuses';
+import { createZulRender } from './render/zul';
 import { createScene } from './render/scene';
 import { createWeatherRender } from './render/weather';
 import { createZonesRender } from './render/zones';
@@ -16,6 +17,7 @@ const party = await showLobby(ui);
 const scene = createScene(canvas, party.world);
 const zones = createZonesRender(scene.scene);
 const bonuses = createBonusesRender(scene.scene);
+const zuls = createZulRender(scene.scene);
 const weather = createWeatherRender(scene.scene);
 const hud = createHud(ui, party.code, party.playerId);
 const keyboard = createKeyboard();
@@ -54,6 +56,7 @@ function frame(now: number) {
   const buses = shown.map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));
   zones.update(party.world, snap.players, dt);
   bonuses.update(snap.bonuses ?? [], dt);
+  zuls.update(snap.bonuses ?? [], snap.time, dt);
   weather.update(snap.weather ?? [], snap.time, dt);
   scene.render(buses, snap.players, ownBus ?? undefined, dt);
   hud.update({ time: snap.time, players: snap.players, buses, tiles: party.world.tiles, winnerId: snap.winnerId });

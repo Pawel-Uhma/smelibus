@@ -99,6 +99,14 @@ export function dropStink(state: GameState, x: number, z: number, amount: number
   return b;
 }
 
+/** Where a bonus is at game time `time`: walking drunks move, everything else stays put. */
+export function bonusPosition(b: Bonus, time: number): { x: number; z: number } {
+  const w = b.walk;
+  if (!w || time >= w.until) return { x: b.x, z: b.z };
+  const k = Math.max(0, (time - w.from) / (w.until - w.from));
+  return { x: w.x + (b.x - w.x) * k, z: w.z + (b.z - w.z) * k };
+}
+
 /** Applies one bonus to a bus. */
 export function collect(state: GameState, bus: Bus, b: Bonus): void {
   bus.stink = clampStink(bus.stink + b.amount);
@@ -124,9 +132,10 @@ export function updateBonuses(state: GameState, dt: number): void {
     }
     if (b.pickableAt !== undefined && state.time < b.pickableAt) continue;
     // Only driven buses pick things up; a parked empty bus doesn't hoard bonuses.
+    const at = bonusPosition(b, state.time);
     for (const bus of state.buses) {
       if (bus.driverId === null) continue;
-      if (Math.hypot(bus.x - b.x, bus.z - b.z) > reach) continue;
+      if (Math.hypot(bus.x - at.x, bus.z - at.z) > reach) continue;
       collect(state, bus, b);
       break;
     }

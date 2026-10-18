@@ -104,8 +104,13 @@ export const ZABKA_SPAWN_SPEEDUP_PER_MIN = 3;
 export const ZABKA_ZULS_START = 1;
 export const ZABKA_ZULS_STEP_S = 180;
 export const ZABKA_ZULS_MAX = 4;
-/** Drunks stand within this distance of their shop (tiles). */
-export const ZABKA_ZUL_RADIUS = 1.5;
+/** A drunk walks out of the shop door this far (tiles, random in the range) and falls over. */
+export const ZABKA_ZUL_WALK_MIN = 1;
+export const ZABKA_ZUL_WALK_MAX = 2.5;
+/** Walking speed of a drunk, tiles/s. */
+export const ZABKA_ZUL_WALK_SPEED = 0.6;
+/** Stink of a drunk lying on the ground (he gives BONUS_STINK.zul while still walking). */
+export const ZABKA_ZUL_FALLEN_STINK = 40;
 export const BONUS_STINK = {
   zul: 25,
   kebab: 10,

@@ -1,5 +1,6 @@
 import {
-  BONUS_STINK, ZABKA_SPAWN_MIN_S, ZABKA_SPAWN_SPEEDUP_PER_MIN, ZABKA_SPAWN_START_S, ZABKA_ZUL_RADIUS,
+  BONUS_STINK, ZABKA_SPAWN_MIN_S, ZABKA_SPAWN_SPEEDUP_PER_MIN, ZABKA_SPAWN_START_S,
+  ZABKA_ZUL_FALLEN_STINK, ZABKA_ZUL_WALK_MAX, ZABKA_ZUL_WALK_MIN, ZABKA_ZUL_WALK_SPEED,
   ZABKA_ZULS_MAX, ZABKA_ZULS_START, ZABKA_ZULS_STEP_S, ZABKAS_PER_TILE,
 } from '../shared/config';
 import type { Bus, GameState, World } from '../shared/types';
@@ -65,29 +66,58 @@ export function placeZabkas(world: World): { x: number; z: number }[] {
   return shops;
 }
 
+/** Unit direction the shop door faces: a neighbouring road, else the map centre. */
+export function zabkaFront(world: World, shop: { x: number; z: number }): { x: number; z: number } {
+  const { size, tiles } = world;
+  const tx = Math.floor(shop.x);
+  const tz = Math.floor(shop.z);
+  for (const [dx, dz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+    const x = tx + dx;
+    const z = tz + dz;
+    if (x >= 0 && z >= 0 && x < size && z < size && tiles[z * size + x].kind === 'road') return { x: dx, z: dz };
+  }
+  const dx = size / 2 - shop.x;
+  const dz = size / 2 - shop.z;
+  const len = Math.hypot(dx, dz);
+  return len < 1e-6 ? { x: 0, z: 1 } : { x: dx / len, z: dz / len };
+}
+
 /** Puts the shops on the map and staggers their first drunk. Call once after spawnBonuses. */
 export function spawnZabkas(state: GameState): void {
   state.world.zabkas ??= placeZabkas(state.world);
   state.zabkaNextAt = state.world.zabkas.map(() => zabkaInterval(0) * (0.5 + 0.5 * rand(state)));
 }
 
-/** Lets drunks out of shops that are due, up to the per-shop limit. Call once per sim step. */
+/**
+ * Lets drunks out of shops that are due, up to the per-shop limit: each walks out of the door a
+ * little way in a random direction and falls over, which makes him stink more. Call once per step.
+ */
 export function updateZabkas(state: GameState): void {
   const shops = state.world.zabkas;
   const next = state.zabkaNextAt;
   if (!shops || !next) return;
   const bonuses = (state.bonuses ??= []);
+  for (const b of bonuses) {
+    if (b.spot === 'zabka' && b.walk && state.time >= b.walk.until) b.amount = ZABKA_ZUL_FALLEN_STINK;
+  }
   shops.forEach((shop, i) => {
     if (state.time < next[i]) return;
     next[i] = state.time + zabkaInterval(state.time);
     const waiting = bonuses.filter((b) => b.spot === 'zabka' && b.zabka === i && b.active).length;
     if (waiting >= zabkaLimit(state.time)) return;
-    const a = rand(state) * 2 * Math.PI;
-    const r = ZABKA_ZUL_RADIUS * (0.6 + 0.4 * rand(state));
-    const { x, z } = nearestDrivable(state.world, shop.x + Math.cos(a) * r, shop.z + Math.sin(a) * r);
+    // Out of the door (just past the kiosk), then away from the shop, up to 90° off the door line.
+    const front = zabkaFront(state.world, shop);
+    const door = { x: shop.x + front.x * 0.7, z: shop.z + front.z * 0.7 };
+    const a = Math.atan2(front.x, front.z) + (rand(state) - 0.5) * Math.PI;
+    const dist = ZABKA_ZUL_WALK_MIN + (ZABKA_ZUL_WALK_MAX - ZABKA_ZUL_WALK_MIN) * rand(state);
+    const size = state.world.size;
+    const clampIn = (v: number) => Math.max(0.5, Math.min(size - 0.5, v));
+    const end = nearestDrivable(state.world, clampIn(door.x + Math.sin(a) * dist), clampIn(door.z + Math.cos(a) * dist));
+    const walkTime = Math.hypot(end.x - door.x, end.z - door.z) / ZABKA_ZUL_WALK_SPEED;
     bonuses.push({
       id: nextId(state), spot: 'zabka', kind: 'zul', amount: BONUS_STINK.zul,
-      active: true, respawnAt: 0, x, z, zabka: i,
+      active: true, respawnAt: 0, x: end.x, z: end.z, zabka: i,
+      walk: { x: door.x, z: door.z, from: state.time, until: state.time + walkTime },
     });
   });
 }

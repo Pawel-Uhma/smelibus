@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { BONUS_STINK, BUS_LENGTH, ZABKA_SPAWN_MIN_S, ZABKA_ZULS_MAX, ZABKA_ZULS_START } from '../shared/config';
+import {
+  BONUS_STINK, BUS_LENGTH, ZABKA_SPAWN_MIN_S, ZABKA_ZUL_FALLEN_STINK, ZABKA_ZUL_WALK_MAX, ZABKA_ZULS_MAX,
+  ZABKA_ZULS_START,
+} from '../shared/config';
 import type { Bus, GameState } from '../shared/types';
-import { updateBonuses } from './bonus';
+import { bonusPosition, updateBonuses } from './bonus';
 import { NO_INPUT, updateBus } from './bus';
 import { addPlayer, createGame } from './game';
 import { generateWorld } from './world';
-import { collideZabkas, placeZabkas, updateZabkas, zabkaInterval, zabkaLimit } from './zabka';
+import { collideZabkas, placeZabkas, updateZabkas, zabkaFront, zabkaInterval, zabkaLimit } from './zabka';
 
 const zabkaZuls = (s: GameState, shop?: number) =>
   s.bonuses!.filter((b) => b.spot === 'zabka' && (shop === undefined || b.zabka === shop));
@@ -84,14 +87,56 @@ describe('Żabka shops', () => {
     expect(zul.kind).toBe('zul');
     const bus = s.buses.find((b) => b.id === p.busId)!;
     bus.stink = 0;
-    bus.x = zul.x;
-    bus.z = zul.z;
+    const at = bonusPosition(zul, s.time);
+    bus.x = at.x;
+    bus.z = at.z;
     updateBonuses(s, 0);
     expect(bus.stink).toBe(BONUS_STINK.zul);
     expect(bus.slowDecayUntil).toBeGreaterThan(s.time);
     s.time += 120;
     updateBonuses(s, 0);
     expect(s.bonuses!.some((b) => b.id === zul.id)).toBe(false);
+  });
+});
+
+describe('Żabka drunks walking out', () => {
+  function letOut() {
+    const s = createGame(1);
+    s.bonuses = [];
+    s.time = s.zabkaNextAt![0];
+    updateZabkas(s);
+    return { s, zul: zabkaZuls(s, 0)[0], shop: s.world.zabkas![0] };
+  }
+
+  it('comes out of the door, walks away from the shop and stops a short way off', () => {
+    const { s, zul, shop } = letOut();
+    const w = zul.walk!;
+    const front = zabkaFront(s.world, shop);
+    // Starts just outside the kiosk, on the door side.
+    expect((w.x - shop.x) * front.x + (w.z - shop.z) * front.z).toBeGreaterThan(0.5);
+    const start = bonusPosition(zul, w.from);
+    expect(start).toEqual({ x: w.x, z: w.z });
+    const walked = Math.hypot(zul.x - w.x, zul.z - w.z);
+    expect(walked).toBeGreaterThan(0);
+    expect(walked).toBeLessThanOrEqual(ZABKA_ZUL_WALK_MAX + 1e-9);
+    // Away from the shop, never back into it.
+    expect(Math.hypot(zul.x - shop.x, zul.z - shop.z)).toBeGreaterThan(Math.hypot(w.x - shop.x, w.z - shop.z) - 1e-9);
+    const mid = bonusPosition(zul, (w.from + w.until) / 2);
+    expect(mid.x).toBeCloseTo((w.x + zul.x) / 2, 9);
+    expect(mid.z).toBeCloseTo((w.z + zul.z) / 2, 9);
+    expect(bonusPosition(zul, w.until + 10)).toEqual({ x: zul.x, z: zul.z });
+  });
+
+  it('stinks more once he has fallen over', () => {
+    const { s, zul } = letOut();
+    expect(zul.amount).toBe(BONUS_STINK.zul);
+    s.time = zul.walk!.until - 0.01;
+    updateZabkas(s);
+    expect(zul.amount).toBe(BONUS_STINK.zul);
+    s.time = zul.walk!.until;
+    updateZabkas(s);
+    expect(zul.amount).toBe(ZABKA_ZUL_FALLEN_STINK);
+    expect(ZABKA_ZUL_FALLEN_STINK).toBeGreaterThan(BONUS_STINK.zul);
   });
 });
 

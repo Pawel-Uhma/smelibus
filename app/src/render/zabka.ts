@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { World } from '../shared/types';
+import { zabkaFront } from '../sim/zabka';
 import { BUS_VOXEL_SIZE as VOXEL } from './models/bus';
 
 // Żabka kiosk, same voxel size as the bus: 6 × 6 voxels = one tile, 6 voxels high.
@@ -43,17 +44,10 @@ export function kioskVoxels(): KioskVoxel[] {
   return out;
 }
 
-/** Heading (rotation.y) that turns the shop front to a neighbouring road, else to the map centre. */
+/** Heading (rotation.y) that turns the shop front where the sim puts the door. */
 function facing(world: World, shop: { x: number; z: number }): number {
-  const { size, tiles } = world;
-  const tx = Math.floor(shop.x);
-  const tz = Math.floor(shop.z);
-  for (const [dx, dz] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
-    const x = tx + dx;
-    const z = tz + dz;
-    if (x >= 0 && z >= 0 && x < size && z < size && tiles[z * size + x].kind === 'road') return Math.atan2(dx, dz);
-  }
-  return Math.atan2(size / 2 - shop.x, size / 2 - shop.z);
+  const f = zabkaFront(world, shop);
+  return Math.atan2(f.x, f.z);
 }
 
 /** Static Żabka kiosks from world.zabkas (card 019). Read-only on the world, built once. */

@@ -17,6 +17,8 @@ export function createBonusesRender(scene: THREE.Scene) {
       t += dt;
       const seen = new Set<number>();
       for (const b of bonuses) {
+        // Żabka drunks walk and fall over: render/zul.ts draws them.
+        if (b.spot === 'zabka') continue;
         seen.add(b.id);
         let mesh = meshes.get(b.id);
         if (!mesh) {
