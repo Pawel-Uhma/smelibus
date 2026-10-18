@@ -3,6 +3,7 @@ import { INTERP_DELAY_MS } from '../shared/config';
 import type {
   Bus, BusInput, JoinOptions, LobbyInfo, PartyMetadata, PlayerId, PublicParty, Snapshot, Welcome, World,
 } from '../shared/types';
+import { createSnapshotBuffer } from './interp';
 import { applyTileChanges } from './tiles';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'ws://localhost:2567';
@@ -15,7 +16,7 @@ export interface Party {
   world: World;
   /** Latest snapshot from the server. */
   latest(): Snapshot;
-  /** Remote buses interpolated INTERP_DELAY_MS in the past. */
+  /** Remote buses interpolated INTERP_DELAY_MS in the past (on the server's timeline). */
   interpolatedBuses(now: number): Bus[];
   sendInput(input: BusInput): void;
   onClose(cb: (reason: string) => void): void;
@@ -88,7 +89,7 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   const room = await open();
   sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ code: room.roomId, token: room.reconnectionToken }));
 
-  const buffer: { at: number; snap: Snapshot }[] = [];
+  const buffer = createSnapshotBuffer();
   let lobby: LobbyInfo = { hostId: null, started: true, public: false };
   const lobbyCbs: ((info: LobbyInfo) => void)[] = [];
   room.onMessage('lobby', (info: LobbyInfo) => {
@@ -105,13 +106,12 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
   room.onMessage('snapshot', (snap: Snapshot) => {
     // Changes sent before `welcome` are already in the welcome map.
     if (world) applyTileChanges(world.tiles, snap.tileChanges);
-    if (!snap.bonuses) snap.bonuses = buffer[buffer.length - 1]?.snap.bonuses ?? [];
-    buffer.push({ at: performance.now(), snap });
-    if (buffer.length > 30) buffer.shift();
+    if (!snap.bonuses) snap.bonuses = buffer.latest()?.bonuses ?? [];
+    buffer.push(snap, performance.now());
   });
   room.send('hello');
   const { playerId } = await welcome;
-  while (!buffer.length) await new Promise((r) => setTimeout(r, 20));
+  while (!buffer.latest()) await new Promise((r) => setTimeout(r, 20));
 
   let lastSent = '';
   let lastSentAt = 0;
@@ -122,21 +122,8 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
     code: room.roomId,
     playerId,
     world: world!,
-    latest: () => buffer[buffer.length - 1].snap,
-    interpolatedBuses(now) {
-      const t = now - INTERP_DELAY_MS;
-      let i = buffer.length - 1;
-      while (i > 0 && buffer[i - 1].at > t) i--;
-      const a = buffer[Math.max(0, i - 1)];
-      const b = buffer[i];
-      if (a === b || b.at === a.at) return b.snap.buses;
-      const k = Math.max(0, Math.min(1, (t - a.at) / (b.at - a.at)));
-      return b.snap.buses.map((bb) => {
-        const ab = a.snap.buses.find((x) => x.id === bb.id);
-        if (!ab) return bb;
-        return { ...bb, x: lerp(ab.x, bb.x, k), z: lerp(ab.z, bb.z, k), angle: lerpAngle(ab.angle, bb.angle, k) };
-      });
-    },
+    latest: () => buffer.latest()!,
+    interpolatedBuses: (now) => buffer.buses(now, INTERP_DELAY_MS),
     sendInput(input) {
       // Send on change, plus a keepalive so a lost message can't leave the bus stuck.
       const key = `${input.throttle},${input.steer},${input.seq}`;
@@ -155,10 +142,4 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
     onLobby: (cb) => lobbyCbs.push(cb),
     start: () => room.send('start'),
   };
-}
-
-const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
-export function lerpAngle(a: number, b: number, k: number): number {
-  const d = Math.atan2(Math.sin(b - a), Math.cos(b - a));
-  return a + d * k;
 }

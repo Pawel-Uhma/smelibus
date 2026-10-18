@@ -9,6 +9,8 @@ import { nearestDrivable } from '../../app/src/sim/world';
 import { assignStartZones, startPoint } from '../../app/src/sim/zones';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+/** Sim steps per snapshot (3 at 60 Hz and 50 ms). */
+const SNAPSHOT_EVERY_TICKS = Math.max(1, Math.round(SNAPSHOT_INTERVAL_MS / (SIM_DT * 1000)));
 const randomCode = () => Array.from({ length: 4 }, () => CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)]).join('');
 
 /** One room = one party. Runs the authoritative sim and broadcasts plain JSON snapshots. */
@@ -19,6 +21,8 @@ export class PartyRoom extends Room {
   private acks = new Map<PlayerId, InputAck>();
   private tiles!: ReturnType<typeof createTileTracker>;
   private lastBonuses = '';
+  /** Room sim step (Snapshot.serverTick). */
+  private serverTick = 0;
   private lobby: LobbyInfo = { hostId: null, started: false, public: false };
 
   messages = {
@@ -51,22 +55,30 @@ export class PartyRoom extends Room {
     this.lobby.public = options?.public === true;
     this.setPrivate(!this.lobby.public);
     this.syncLobby();
-    // Waiting room until the host clicks Start: the clock and sudden death don't run yet.
-    this.setSimulationInterval(() => {
-      if (!this.lobby.started) return;
-      stepGame(this.game, this.busInputs, SIM_DT);
-      for (const ack of this.acks.values()) ack.ticks++;
-    }, SIM_DT * 1000);
-    this.clock.setInterval(() => {
-      const snap = this.snapshot();
-      const tileChanges = this.tiles.diff();
-      if (tileChanges.length) snap.tileChanges = tileChanges;
-      // Bonuses only when something changed (~100 of them; full list 20×/s would be ~200 KB/s).
-      const bonusKey = JSON.stringify(snap.bonuses);
-      if (bonusKey === this.lastBonuses) delete snap.bonuses;
-      else this.lastBonuses = bonusKey;
-      this.broadcast('snapshot', snap);
-    }, SNAPSHOT_INTERVAL_MS);
+    // Fixed 60 Hz steps from Colyseus's accumulator: a late timer runs catch-up steps instead of
+    // slowing the game down, so server ticks stay in step with the client's prediction ticks.
+    // Snapshots go out from the same loop, every SNAPSHOT_EVERY_TICKS steps, so each one carries
+    // exactly the same amount of movement (two independent timers gave 2 or 4 ticks per snapshot).
+    this.setFixedTimestep((ctx) => {
+      this.serverTick = ctx.tick;
+      // Waiting room until the host clicks Start: the clock and sudden death don't run yet.
+      if (this.lobby.started) {
+        stepGame(this.game, this.busInputs, SIM_DT);
+        for (const ack of this.acks.values()) ack.ticks++;
+      }
+      if (ctx.tick % SNAPSHOT_EVERY_TICKS === 0) this.broadcastSnapshot();
+    }, Math.round(1 / SIM_DT));
+  }
+
+  private broadcastSnapshot() {
+    const snap = this.snapshot();
+    const tileChanges = this.tiles.diff();
+    if (tileChanges.length) snap.tileChanges = tileChanges;
+    // Bonuses only when something changed (~100 of them; full list 20×/s would be ~200 KB/s).
+    const bonusKey = JSON.stringify(snap.bonuses);
+    if (bonusKey === this.lastBonuses) delete snap.bonuses;
+    else this.lastBonuses = bonusKey;
+    this.broadcast('snapshot', snap);
   }
 
   onJoin(client: Client, options: JoinOptions) {
@@ -132,7 +144,7 @@ export class PartyRoom extends Room {
   private snapshot(): Snapshot {
     const { tick, time, players, buses, winnerId, bonuses, weather } = this.game;
     return {
-      tick, time, players, buses, winnerId: winnerId ?? null, bonuses: bonuses ?? [], weather: weather ?? [],
+      tick, serverTick: this.serverTick, time, players, buses, winnerId: winnerId ?? null, bonuses: bonuses ?? [], weather: weather ?? [],
       acks: Object.fromEntries(this.acks),
     };
   }
