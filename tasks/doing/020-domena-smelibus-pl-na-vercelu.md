@@ -1,7 +1,7 @@
 # Domena smelibus.pl na Vercelu
 
 obszar: wspolne
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: - (tylko panel Vercela, bez zmian w kodzie)
 pytanie: @Pawel Antek kupił smelibus.pl (nazwa.pl). Tylko Ty masz dostęp do projektu `smelibus` na Vercelu — weź tę kartę albo dodaj Antka do teamu.
