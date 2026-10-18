@@ -130,6 +130,9 @@ export interface Bonus {
 /** What the server broadcasts every SNAPSHOT_INTERVAL_MS. The world is sent once on join. */
 export interface Snapshot {
   tick: number;
+  /** Room sim step this snapshot was sent at (60 Hz, runs in the waiting room too). Clients
+   *  interpolate by it instead of arrival time. Missing from older servers. */
+  serverTick?: number;
   time: number;
   players: Player[];
   buses: Bus[];
