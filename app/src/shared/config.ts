@@ -338,8 +338,6 @@ export const HIGH_CONTRAST_BORDER_TEXELS = 1;
 export const HIGH_CONTRAST_NIGHT_MAX = 0.35;
 
 // Computer players (sim/bot.ts, card 037). They run on the server and send BusInput like a client.
-/** Names for bots added in the waiting room, used in order (first free one). */
-export const BOT_NAMES = ['Bot Zdzisiek', 'Bot Grażyna', 'Bot Mirek', 'Bot Halina', 'Bot Janusz', 'Bot Bożena', 'Bot Waldek', 'Bot Krysia'];
 /** A bot heads home to bank its stink once it carries a random amount in this range. */
 export const BOT_BANK_STINK_MIN = 30;
 export const BOT_BANK_STINK_MAX = 65;

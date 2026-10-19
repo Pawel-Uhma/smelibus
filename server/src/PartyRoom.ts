@@ -1,11 +1,12 @@
 import { Room, type Client } from 'colyseus';
-import { BOT_NAMES, CITY_ENABLED, MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
+import { CITY_ENABLED, MAX_PLAYERS, PLAYER_COLORS, RECONNECT_SECONDS, SIM_DT, SNAPSHOT_INTERVAL_MS } from '../../app/src/shared/config';
 import type {
   BusInput, GameState, InputAck, JoinOptions, LobbyInfo, MapKind, PartyMetadata, PlayerId, Snapshot, Welcome,
 } from '../../app/src/shared/types';
 import { rematchGame } from '../../app/src/net/rematch';
 import { createTileTracker } from '../../app/src/net/tiles';
 import { createBot, type Bot } from '../../app/src/sim/bot';
+import { stinkyBotName } from '../../app/src/ui/lobby/stinkyName';
 import { addPlayer, createGame, removePlayer, stepGame } from '../../app/src/sim/game';
 import { parkBus } from '../../app/src/sim/bus';
 import { nearestDrivable } from '../../app/src/sim/world';
@@ -62,8 +63,7 @@ export class PartyRoom extends Room {
       if (client.sessionId !== this.lobby.hostId || this.lobby.started) return;
       // Counts seats reserved by clients still joining; maxClients already excludes the bots.
       if (this.hasReachedMaxClients()) return;
-      const names = new Set(this.game.players.map((p) => p.name));
-      const name = BOT_NAMES.find((n) => !names.has(n)) ?? `Bot ${this.bots.size + 1}`;
+      const name = stinkyBotName(new Set(this.game.players.map((p) => p.name)));
       let n = 1;
       while (this.game.players.some((p) => p.id === `bot-${n}`)) n++;
       const id = `bot-${n}`;
