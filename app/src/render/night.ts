@@ -7,6 +7,7 @@ import {
 import type { Bus, World } from '../shared/types';
 import { zabkaFront } from '../sim/zabka';
 import { BUS_VOXEL_SIZE as V } from './models/bus';
+import { createStreetlightGlow } from './streetlights';
 
 const SKY = 0x0b1026;
 const DUSK = 0xe98a5f;
@@ -79,7 +80,7 @@ interface BusLights {
 
 /**
  * Day/night look. Only reads game state: dims the scene's own lights, gives buses headlight beams and
- * a red glow behind, and Żabkas a shop light, all scaled by the darkness level.
+ * a red glow behind, Żabkas a shop light, street lamps their bulbs and light pools, all scaled by the darkness level.
  * Unlit (MeshBasic) layers like zones and roads wear a lit copy: by day it glows with exactly the
  * unlit colour (emissive), by night it is lit like the rest, so headlights show on zones and roads.
  */
@@ -152,6 +153,8 @@ export function createNight(scene: THREE.Scene, world: World) {
     }
     root.add(group);
   });
+
+  const streetlights = createStreetlightGlow(root, world, tex);
 
   // Day values of the scene's own lights and sky, blended toward night.
   const lights: { light: THREE.Light; intensity: number; color: THREE.Color; ground?: THREE.Color }[] = [];
@@ -227,6 +230,7 @@ export function createNight(scene: THREE.Scene, world: World) {
     signMat.opacity = ZABKA_SIGN_OPACITY * k;
     for (const l of pool) l.beam.intensity = NIGHT_HEADLIGHT_INTENSITY * k;
     for (const lamp of zabkaLamps) lamp.intensity = NIGHT_ZABKA_INTENSITY * k;
+    streetlights.set(k);
   }
 
   let mode: NightMode = 'cycle';

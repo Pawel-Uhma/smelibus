@@ -109,3 +109,8 @@ Licencja ODbL: przy mapie z OSM w lewym dolnym rogu widać „© OpenStreetMap c
 
 ### 2026-10-18 — Szersze jezdnie i ronda
 Gra się ciasno, więc jezdnie są o ok. 1/3 szersze (`CITY_STREETS`, połówki: aleja 4,8, ulica 3,6, uliczka 3 kafelka; ulica ma teraz jezdnię 7,2 przy autobusie 3 × 1,2). Ronda urosły razem z nimi (R 8,5 / 10,5, pas ronda 5,8, limit OSM 12), a siatka skrzyżowań co 40 zamiast 36, żeby kwartały nie skurczyły się pod szerszymi ulicami. Rozmiar mapy na gracza bez zmian. Sprawdzone na `/demo-city.html` w devcontainerze.
+
+
+## Latarnie (2026-10-19)
+
+Latarnie przy krawężnikach wszystkich ulic, co `STREETLIGHT_STEP` kratek, naprzemiennie po obu stronach. Tylko render: sim o nich nie wie, autobusy przez nie przejeżdżają. Nocą świecą żarówka i plama światła na ziemi (addytywny blask, bez prawdziwych świateł Three.js, bo setki PointLightów zabiłyby FPS).

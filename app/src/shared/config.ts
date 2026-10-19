@@ -294,6 +294,11 @@ export const NIGHT_TAILLIGHT_GLOW = 0.45;
 export const NIGHT_ZABKA_INTENSITY = 6;
 export const NIGHT_ZABKA_RANGE = 7;
 export const NIGHT_ZABKA_LIGHTS_MAX = 8;
+/** Street lamps (render/streetlights.ts): spacing along each kerb in tiles, radius of the light
+ *  pool on the ground, and its strength (0..1) at full night. Not collidable. */
+export const STREETLIGHT_STEP = 9;
+export const STREETLIGHT_POOL_R = 2.6;
+export const STREETLIGHT_GLOW = 0.55;
 
 // Sound effects (audio/), all generated with Web Audio.
 /** Other players' horns are heard up to this far, tiles; volume falls with distance. */

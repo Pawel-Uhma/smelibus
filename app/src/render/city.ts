@@ -4,6 +4,7 @@ import { CITY_BIKE_WIDTH, CITY_ROUNDABOUT_RING, CITY_STREETS } from '../shared/c
 import type { CityStreet, World } from '../shared/types';
 import { ROUNDABOUT_WALK } from '../sim/city';
 import { createBuildingsRender } from './buildings';
+import { createStreetlightPoles } from './streetlights';
 
 /** Ground texture pixels per tile. */
 const PX = 16;
@@ -207,6 +208,7 @@ export function createCityRender(scene: THREE.Scene, world: World): void {
   scene.add(ground);
 
   createTrees(scene, world, parks);
+  createStreetlightPoles(scene, world);
   createBuildingsRender(scene, world);
 }
 
