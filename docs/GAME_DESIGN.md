@@ -39,7 +39,7 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 - Pieszy: chodzi wszędzie (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest pusty.
 - Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja dalej hamuje). Prędkość pieszego: 5,2 kafelka/s.
 - Kierowca: steruje autobusem, `E` = wysiada obok autobusu.
-- `H` = klakson (pieszy i kierowca). Słyszą go gracze w pobliżu, ciszej im dalej (`SOUND_HORN_RANGE`). Na telefonie mały przycisk `H` obok `E`.
+- `H` = klakson (pieszy i kierowca). Słyszą go gracze w pobliżu, ciszej im dalej (`SOUND_HORN_RANGE`). Na telefonie przycisk „Klakson” po lewej, pod „Wsiądź / Wysiądź”.
 - `K` = tryb wysokiego kontrastu (też przycisk „Kontrast” w HUD, `?kontrast` w URL, domyślnie wg `prefers-contrast: more`): strefy nad ulicami miasta (półprzezroczysty kolor gracza, czarna granica), nieprzezroczysty HUD, noc ciemnieje najwyżej do `HIGH_CONTRAST_NIGHT_MAX`. Wybór zostaje w przeglądarce.
 - **Eliminacja:** gracz z 0 kafelków nie odpada. Dalej chodzi, jeździ, kradnie autobusy,
   taranuje i potrąca, ale nie może rosnąć (nie ma strefy, do której mógłby wjechać).
@@ -48,7 +48,7 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
 
 - Stała pula: **liczba graczy + 2** autobusy. Nie znikają i nie pojawiają się nowe.
 - Sterowanie zręcznościowe: gaz/hamulec/skręt, prosta fizyka (bez silnika fizycznego) — nie symulacja.
-- Na telefonie (dotyk): pływający joystick pod lewym kciukiem (góra = gaz, dół = hamulec/wsteczny, boki = skręt; pieszy idzie w stronę wychylenia) i okrągły przycisk `E` po prawej. Na desktopie bez zmian.
+- Na telefonie (dotyk): pływająca gałka pod prawym kciukiem. Autobus jedzie tam, gdzie wskazujesz na ekranie (nie skręca kołami w stronę wychylenia): sam skręca do kierunku gałki, a wychylenie to gaz. Stojący autobus przy gałce skierowanej za siebie cofa, jadący zawraca. Pieszy idzie w stronę wychylenia. Po lewej małe przyciski z ikoną i podpisem: „Wsiądź”/„Wysiądź” i „Klakson”. Na desktopie bez zmian.
 - Autobus jest neutralny: **pusty autobus może wziąć każdy**, także zaparkowany w cudzej strefie.
   Autobusu z kierowcą nie da się przejąć.
 - Autobus jest wielokrotnego użytku: po skoku zostaje tam, gdzie kierowca wysiadł.
@@ -148,7 +148,7 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
   od tego, czyje są. Smród autobusu spada do 0.
 - O tym, komu zabierasz teren, decydujesz tym, z której strony wjeżdżasz.
 - Przejęte kafelki zmieniają kolor (render podświetla granicę).
-- **Minimapa** w rogu HUD (na telefonie na dole pośrodku, między kciukami): strefy w kolorach
+- **Minimapa** w rogu HUD (na telefonie w poziomie na dole pośrodku, między kciukami): strefy w kolorach
   graczy, budynki ciemniejsze, autobusy i piesi jako kropki, chmury deszczu i Harnasia.
   **Bez bonusów**, żeby nie było za łatwo. Gdy granicy własnej strefy nie widać na ekranie,
   przy krawędzi ekranu pojawia się strzałka do najbliższej granicy.
@@ -163,7 +163,7 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 - Proste modele 3D w stylu voxel, **generowane w kodzie** z prostopadłościanów (bez plików
   `.vox`). Wszystkie kolory z jednej palety, kolory graczy to jej podmiana.
 - Modele z MagicaVoxel dla autobusu i ludzika — dopiero gdy pętla gry działa.
-- Kamera: pieszy z góry pod kątem, kierowca — widok z góry.
+- Kamera: pieszy z góry pod kątem, kierowca — widok z góry. Kierowca może przełączać widok klawiszem C albo przyciskiem w HUD: z góry → dron za autobusem → kokpit (szyba, słupki, deska, kierownica w kolorze gracza) → oczy kierowcy (pierwsza osoba bez elementów autobusu). Wybór zapamiętuje przeglądarka, `?kamera=chase|cockpit|eyes` w URL. W widokach innych niż z góry gałka na telefonie działa jak gaz i kierownica, nie jak celowanie na ekranie.
 - Voxele renderowane przez `InstancedMesh` / merge geometrii — nie jeden `Mesh` na voxel.
 - Tryb wysokiego kontrastu: **nie w MVP** (był prośbą ze spotkania 1, odłożony).
 

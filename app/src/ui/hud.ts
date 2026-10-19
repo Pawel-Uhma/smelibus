@@ -75,7 +75,7 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
       <div class="party"><span class="code">Party <b>${code}</b></span><button id="copy" class="icon" title="Kopiuj link" aria-label="Kopiuj link">🔗</button><button id="help-toggle" class="icon" title="Sterowanie" aria-label="Sterowanie" aria-expanded="false">?</button></div>
       <ul id="players"></ul>
       <div class="help">WASD / strzałki: jazda i chodzenie · spacja: hamulec · E: wsiądź / wysiądź · H: klakson · K: kontrast</div>
-      <div class="help help-touch">Lewy kciuk: jazda i chodzenie · E: wsiądź / wysiądź · H: klakson · K: kontrast</div>
+      <div class="help help-touch">Prawy kciuk: wskaż, gdzie jechać albo iść · przyciski po lewej: wsiądź / wysiądź, klakson</div>
     </div>
     <div class="hud-clock">
       <div id="clock" class="time">0:00</div>

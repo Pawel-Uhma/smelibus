@@ -3,6 +3,7 @@ import { createSounds } from './audio/sounds';
 import { createKeyboard } from './input/keyboard';
 import { createTouch, mergeInputs } from './input/touch';
 import { createBonusesRender } from './render/bonuses';
+import { createCameraMode } from './render/camera';
 import { createContrast } from './render/contrast';
 import { createNight, nightModeFromUrl } from './render/night';
 import { createZulRender } from './render/zul';
@@ -18,6 +19,7 @@ import { showLobby } from './ui/lobby/lobby';
 
 const ui = document.getElementById('ui')!;
 const contrast = createContrast();
+const cameraMode = createCameraMode();
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 
 const party = await showLobby(ui);
@@ -41,7 +43,7 @@ const minimap = createMinimap(ui, party.playerId);
 const keyboard = createKeyboard();
 const touch = createTouch();
 const sounds = createSounds(party.world, party.playerId);
-ui.querySelector('.hud .party')?.append(sounds.muteButton(), contrast.button());
+ui.querySelector('.hud .party')?.append(cameraMode.button(), sounds.muteButton(), contrast.button());
 let lastHorn = 0;
 party.onClose((reason) => hud.banner(`${reason}. Odśwież stronę.`));
 // Rematch (card 027): the scene is built for one map, so reload and rejoin the same seat
@@ -65,7 +67,8 @@ function frame(now: number) {
   lastFrame = now;
   const snap = party.latest();
   const me = snap.players.find((p) => p.id === party.playerId);
-  const input = mergeInputs(keyboard.read(me?.busId === null), touch.read());
+  // Behind or in the bus the stick drives it like a wheel and pedals; from the top it aims on screen.
+  const input = mergeInputs(keyboard.read(me?.busId === null), touch.read(predictor?.bus, cameraMode.mode !== 'top'));
   if ((input.horn ?? 0) > lastHorn) sounds.honk();
   lastHorn = input.horn ?? 0;
   const serverBus = snap.buses.find((b) => b.id === me?.busId);
@@ -97,7 +100,7 @@ function frame(now: number) {
   night.update(buses, snap.time);
   // On foot the camera follows the pedestrian (card 006).
   const onFoot = me && me.busId === null && me.x !== undefined && me.z !== undefined ? { x: me.x, z: me.z } : undefined;
-  scene.render(buses, snap.players, ownBus ?? onFoot, dt, snap.time);
+  scene.render(buses, snap.players, ownBus ?? onFoot, dt, snap.time, { mode: cameraMode.mode, bus: ownBus, steer: input.steer });
   // Stink pops rise from just above the own bus.
   const ownScreen = ownBus ? scene.toScreen(ownBus.x, 2.6, ownBus.z) : null;
   sounds.update(snap, ownBus ?? onFoot, dt);

@@ -114,3 +114,7 @@ Gra się ciasno, więc jezdnie są o ok. 1/3 szersze (`CITY_STREETS`, połówki:
 ## Latarnie (2026-10-19)
 
 Latarnie przy krawężnikach wszystkich ulic, co `STREETLIGHT_STEP` kratek, naprzemiennie po obu stronach. Tylko render: sim o nich nie wie, autobusy przez nie przejeżdżają. Nocą świecą żarówka i plama światła na ziemi (addytywny blask, bez prawdziwych świateł Three.js, bo setki PointLightów zabiłyby FPS).
+
+## Tryby kamery (2026-10-19)
+
+Cztery widoki dla kierowcy (`render/camera.ts`): z góry, dron za autobusem, kokpit, oczy kierowcy. Tylko render, sim i serwer o nich nie wiedzą. Pieszy zawsze ma widok z góry, bo chodzi w kierunkach ekranu. W widokach z fotela własny model autobusu jest ukryty (zasłaniałby obraz), a kokpit to osobna mała grupa brył w przestrzeni autobusu. Kamera z fotela jest przyklejona do autobusu bez wygładzania, dron dogania kąt autobusu z opóźnieniem, żeby zakręty było widać.

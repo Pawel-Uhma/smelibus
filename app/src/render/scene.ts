@@ -10,6 +10,7 @@ import { createNameplate, stackNameplates, type Nameplate } from './nameplate';
 import { createStinkEffect } from './stink';
 import { createPaczkomatRender } from './paczkomat';
 import { createZabkaRender } from './zabka';
+import { CAMERA_FOV, cameraPose, createCockpit, isFirstPerson, type CameraMode } from './camera';
 
 /** Placeholder render: flat ground, buses as plain boxes. Cards 003/004 replace it with voxels. */
 export function createScene(canvas: HTMLCanvasElement, world: World) {
@@ -108,6 +109,9 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   }
 
   const camTarget = new THREE.Vector3(s / 2, 0, s / 2);
+  let camAngle = 0;
+  const cockpit = createCockpit();
+  scene.add(cockpit.group);
 
   function resize() {
     const w = canvas.clientWidth;
@@ -122,7 +126,14 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
   return {
     /** Lets other render modules (render/zones.ts) add their own meshes. */
     scene,
-    render(buses: Bus[], players: Player[], follow: { x: number; z: number } | undefined, dt: number, time = 0) {
+    /**
+     * `view` picks the camera (render/camera.ts); the close views follow `view.bus`, the own bus.
+     * Without it, or on foot, the camera is the top-down one following `follow`.
+     */
+    render(
+      buses: Bus[], players: Player[], follow: { x: number; z: number } | undefined, dt: number, time = 0,
+      view?: { mode: CameraMode; bus: Bus | null; steer: number },
+    ) {
       resize();
       const byId = new Map<PlayerId, Player>(players.map((p) => [p.id, p]));
       for (const bus of buses) {
@@ -131,14 +142,43 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       }
       syncPedestrians(players, time, dt);
       stink.update(buses, dt);
-      if (follow) {
+      const own = view?.bus ?? null;
+      const mode: CameraMode = own ? view!.mode : 'top';
+      const inside = isFirstPerson(mode);
+      if (own && inside) {
+        // In the driver's seat the view is glued to the bus, any lag would feel like a loose neck.
+        camTarget.set(own.x, 0, own.z);
+        camAngle = own.angle;
+      } else if (follow) {
         const k = 1 - Math.exp(-dt * 6);
         camTarget.lerp(new THREE.Vector3(follow.x, 0, follow.z), k);
+        if (own) {
+          // The drone swings behind the bus a bit slower than it moves, so turns read on screen.
+          const d = Math.atan2(Math.sin(own.angle - camAngle), Math.cos(own.angle - camAngle));
+          camAngle += d * (1 - Math.exp(-dt * 4));
+        }
       }
-      // Top-down view, slightly tilted so boxes read as 3D.
-      camera.position.set(camTarget.x, 34, camTarget.z - 14);
-      camera.lookAt(camTarget);
+      const pose = cameraPose(mode, camTarget.x, camTarget.z, camAngle);
+      camera.position.set(pose.pos.x, pose.pos.y, pose.pos.z);
+      camera.lookAt(pose.look.x, pose.look.y, pose.look.z);
+      const near = inside ? 0.03 : 0.1;
+      if (camera.fov !== CAMERA_FOV[mode] || camera.near !== near) {
+        camera.fov = CAMERA_FOV[mode];
+        camera.near = near;
+        camera.updateProjectionMatrix();
+      }
       camera.updateMatrixWorld();
+      // From the seat the own bus model would block the view: the cockpit (or nothing) replaces it.
+      for (const [id, m] of meshes) m.group.visible = !(inside && own?.id === id);
+      // Behind the bus the own nick would cover the road ahead, and it's clear whose bus it is.
+      for (const [id, p] of plates) if (mode !== 'top' && own?.id === id) p.sprite.visible = false;
+      cockpit.group.visible = mode === 'cockpit';
+      if (own && mode === 'cockpit') {
+        cockpit.group.position.set(own.x, 0, own.z);
+        cockpit.group.rotation.y = own.angle;
+        const driver = own.driverId ? byId.get(own.driverId) : undefined;
+        cockpit.update(driver?.color || 0xbbbbbb, view!.steer, dt);
+      }
       const shownPlates = [...plates.entries()].filter(([, p]) => p.sprite.visible).sort((a, b) => a[0] - b[0]);
       stackNameplates(shownPlates.map(([, p]) => p), camera, dt);
       renderer.render(scene, camera);

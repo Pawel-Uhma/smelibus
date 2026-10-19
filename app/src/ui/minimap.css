@@ -8,7 +8,7 @@
 .minimap canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
 /* Small or short screens: smaller map, same corner. */
 @media (max-width: 640px), (max-height: 600px) { .minimap { width: min(var(--mm), 30vw, 30vh); height: min(var(--mm), 30vw, 30vh); } }
-/* Phones: the thumbs own the bottom corners (joystick left, E right), so the minimap sits in
+/* Phones: the thumbs own the bottom corners (buttons left, joystick right), so the minimap sits in
    the bottom middle between them. It ignores touches, the joystick zone below still works. */
 body.touch-on .minimap {
   right: auto; left: 50%; transform: translateX(-50%); bottom: calc(8px + env(safe-area-inset-bottom));
@@ -26,7 +26,7 @@ body.touch-on .minimap {
   content: ''; position: absolute; left: -13px; top: -9px; width: 26px; height: 18px;
   background: var(--c, #fff); clip-path: polygon(0 0, 100% 50%, 0 100%, 22% 50%);
 }
-/* Portrait phone: the horn button takes the bottom middle, the map goes under the clock. */
+/* Portrait phone: the map goes under the clock, out of the thumbs way. */
 @media (max-width: 560px) {
   body.touch-on .minimap { left: auto; transform: none; right: calc(8px + env(safe-area-inset-right)); bottom: auto; top: calc(96px + env(safe-area-inset-top)); }
 }

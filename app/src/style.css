@@ -128,24 +128,29 @@ body.touch-on .hud.help-open .help { display: none; }
 body.touch-on .hud.help-open .help-touch { display: block; }
 .touch { position: fixed; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .touch[hidden] { display: none; }
-.touch-zone { position: absolute; left: 0; top: 0; bottom: 0; width: 60%; }
+.touch-zone { position: absolute; right: 0; top: 0; bottom: 0; width: 60%; }
 .touch-stick {
-  --r: 56px; position: absolute; left: calc(28px + var(--r) + env(safe-area-inset-left)); top: calc(100% - 28px - var(--r) - env(safe-area-inset-bottom));
+  --r: 56px; position: absolute; left: calc(100% - 28px - var(--r) - env(safe-area-inset-right)); top: calc(100% - 28px - var(--r) - env(safe-area-inset-bottom));
   width: calc(var(--r) * 2); height: calc(var(--r) * 2); margin: calc(var(--r) * -1) 0 0 calc(var(--r) * -1);
   border-radius: 50%; background: #fff4; border: 3px solid #1b1b1b88; pointer-events: none; opacity: .55; transition: opacity .15s;
 }
 .touch-stick.active { opacity: 1; transition: none; }
 .touch-knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: #6fa82b; border: 3px solid #1b1b1b; box-shadow: 2px 2px 0 #1b1b1b; }
-.touch-use {
-  position: absolute; right: calc(28px + env(safe-area-inset-right)); bottom: calc(40px + env(safe-area-inset-bottom));
-  width: 76px; height: 76px; padding: 0; border-radius: 50%; font-size: 30px; font-weight: 900; background: #f4a300; box-shadow: 3px 3px 0 #1b1b1b; touch-action: none;
+/* Small labelled buttons in the bottom left; the right thumb drives. */
+.touch-buttons {
+  position: absolute; left: calc(10px + env(safe-area-inset-left)); bottom: calc(14px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
 }
-.touch-use.pressed { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #1b1b1b; background: #ffb829; }
-.touch-horn {
-  position: absolute; right: calc(118px + env(safe-area-inset-right)); bottom: calc(28px + env(safe-area-inset-bottom));
-  width: 54px; height: 54px; padding: 0; border-radius: 50%; font-size: 22px; font-weight: 900; background: #e5bc1f; box-shadow: 3px 3px 0 #1b1b1b; touch-action: none;
+.touch-btn {
+  display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px 0 8px; border-radius: 20px;
+  font-size: 14px; font-weight: 800; color: #1b1b1b; border: 2px solid #1b1b1b; box-shadow: 2px 2px 0 #1b1b1b; touch-action: none;
 }
-.touch-horn.pressed { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #1b1b1b; background: #f2d04a; }
+.touch-btn .ico { font-size: 20px; line-height: 1; }
+.touch-btn.pressed { transform: translate(2px, 2px); box-shadow: 0 0 0 #1b1b1b; }
+.touch-use { background: #f4a300; }
+.touch-use.pressed { background: #ffb829; }
+.touch-horn { background: #e5bc1f; }
+.touch-horn.pressed { background: #f2d04a; }
 /* The thumbs own the bottom corners: stink bar and clock go to the top right. */
 body.touch-on .hud { max-width: calc(100vw - 16px - min(160px, 38vw) - 8px); }
 body.touch-on .hud-stink { left: auto; right: calc(8px + env(safe-area-inset-right)); top: calc(8px + env(safe-area-inset-top)); bottom: auto; width: min(160px, 38vw); }

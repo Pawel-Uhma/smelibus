@@ -256,6 +256,12 @@ export const TOUCH_STICK_RADIUS = 56;
 export const TOUCH_STICK_DEADZONE = 0.15;
 /** Stick values are rounded to this step, so a still thumb doesn't flood the server with inputs. */
 export const TOUCH_STICK_STEP = 0.1;
+/** Bus aim steering: this far (rad) between the heading and the stick direction is full steer. */
+export const TOUCH_AIM_FULL_STEER_RAD = 0.6;
+/** A (nearly) stopped bus backs up when the stick points more than this (rad) away from its nose. */
+export const TOUCH_AIM_REVERSE_RAD = 2.3;
+/** Above this speed a bus told to turn around coasts instead of accelerating, for a tighter U-turn. */
+export const TOUCH_AIM_COAST_SPEED = 8;
 
 // Minimap and the arrow to the own zone (ui/minimap.ts).
 /** Minimap side in CSS px on desktop and on phones (touch controls on). */
