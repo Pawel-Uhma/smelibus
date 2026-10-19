@@ -3,6 +3,7 @@ import { createParty, joinParty, rejoinParty, watchPublicParties, type Party } f
 import { joinErrorMessage, normalizePartyCode } from '../../net/partyCode';
 import { MAX_PLAYERS, PLAYER_COLORS } from '../../shared/config';
 import type { MapKind, Player, PublicParty } from '../../shared/types';
+import { showChangelog } from './changelog';
 import { isOldDefaultName, stinkyName } from './stinkyName';
 import './lobby.css';
 
@@ -19,6 +20,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};
  */
 export async function showLobby(root: HTMLElement): Promise<Party> {
   const backdrop = createMenuBackdrop();
+  const hideChangelog = showChangelog();
   try {
     const party = await showHome(root, backdrop);
     history.replaceState(null, '', `/p/${party.code}`);
@@ -26,6 +28,7 @@ export async function showLobby(root: HTMLElement): Promise<Party> {
     root.innerHTML = '';
     return party;
   } finally {
+    hideChangelog();
     backdrop.dispose();
   }
 }

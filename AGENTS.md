@@ -65,6 +65,7 @@ Kod gry jest w `app/`, a ścieżki poniżej są względem `app/src/`. Komendy `n
 - Pytanie albo blokada wobec innej osoby: linia `pytanie: @<imię> …` w karcie, wypchnięta od razu, plus wiadomość na czacie zespołu.
 - **Nowa zależność npm** tylko wtedy, gdy naprawdę jest potrzebna, z uzasadnieniem w `docs/DECISIONS.md`.
 - **Decyzja architektoniczna albo zmiana mechaniki** to wpis w `docs/DECISIONS.md` albo `docs/GAME_DESIGN.md` w tym samym commicie co kod. W DECISIONS dopisujesz **na końcu** (scalanie `union`, więc bez konfliktów).
+- **Dziennik zmian w grze:** każdy commit, który zmienia coś w grze (nie sam kanban, docs czy narzędzia), ma w sobie linię z `./scripts/changelog.sh "dodano latarnie, które świecą w nocy"`. Kilka słów po polsku, z perspektywy gracza, bez szczegółów technicznych. Gracze widzą to po kliknięciu numeru wersji w rogu ekranu startowego, a każda linia podbija wersję.
 - Sekrety trzymasz w `.env.local`, nie w git. Nazwy zmiennych zapisujesz w `.env.example`.
 
 ## Konwencje

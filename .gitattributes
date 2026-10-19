@@ -1,2 +1,3 @@
 # Dopiski na końcu pliku od dwóch osób naraz scalają się bez konfliktu (zachowuje obie linie)
 docs/DECISIONS.md merge=union
+app/src/changelog.txt merge=union

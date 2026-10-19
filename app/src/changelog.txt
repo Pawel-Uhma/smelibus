@@ -1,0 +1,45 @@
+2026-10-18T11:57Z | Paweł | pierwsza wersja gry: można jeździć autobusem po pustej mapie
+2026-10-18T11:58Z | Paweł | serwer gry online, mecze z innymi graczami
+2026-10-18T11:59Z | Szczepan | 8 kolorów graczy
+2026-10-18T12:02Z | Paweł | strefy na mapie, przejmowanie terenu, nagła śmierć i wygrana
+2026-10-18T12:02Z | Szczepan | taranowanie: uderzony autobus odbija się i gubi smród
+2026-10-18T12:02Z | Paweł | bonusy smrodu do zbierania
+2026-10-18T12:04Z | Szczepan | model autobusu niskopodłogowego, który brzydnie od smrodu
+2026-10-18T12:06Z | Paweł | kolory stref, granice i poświata przy przejęciu
+2026-10-18T12:07Z | Janek | zielone kłęby i chmura smrodu wokół autobusu
+2026-10-18T12:08Z | Paweł | HUD: udział w mapie, zegar, pasek smrodu, ekran wygranej
+2026-10-18T12:11Z | Paweł | lobby: publiczne i prywatne party, poczekalnia, start przez hosta
+2026-10-18T12:14Z | Antek | deszcz i chmury Harnasia zmieniają smród autobusu
+2026-10-18T12:19Z | Szczepan | lepsze zderzenia, autobus nie dryfuje na zakrętach
+2026-10-18T12:20Z | Antek | generator miasta z ulicami
+2026-10-18T12:26Z | Janek | Żabki, z których wychodzą żule
+2026-10-18T12:30Z | Paweł | gra działa pod adresem smelibus.pl
+2026-10-18T12:33Z | Paweł | płynniejszy ruch cudzych autobusów
+2026-10-18T12:34Z | Paweł | bonusy smrodu jako klocki voxel
+2026-10-18T12:35Z | Szczepan | można wysiąść z autobusu (E), chodzić pieszo i przejąć pusty autobus
+2026-10-18T12:35Z | Antek | nowy ekran startowy z miastem w tle
+2026-10-18T12:38Z | Antek | nick kierowcy nad autobusem, zamazany od smrodu
+2026-10-18T12:38Z | Szczepan | autobusy odbijają się od budynków
+2026-10-18T12:47Z | Janek | sterowanie dotykowe na telefonie
+2026-10-18T12:47Z | Szczepan | trzy rodzaje żuli i duża Żabka z żabą na dachu
+2026-10-18T12:49Z | Paweł | pieszy skacze spacją i chodzi szybciej
+2026-10-18T12:51Z | Antek | losowy śmierdzący nick na start
+2026-10-18T12:51Z | Paweł | liczby +/- smrodu nad własnym autobusem
+2026-10-18T12:51Z | Antek | paczkomaty: po uderzeniu wypada paczka albo kupa
+2026-10-18T12:51Z | Paweł | minimapa i strzałka do własnej strefy
+2026-10-18T12:52Z | Paweł | rewanż w tym samym party
+2026-10-18T12:55Z | Szczepan | host wybiera w poczekalni: miasto albo płaska mapa
+2026-10-18T13:04Z | Janek | dzień i noc, reflektory autobusów
+2026-10-18T13:05Z | Paweł | dźwięki i klakson pod H
+2026-10-18T15:09Z | Antek | tryb wysokiego kontrastu (K)
+2026-10-18T16:47Z | Paweł | boty: host dodaje graczy komputerowych
+2026-10-18T17:06Z | Paweł | prawdziwsze miasto: skośne ulice, ronda, warszawskie budynki
+2026-10-18T17:48Z | Paweł | podgląd miasta z OpenStreetMap (centrum Warszawy)
+2026-10-18T18:30Z | Antek | paczki z paczkomatu lądują obok, a nie pod autobusem
+2026-10-18T18:41Z | Antek | mniejszy HUD i lobby na telefonie
+2026-10-18T18:42Z | Antek | szersze ulice i ronda
+2026-10-18T18:56Z | Paweł | statystyki ładunku: żule, paczki, kupy
+2026-10-19T12:50Z | Paweł | latarnie, które świecą w nocy
+2026-10-19T12:51Z | Paweł | na telefonie autobus jedzie tam, gdzie wskazujesz
+2026-10-19T12:53Z | Paweł | widoki kamery: dron, kabina, oczy kierowcy (klawisz C)
+2026-10-19T12:56Z | Paweł | numer wersji w rogu ekranu startowego, po kliknięciu lista zmian
