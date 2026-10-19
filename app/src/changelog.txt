@@ -43,3 +43,4 @@
 2026-10-19T12:51Z | Paweł | na telefonie autobus jedzie tam, gdzie wskazujesz
 2026-10-19T12:53Z | Paweł | widoki kamery: dron, kabina, oczy kierowcy (klawisz C)
 2026-10-19T12:56Z | Paweł | numer wersji w rogu ekranu startowego, po kliknięciu lista zmian
+2026-10-19T13:01Z | Paweł | nowy wygląd ekranu startowego i poczekalni: wyraźny wybór publiczne/prywatne, lista graczy z autobusikami

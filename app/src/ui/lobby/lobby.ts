@@ -13,6 +13,7 @@ const PUBLIC_KEY = 'smelibus.public';
 
 const hex = (c: number) => '#' + c.toString(16).padStart(6, '0');
 const esc = (s: string) => s.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+const LOGO = '<h1 class="logo">Smeli<span>bus</span></h1>';
 
 /**
  * Home screen: nickname + color, create party (public or private), join by code, public list.
@@ -38,17 +39,25 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
   root.innerHTML = `
     <div class="lobby">
       <div class="card">
-      <h1 class="logo">Smeli<span>bus</span></h1>
+      ${LOGO}
       <p class="tag">Śmierdzące autobusy przejmują miasto</p>
-      <div class="nick">
-        <label>Nick <input id="name" maxlength="16" autocomplete="off"></label>
-        <button id="reroll" type="button" title="Losuj śmierdzący nick" aria-label="Losuj śmierdzący nick">🎲</button>
+      <div class="field">
+        <label class="lbl" for="name">Twój nick</label>
+        <div class="nick">
+          <input id="name" maxlength="16" autocomplete="off">
+          <button id="reroll" type="button" title="Losuj śmierdzący nick" aria-label="Losuj śmierdzący nick">🎲</button>
+        </div>
       </div>
-      <div class="colors" id="colors" role="radiogroup" aria-label="Kolor"></div>
-      <div class="create">
-        <button id="create">Stwórz party</button>
-        <label class="check"><input type="checkbox" id="public"> publiczne</label>
+      <div class="field">
+        <span class="lbl" id="colors-lbl">Kolor autobusu</span>
+        <div class="colors" id="colors" role="radiogroup" aria-labelledby="colors-lbl"></div>
       </div>
+      <div class="seg" id="kind" role="radiogroup" aria-label="Rodzaj party">
+        <button type="button" role="radio" data-public="1">🌍 Publiczne</button>
+        <button type="button" role="radio" data-public="0">🔒 Prywatne</button>
+      </div>
+      <button id="create" class="cta">Stwórz party</button>
+      <div class="sep">albo dołącz kodem</div>
       <form class="join" id="join-form" novalidate>
         <input id="code" name="code" placeholder="KOD" aria-label="Kod party" value="${esc(codeFromUrl)}"
           autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false"
@@ -56,16 +65,13 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
         <button id="join" type="submit">Dołącz</button>
       </form>
       <p id="msg" class="msg"></p>
-      <section class="public-list">
-        <h2>Publiczne party</h2>
-        <ul id="list"><li class="empty">Ładowanie…</li></ul>
-      </section>
+      <div class="sep">publiczne party</div>
+      <ul class="public-list" id="list"><li class="empty">Ładowanie…</li></ul>
       </div>
     </div>`;
   const $ = <T extends HTMLElement>(id: string) => root.querySelector<T>('#' + id)!;
   const nameInput = $<HTMLInputElement>('name');
   const codeInput = $<HTMLInputElement>('code');
-  const publicInput = $<HTMLInputElement>('public');
   const msg = $('msg');
   const list = $<HTMLUListElement>('list');
   const saved = safeGet(NAME_KEY);
@@ -74,7 +80,16 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
     nameInput.value = stinkyName();
     safeSet(NAME_KEY, nameInput.value);
   };
-  publicInput.checked = safeGet(PUBLIC_KEY) === '1';
+  // Public by default: a stranger opening the game should find someone to play with.
+  let isPublic = safeGet(PUBLIC_KEY) !== '0';
+  const kindButtons = [...root.querySelectorAll<HTMLButtonElement>('#kind button')];
+  const showKind = () => kindButtons.forEach((b) => b.setAttribute('aria-checked', String((b.dataset.public === '1') === isPublic)));
+  for (const b of kindButtons) b.onclick = () => {
+    isPublic = b.dataset.public === '1';
+    safeSet(PUBLIC_KEY, isPublic ? '1' : '0');
+    showKind();
+  };
+  showKind();
 
   let color = Number(safeGet(COLOR_KEY));
   if (!PLAYER_COLORS.includes(color)) color = PLAYER_COLORS[0];
@@ -130,18 +145,22 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
     function renderList(parties: PublicParty[]) {
       list.innerHTML = '';
       if (!parties.length) {
-        list.innerHTML = '<li class="empty">Nikt teraz nie gra publicznie</li>';
+        list.innerHTML = '<li class="empty">Nikt teraz nie gra publicznie<button type="button" class="link">Stwórz publiczne →</button></li>';
+        list.querySelector<HTMLButtonElement>('.link')!.onclick = () => {
+          isPublic = true;
+          showKind();
+          create();
+        };
         return;
       }
       for (const p of parties) {
         const li = document.createElement('li');
         const full = p.players >= p.maxPlayers;
         li.innerHTML = `
-          <span class="code">${esc(p.code)}</span>
-          <span class="host">${esc(p.hostName || '—')}</span>
-          <span class="count">${p.players}/${p.maxPlayers}${p.started ? ' · w grze' : ''}</span>`;
+          <span class="host">${esc(p.hostName || '—')}<small>${esc(p.code)}${p.started ? ' · w grze' : ''}</small></span>
+          <span class="count">${p.players}/${p.maxPlayers}</span>`;
         const b = document.createElement('button');
-        b.textContent = full ? 'Pełne' : 'Dołącz';
+        b.textContent = full ? 'Pełne' : 'Wejdź';
         b.disabled = full;
         b.onclick = () => joinCode(p.code);
         li.append(b);
@@ -149,10 +168,11 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
       }
     }
 
-    $('create').onclick = () => {
-      safeSet(PUBLIC_KEY, publicInput.checked ? '1' : '0');
-      go((name) => createParty(name, { public: publicInput.checked, color }));
+    const create = () => {
+      safeSet(PUBLIC_KEY, isPublic ? '1' : '0');
+      go((name) => createParty(name, { public: isPublic, color }));
     };
+    $('create').onclick = create;
     // A real form: Enter on desktop and "Go" on phone keyboards both submit, also mid-IME.
     $<HTMLFormElement>('join-form').onsubmit = (e) => {
       e.preventDefault();
@@ -190,25 +210,38 @@ function showHome(root: HTMLElement, backdrop: MenuBackdrop): Promise<Party> {
   });
 }
 
-/** Before Start: link, code, who's in. Only the host gets the Start button. */
+/** Before Start: invite link, who's in, bots, map. Only the host can change things and start. */
 function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop): Promise<void> {
   const link = `${location.origin}/p/${party.code}`;
   root.innerHTML = `
     <div class="lobby">
-      <div class="card">
-      <h1 class="logo">Smeli<span>bus</span></h1>
-      <p class="tag">Party <b class="party-code">${esc(party.code)}</b> · <span id="kind"></span></p>
-      <div class="join">
-        <input id="link" readonly value="${esc(link)}">
-        <button id="copy">Kopiuj link</button>
+      <div class="card room">
+      ${LOGO}
+      <div class="party-head">
+        <span class="lbl">Party</span>
+        <b class="party-code">${esc(party.code)}</b>
+        <span class="badge" id="kind"></span>
       </div>
-      <ul class="waiting" id="players"></ul>
-      <button id="add-bot" type="button" hidden>+ Bot</button>
-      <div class="map-pick" role="group" aria-label="Mapa">
-        <button type="button" data-map="city">Miasto</button>
-        <button type="button" data-map="flat">Płaska</button>
+      <div class="field">
+        <label class="lbl" for="link">Zaproś znajomych</label>
+        <div class="join">
+          <input id="link" readonly value="${esc(link)}">
+          <button id="copy" type="button">Kopiuj</button>
+        </div>
       </div>
-      <button id="start" hidden>Start</button>
+      <div class="field">
+        <span class="lbl">Gracze <span id="count"></span></span>
+        <ul class="players" id="players"></ul>
+        <button id="add-bot" class="slot" type="button" hidden>🤖 + Dodaj bota</button>
+      </div>
+      <div class="field">
+        <span class="lbl" id="map-lbl">Mapa</span>
+        <div class="seg map-pick" role="radiogroup" aria-labelledby="map-lbl">
+          <button type="button" role="radio" data-map="city">🏙️ Miasto</button>
+          <button type="button" role="radio" data-map="flat">🟩 Płaska</button>
+        </div>
+      </div>
+      <button id="start" class="cta" hidden>Start ▶</button>
       <p id="msg" class="msg"></p>
       </div>
     </div>`;
@@ -220,11 +253,11 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
   copy.onclick = async () => {
     try {
       await navigator.clipboard.writeText(link);
-      copy.textContent = 'Skopiowano';
+      copy.textContent = 'Skopiowano ✓';
     } catch {
       $<HTMLInputElement>('link').select();
     }
-    setTimeout(() => (copy.textContent = 'Kopiuj link'), 1500);
+    setTimeout(() => (copy.textContent = 'Kopiuj'), 1500);
   };
   const addBot = $<HTMLButtonElement>('add-bot');
   addBot.onclick = () => party.addBot();
@@ -244,17 +277,17 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
     const key = JSON.stringify([info, players.map((p) => [p.id, p.name, p.color, p.connected, p.bot])]);
     if (key === lastKey) return;
     lastKey = key;
-    $('kind').textContent = info.public ? 'publiczne' : 'prywatne';
+    $('kind').textContent = info.public ? '🌍 publiczne' : '🔒 prywatne';
+    $('count').textContent = `${players.length}/${MAX_PLAYERS}`;
     start.hidden = !isHost;
-    addBot.hidden = !isHost;
-    addBot.disabled = players.length >= MAX_PLAYERS;
+    addBot.hidden = !isHost || players.length >= MAX_PLAYERS;
     for (const b of mapButtons) {
-      b.setAttribute('aria-pressed', String(b.dataset.map === (info.map ?? 'city')));
+      b.setAttribute('aria-checked', String(b.dataset.map === (info.map ?? 'city')));
       b.disabled = !isHost;
     }
     msg.textContent = isHost
       ? players.length < 2 ? 'Zacznij sam, poczekaj na innych albo dodaj boty' : ''
-      : 'Czekamy, aż host kliknie Start';
+      : 'Czekamy, aż host kliknie Start…';
     backdrop.setColors(players.map((p) => p.color));
     list.innerHTML = '';
     for (const p of players) {
@@ -296,7 +329,11 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
 function playerItem(p: Player, me: boolean, host: boolean): HTMLLIElement {
   const li = document.createElement('li');
   li.style.setProperty('--c', hex(p.color));
-  li.textContent = (p.bot ? '🤖 ' : '') + p.name + (me ? ' (ty)' : '') + (host ? ' · host' : '') + (p.connected ? '' : ' …');
+  li.classList.toggle('me', me);
+  li.classList.toggle('away', !p.connected);
+  const tags = [me && 'ty', host && 'host', p.bot && 'bot'].filter(Boolean) as string[];
+  li.innerHTML = `<span class="bus" aria-hidden="true"></span><span class="name">${esc(p.name)}${p.connected ? '' : ' …'}</span>`
+    + tags.map((t) => `<span class="tag-${t}">${t}</span>`).join('');
   return li;
 }
 

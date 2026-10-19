@@ -1,86 +1,194 @@
-/* Lobby-only styles (card 016). Base .lobby layout lives in style.css. */
-.lobby { overflow-y: auto; justify-content: flex-start; padding-top: max(16px, 8vh); }
-.lobby .colors { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-.lobby .swatch { width: 32px; height: 32px; padding: 0; border-radius: 50%; background: var(--c); }
-.lobby .swatch:hover { background: var(--c); transform: scale(1.1); }
-.lobby .swatch[aria-checked='true'] { outline: 3px solid #1b1b1b; outline-offset: 2px; }
-.lobby .create { display: flex; gap: 10px; align-items: center; }
-.lobby .check { font-weight: 400; }
-.lobby .check input { width: 18px; height: 18px; }
-.lobby .public-list { width: min(420px, 100%); }
-.lobby .public-list h2 { font-size: 16px; margin: 8px 0; }
-.lobby .public-list ul, .lobby .waiting { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.lobby .public-list li { display: flex; align-items: center; gap: 10px; background: #fffc; border: 2px solid #1b1b1b; border-radius: 8px; padding: 6px 6px 6px 10px; }
-.lobby .public-list li.empty { justify-content: center; opacity: .7; padding: 10px; }
-.lobby .public-list .code { font-weight: 700; letter-spacing: 2px; }
-.lobby .public-list .host { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lobby .public-list button { padding: 6px 10px; }
-.lobby button:disabled { background: #ccc; cursor: default; }
-.lobby .party-code { letter-spacing: 3px; font-size: 1.2em; }
-.lobby #link { width: min(280px, 60vw); }
-.lobby .waiting { width: min(320px, 100%); }
-.lobby .waiting li { display: flex; align-items: center; gap: 8px; background: #fffc; border: 2px solid #1b1b1b; border-radius: 8px; padding: 8px 10px; }
-.lobby .waiting li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: var(--c); border: 1px solid #1b1b1b; }
-.lobby #start { font-size: 20px; padding: 12px 32px; }
-
-/* Start screen look: menu card over the 3D backdrop (render/menuScene.ts). */
+/* Lobby: start screen + waiting room. Chunky cartoon look: thick outlines, hard shadows,
+   cream card over the 3D backdrop (render/menuScene.ts). Base .lobby layout lives in style.css. */
+.lobby {
+  --ink: #1b1b1b; --cream: #fffbee; --green: #6fa82b; --green-dark: #4c7a17; --orange: #f4a300;
+  --orange-dark: #c07f00; --muted: #6b6455;
+  overflow-y: auto; justify-content: flex-start; align-items: flex-start;
+  padding: max(16px, 6vh) 16px 16px max(16px, 6vw);
+}
 .menu-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
-.lobby { align-items: flex-start; padding: max(16px, 6vh) 16px 16px max(16px, 6vw); }
+
 .lobby .card {
-  width: min(440px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px;
-  background: #fffbeeee; border: 3px solid #1b1b1b; border-radius: 16px; padding: 22px 20px 18px;
-  box-shadow: 8px 8px 0 #1b1b1b; animation: card-in .45s cubic-bezier(.2, 1.4, .4, 1) both;
+  width: min(440px, 100%); display: flex; flex-direction: column; align-items: stretch; gap: 14px;
+  background: var(--cream); border: 3px solid var(--ink); border-radius: 18px; padding: 22px 20px 18px;
+  box-shadow: 8px 8px 0 var(--ink); animation: card-in .45s cubic-bezier(.2, 1.4, .4, 1) both;
 }
 @keyframes card-in { from { transform: translateY(24px) rotate(-1.5deg); opacity: 0; } }
+
+/* Logo with stink puffs rising off it. */
 .lobby .logo {
-  font-size: clamp(44px, 11vw, 72px); line-height: 1; margin: 0; font-weight: 900; letter-spacing: -1px;
-  color: #6fa82b; text-shadow: 3px 3px 0 #1b1b1b; -webkit-text-stroke: 2px #1b1b1b; paint-order: stroke fill;
+  align-self: center; font-size: clamp(44px, 11vw, 68px); line-height: 1; margin: 0; font-weight: 900; letter-spacing: -1px;
+  color: var(--green); text-shadow: 3px 3px 0 var(--ink); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill;
   position: relative; animation: logo-wobble 2.6s ease-in-out infinite;
 }
 .lobby .logo span {
-  display: inline-block; margin-left: 4px; padding: 0 10px 4px; color: #fff; background: #f4a300;
-  border: 3px solid #1b1b1b; border-radius: 10px; -webkit-text-stroke: 2px #1b1b1b; transform: rotate(-4deg);
+  display: inline-block; margin-left: 4px; padding: 0 10px 4px; color: #fff; background: var(--orange);
+  border: 3px solid var(--ink); border-radius: 10px; -webkit-text-stroke: 2px var(--ink); transform: rotate(-4deg);
 }
-/* Stink rising off the logo. */
 .lobby .logo::before, .lobby .logo::after {
-  content: ''; position: absolute; width: 14px; height: 14px; background: #8bc34a; border: 2px solid #1b1b1b;
-  border-radius: 3px; left: 18%; top: -6px; opacity: 0; animation: puff 2.4s ease-out infinite;
+  content: ''; position: absolute; width: 14px; height: 14px; background: #8bc34a; border: 2px solid var(--ink);
+  border-radius: 50%; left: 18%; top: -6px; opacity: 0; animation: puff 2.4s ease-out infinite;
 }
 .lobby .logo::after { left: 42%; width: 10px; height: 10px; animation-delay: 1.2s; }
-@keyframes puff { 0% { transform: translateY(0) scale(.4); opacity: 0; } 20% { opacity: .9; } 100% { transform: translateY(-34px) scale(1.2) rotate(30deg); opacity: 0; } }
+@keyframes puff { 0% { transform: translateY(0) scale(.4); opacity: 0; } 20% { opacity: .9; } 100% { transform: translateY(-34px) scale(1.3); opacity: 0; } }
 @keyframes logo-wobble { 50% { transform: rotate(-1.5deg) translateY(-2px); } }
-.lobby .tag { margin: 0 0 4px; font-weight: 600; text-align: center; }
-.lobby .card .msg { margin: -6px 0; text-align: center; }
-.lobby .card > label { width: 100%; justify-content: center; }
-.lobby #name { width: min(220px, 60vw); }
-.lobby .nick { width: 100%; display: flex; gap: 8px; align-items: center; justify-content: center; }
-.lobby #reroll { padding: 4px 8px; font-size: 18px; line-height: 1; }
-.lobby .card button:not(.swatch) { box-shadow: 3px 3px 0 #1b1b1b; transition: transform .08s, box-shadow .08s; }
-.lobby .card button:not(.swatch):not(:disabled):active { transform: translate(3px, 3px); box-shadow: 0 0 0 #1b1b1b; }
-.lobby #create, .lobby #start { font-size: 18px; padding: 12px 22px; background: #6fa82b; color: #fff; text-shadow: 1px 1px 0 #1b1b1b; }
-.lobby #create:hover, .lobby #start:hover { background: #81bd35; }
+.lobby .tag { margin: -6px 0 0; font-weight: 700; text-align: center; color: #3d6512; }
+
+/* Fields: small caps label above the control. */
+.lobby .field { display: flex; flex-direction: column; gap: 6px; }
+.lobby .lbl { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--ink); }
+.lobby .lbl span { color: var(--muted); }
+.lobby input {
+  min-width: 0; font-size: 18px; font-weight: 700; padding: 11px 14px; background: #fff;
+  border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: inset 0 3px 0 #0000000d;
+}
+.lobby input::placeholder { color: #b5ae9d; font-weight: 700; }
 .lobby input:focus-visible, .lobby button:focus-visible { outline: 3px solid #2f6bd6; outline-offset: 2px; }
-.lobby .public-list { border-top: 2px dashed #1b1b1b55; padding-top: 6px; }
-.lobby .waiting li { background: #fff; }
-.lobby .map-pick { display: flex; gap: 8px; }
-.lobby .map-pick button[aria-pressed="true"] { background: #6fa82b; color: #fff; text-shadow: 1px 1px 0 #1b1b1b; }
-.lobby .map-pick button:disabled { cursor: default; }
-.lobby .map-pick button:disabled:not([aria-pressed="true"]) { opacity: .5; }
-@media (max-width: 760px) { .lobby { align-items: center; padding: 16px; } .lobby .card { box-shadow: 5px 5px 0 #1b1b1b; padding: 18px 14px 14px; } .lobby .swatch { width: 28px; height: 28px; } }
-@media (prefers-reduced-motion: reduce) { .lobby .card, .lobby .logo, .lobby .logo::before, .lobby .logo::after { animation: none; } }
-/* Join code field (card 026): 16px stops iOS from zooming in, text select must work on touch. */
-.lobby #code { font-size: 16px; touch-action: manipulation; -webkit-user-select: text; user-select: text; }
-.lobby #code::placeholder { letter-spacing: 2px; }
+
+/* Chunky buttons: hard shadow, press down on tap. */
+.lobby .card button {
+  font-weight: 800; border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: 0 4px 0 var(--ink);
+  transition: transform .08s, box-shadow .08s, background .15s;
+}
+.lobby .card button:not(:disabled):active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+.lobby .card button:disabled { background: #ddd8cc; color: #8a8475; cursor: default; }
+
+.lobby .nick, .lobby .join { display: flex; gap: 8px; }
+.lobby .nick input, .lobby .join input { flex: 1; width: auto; }
+.lobby #reroll { padding: 0 14px; font-size: 22px; line-height: 1; }
+.lobby #reroll:not(:active):hover { transform: rotate(-8deg); }
+
+/* Bus colour: rounded squares, the picked one pops with a green glow. */
+.lobby .colors { display: flex; gap: 8px; justify-content: space-between; padding: 6px 8px 4px; margin: -6px -8px 0; }
+.lobby .card .swatch {
+  flex: 1; max-width: 42px; aspect-ratio: 1; padding: 0; border-radius: 10px; background: var(--c);
+  box-shadow: 0 3px 0 var(--ink);
+}
+.lobby .card .swatch:hover { background: var(--c); transform: translateY(-2px); }
+.lobby .card .swatch[aria-checked='true'] {
+  transform: scale(1.08); box-shadow: 0 3px 0 var(--ink), 0 0 0 4px var(--cream), 0 0 0 6px var(--green), 0 0 14px 6px #8bc34a99;
+}
+
+/* Two-way toggle (public/private, map). */
+.lobby .seg { display: flex; border: 2.5px solid var(--ink); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 0 var(--ink); }
+.lobby .card .seg button {
+  flex: 1; border: 0; border-radius: 0; box-shadow: none; background: #fff; padding: 10px 8px; font-size: 16px;
+}
+.lobby .card .seg button + button { border-left: 2.5px solid var(--ink); }
+.lobby .card .seg button[aria-checked='true'] { background: var(--ink); color: #fff; }
+.lobby .card .seg button:not([aria-checked='true']):not(:disabled):hover { background: #fff3cf; }
+.lobby .card .seg button:disabled:not([aria-checked='true']) { background: #fff; color: #9a9384; }
+.lobby .card .seg button:active { transform: none; }
+
+/* Main action: big green 3D button. */
+.lobby .card .cta {
+  font-size: 24px; padding: 14px 18px; background: var(--green); color: #fff; letter-spacing: .5px;
+  text-shadow: 2px 2px 0 var(--ink); border-width: 3px; border-radius: 14px;
+  box-shadow: inset 0 -6px 0 var(--green-dark), 0 6px 0 var(--ink);
+}
+.lobby .card .cta:hover { background: #7dbb33; }
+.lobby .card .cta:not(:disabled):active { transform: translateY(6px); box-shadow: inset 0 -3px 0 var(--green-dark), 0 0 0 var(--ink); }
+
+.lobby .sep { display: flex; align-items: center; gap: 10px; color: #3d6512; font-size: 14px; font-weight: 800; }
+.lobby .sep::before, .lobby .sep::after { content: ''; flex: 1; border-top: 2.5px dashed #3d651255; }
+
+/* Join by code (card 026): 16px+ stops iOS zoom, text select must work on touch. */
+.lobby #code {
+  font-size: 18px; text-transform: uppercase; letter-spacing: 3px; touch-action: manipulation;
+  -webkit-user-select: text; user-select: text;
+}
+.lobby #code::placeholder { letter-spacing: 3px; }
+.lobby #join { background: var(--orange); box-shadow: inset 0 -4px 0 var(--orange-dark), 0 4px 0 var(--ink); }
+.lobby .join:has(#code:placeholder-shown) #join { background: #e9e3d4; color: #8a8475; box-shadow: 0 4px 0 var(--ink); }
+.lobby .msg { min-height: 1.3em; margin: -6px 0; text-align: center; font-weight: 600; }
+.lobby .msg:empty { display: none; }
+
+/* Public parties. */
+.lobby .public-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lobby .public-list li {
+  display: flex; align-items: center; gap: 10px; background: #fff; border: 2.5px solid var(--ink);
+  border-radius: 12px; padding: 7px 7px 7px 12px;
+}
+.lobby .public-list .host { flex: 1; min-width: 0; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby .public-list .host small { display: block; font-weight: 600; color: var(--muted); letter-spacing: 1px; }
+.lobby .public-list .count { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lobby .public-list li button { padding: 6px 14px; background: var(--green); color: #fff; text-shadow: 1px 1px 0 var(--ink); box-shadow: 0 3px 0 var(--ink); }
+.lobby .card .public-list li button:not(:disabled):hover { background: #7dbb33; }
+.lobby .public-list li.empty {
+  flex-direction: column; gap: 4px; padding: 14px; background: #fffdf6; border-style: dashed; text-align: center; font-weight: 600;
+}
+.lobby .card .public-list .link {
+  padding: 0; border: 0; box-shadow: none; background: none; color: #3d7a10; text-shadow: none;
+  text-decoration: underline 2px; text-underline-offset: 3px; font-size: 17px;
+}
+.lobby .card .public-list .link:hover { color: var(--green-dark); }
+
+/* Waiting room. */
+.lobby .room .logo { font-size: clamp(36px, 9vw, 48px); }
+.lobby .party-head { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.lobby .party-code {
+  font-size: 30px; letter-spacing: 5px; padding: 2px 8px 2px 13px; background: var(--orange); color: #fff;
+  -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; text-shadow: 2px 2px 0 var(--ink);
+  border: 3px solid var(--ink); border-radius: 12px; box-shadow: 0 4px 0 var(--ink); transform: rotate(-2deg);
+}
+.lobby .badge { font-weight: 800; font-size: 14px; padding: 4px 10px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; }
+.lobby #link { font-size: 15px; font-weight: 600; color: var(--muted); }
+.lobby #copy { padding: 0 16px; background: var(--orange); box-shadow: inset 0 -4px 0 var(--orange-dark), 0 4px 0 var(--ink); }
+
+.lobby .players { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lobby .players li {
+  display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 6px 8px 6px 10px;
+  background: #fff; border: 2.5px solid var(--ink); border-radius: 12px; animation: pop-in .3s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+@keyframes pop-in { from { transform: scale(.85); opacity: 0; } }
+.lobby .players li.me { background: #f2fae6; }
+.lobby .players li.away { opacity: .55; }
+/* Tiny bus in the player's colour. */
+.lobby .players .bus {
+  position: relative; flex: none; width: 34px; height: 20px; border: 2.5px solid var(--ink); border-radius: 6px 8px 4px 4px; background: var(--c);
+}
+.lobby .players .bus::before { content: ''; position: absolute; inset: 3px 4px auto 4px; height: 5px; background: #cfeaf7; border-radius: 2px; }
+.lobby .players .bus::after {
+  content: ''; position: absolute; left: 3px; right: 3px; bottom: -6px; height: 7px;
+  background: radial-gradient(circle, var(--ink) 3.5px, transparent 4px) left / 9px 7px no-repeat,
+    radial-gradient(circle, var(--ink) 3.5px, transparent 4px) right / 9px 7px no-repeat;
+}
+.lobby .players .name { flex: 1; min-width: 0; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby .players [class^='tag-'] {
+  flex: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  padding: 2px 7px; border: 2px solid var(--ink); border-radius: 999px;
+}
+.lobby .players .tag-ty { background: var(--green); color: #fff; }
+.lobby .players .tag-host { background: var(--orange); }
+.lobby .players .tag-bot { background: #e6e0f5; }
 /* Card 037: host removes a bot from the waiting room. */
-.lobby .waiting li .kick { margin-left: auto; padding: 0 8px; min-width: 0; line-height: 1.4; }
+.lobby .card .players .kick { flex: none; width: 30px; height: 30px; padding: 0; font-size: 18px; line-height: 1; background: #fff; box-shadow: 0 2px 0 var(--ink); }
+.lobby .card .players .kick:hover { background: #ffd9d4; }
+.lobby .card .slot {
+  min-height: 46px; background: transparent; border-style: dashed; box-shadow: none; color: #3d6512; font-size: 16px;
+}
+.lobby .card .slot:hover { background: #fff8e0; }
+.lobby .card .slot:active { transform: none; }
+.lobby .room .msg { margin: -4px 0 0; color: var(--muted); }
+
+@media (max-width: 760px) {
+  .lobby { align-items: center; padding: 16px; }
+  .lobby .card { box-shadow: 5px 5px 0 var(--ink); padding: 18px 14px 14px; gap: 12px; }
+  .lobby .colors { gap: 6px; }
+}
 /* Short screens (phone in landscape): tighter card so Start fits without scrolling far. */
 @media (max-height: 560px) {
   .lobby { align-items: center; padding: 8px 16px; }
-  .lobby .card { gap: 8px; padding: 10px 14px; box-shadow: 4px 4px 0 #1b1b1b; width: min(520px, 100%); }
-  .lobby .logo { font-size: 34px; -webkit-text-stroke: 1.5px #1b1b1b; text-shadow: 2px 2px 0 #1b1b1b; }
+  .lobby .card { gap: 8px; padding: 10px 14px; box-shadow: 4px 4px 0 var(--ink); width: min(520px, 100%); }
+  .lobby .logo, .lobby .room .logo { font-size: 34px; -webkit-text-stroke: 1.5px var(--ink); text-shadow: 2px 2px 0 var(--ink); }
   .lobby .logo span { border-width: 2px; border-radius: 8px; padding: 0 6px 2px; }
-  .lobby button, .lobby input { padding: 6px 10px; }
-  .lobby #create, .lobby #start { font-size: 16px; padding: 8px 18px; }
-  .lobby .waiting li { padding: 4px 8px; }
-  .lobby .swatch { width: 26px; height: 26px; }
+  .lobby input { padding: 6px 10px; font-size: 16px; }
+  .lobby .card .seg button { padding: 6px; }
+  .lobby .card .cta { font-size: 18px; padding: 8px 18px; }
+  .lobby .players li, .lobby .card .slot { min-height: 36px; padding-top: 3px; padding-bottom: 3px; }
+  .lobby .card .swatch { max-width: 30px; }
+  .lobby .party-code { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lobby .card, .lobby .logo, .lobby .logo::before, .lobby .logo::after, .lobby .players li { animation: none; }
 }
