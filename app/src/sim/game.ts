@@ -6,6 +6,7 @@ import { hitPedestrians, updatePlayers } from './player';
 import { updateWeather } from './weather';
 import { driveThroughPaczkomats, spawnPaczkomats } from './paczkomat';
 import { updatePowers } from './powers';
+import { updateScooters } from './scooter';
 import { collideZabkas, spawnZabkas, updateZabkas } from './zabka';
 import { generateWorld, nearestDrivable } from './world';
 import { assignJoinZone, tileIndexAt, updateZones } from './zones';
@@ -68,7 +69,8 @@ export function stepGame(state: GameState, inputs: ReadonlyMap<PlayerId, BusInpu
   for (const d of collideBuses(state.buses, state.world.size, state.world)) dropStink(state, d.x, d.z, d.amount);
   hitPedestrians(state);
   updateZabkas(state);
-  updatePowers(state);
+  updateScooters(state);
+  updatePowers(state, dt);
   updateBonuses(state, dt);
   updateWeather(state, dt);
   updateZones(state, prevTiles);

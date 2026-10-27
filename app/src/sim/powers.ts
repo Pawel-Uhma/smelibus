@@ -1,6 +1,6 @@
 import {
   BONUS_STINK, CABBAGE_STINK_MULT, ENERGY_SPEED_BONUS, PACZKOMAT_LOOT_WEIGHTS, PACZKOMAT_REVEAL_S, POWER_SECONDS,
-  STINK_MAX,
+  SCOOTER_BOOST_DECAY_PER_S, STINK_MAX,
 } from '../shared/config';
 import type { Bus, GameState, LootKind, PowerKind } from '../shared/types';
 import { rand } from './bonus';
@@ -45,8 +45,12 @@ function apply(state: GameState, bus: Bus, loot: LootKind): void {
  * rest of the sim reads without a clock (speedMult in updateBus, shielded in rams). `riderBoost`
  * (card 046) adds its share of top speed on top.
  */
-export function updatePowers(state: GameState): void {
+export function updatePowers(state: GameState, dt = 0): void {
   for (const bus of state.buses) {
+    if (bus.riderBoost) {
+      const left = bus.riderBoost - SCOOTER_BOOST_DECAY_PER_S * dt;
+      bus.riderBoost = left > 1e-6 ? left : undefined;
+    }
     if (bus.roll && !bus.roll.done && state.time >= bus.roll.at + PACZKOMAT_REVEAL_S) {
       bus.roll = { ...bus.roll, done: true };
       apply(state, bus, bus.roll.loot);

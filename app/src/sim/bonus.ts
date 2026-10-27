@@ -1,7 +1,7 @@
 import {
   BONUS_RADIUS, BONUS_RESPAWN_S, BONUS_STINK, BUS_RADIUS, BUS_STOPS_PER_TILE,
   CONTROLLER_PATROL_LENGTH, CONTROLLER_RESPAWN_S, CONTROLLER_WALK_SPEED, CONTROLLERS_PER_TILE, DROPPED_STINK_PICKUP_DELAY_S, DROPPED_STINK_TTL_S,
-  STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
+  SCOOTER_BOOST, SCOOTER_BOOST_MAX, STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
   TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
 } from '../shared/config';
 import { countPickup } from './cargo';
@@ -31,6 +31,7 @@ function kindFor(spot: BonusSpot, current: BonusKind): BonusKind {
     case 'dropped': return 'dropped';
     case 'zabka': return 'zul';
     case 'paczkomat': return 'parcel';
+    case 'scooter': return 'scooter';
   }
 }
 
@@ -111,10 +112,11 @@ export function dropStink(state: GameState, x: number, z: number, amount: number
 /** Where a bonus is at game time `time`: walking drunks and controllers move, the rest stays put. */
 export function bonusPosition(b: Bonus, time: number): { x: number; z: number } {
   const p = b.patrol;
-  if (p) {
+  // A scooter rider first rides out of his block (walk), then joins the patrol.
+  if (p && !(b.walk && time < b.walk.until)) {
     const len = Math.hypot(p.bx - p.ax, p.bz - p.az);
     if (len <= 0) return { x: p.ax, z: p.az };
-    const d = (p.speed * time) % (2 * len);
+    const d = (((p.speed * time + (p.offset ?? 0)) % (2 * len)) + 2 * len) % (2 * len);
     const k = (d <= len ? d : 2 * len - d) / len;
     return { x: p.ax + (p.bx - p.ax) * k, z: p.az + (p.bz - p.az) * k };
   }
@@ -129,6 +131,7 @@ export function collect(state: GameState, bus: Bus, b: Bonus): void {
   bus.stink = clampStink(bus.stink + stinkGain(bus, b.amount, state.time));
   countPickup(state, bus, b.kind);
   if (b.kind === 'zul') bus.slowDecayUntil = state.time + ZUL_SIT_SECONDS;
+  if (b.kind === 'scooter') bus.riderBoost = Math.min(SCOOTER_BOOST_MAX, (bus.riderBoost ?? 0) + SCOOTER_BOOST);
   b.active = false;
   b.respawnAt = state.time + respawnTime(b.spot);
 }
@@ -163,7 +166,7 @@ export function updateBonuses(state: GameState, dt: number): void {
   // Dropped stink, locker drops and Żabka drunks are one-offs: gone once collected (or expired).
   state.bonuses = bonuses.filter((b) => {
     if (b.spot === 'dropped' || b.spot === 'paczkomat') return b.active && state.time < b.respawnAt;
-    if (b.spot === 'zabka') return b.active;
+    if (b.spot === 'zabka' || b.spot === 'scooter') return b.active;
     return true;
   });
 }

@@ -205,3 +205,10 @@ body.hc button:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
 .power-chip .left { font-variant-numeric: tabular-nums; color: #555; }
 .power-chip i { position: absolute; left: 0; bottom: 0; height: 4px; width: calc(var(--f) * 100%); background: #ffcd00; }
 body.touch-on .power-chip { left: auto; right: calc(8px + env(safe-area-inset-right)); top: calc(96px + env(safe-area-inset-top)); bottom: auto; }
+
+/* Speed bar under the stink bar (card 046): grey at 0, blue when riders or an energy drink add speed. */
+.speed-row { --v: 0; display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; line-height: 1; opacity: .55; }
+.speed-row.on { opacity: 1; }
+.speed-row b { font-weight: 900; font-variant-numeric: tabular-nums; min-width: 3.2em; text-align: right; }
+.speed-tube { flex: 1; height: 8px; border: 1.5px solid #1b1b1b; border-radius: 5px; background: #e8e8e4; overflow: hidden; }
+.speed-tube i { display: block; height: 100%; width: calc(var(--v) * 100%); background: #4fb3ff; transition: width .3s; }

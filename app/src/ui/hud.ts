@@ -100,6 +100,7 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
         <div class="stink-ticks"></div>
       </div>
       <div class="stink-fumes"><i></i><i></i><i></i></div>
+      <div id="speed" class="speed-row" title="Bonus do prędkości: kukuryniarze i energetyk"><span>🛴</span><div class="speed-tube"><i></i></div><b>+0%</b></div>
     </div>
     <div id="stink-pops" class="stink-pops"></div>
     <div id="full" class="hud-full" hidden><b>NACIŚNIJ SPACJĘ</b><span>Autobus pełny smrodu. Wypuść go tutaj albo wjedź do swojej strefy.</span></div>
@@ -132,6 +133,9 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
   const cargoEls = { zul: $('cargo-zul'), poop: $('cargo-poop') };
   const winCargo = $('win-cargo');
   const fullBox = $('full');
+  const speedRow = $('speed');
+  const speedVal = speedRow.querySelector('b')!;
+  let lastSpeed = -1;
   if (matchMedia('(pointer: coarse)').matches) fullBox.querySelector('b')!.textContent = 'NACIŚNIJ 💨 SMRÓD';
   let lastFull = false;
   const pops = createStinkPops();
@@ -285,6 +289,14 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
         fullBox.hidden = !m.full;
       }
       stinkBox.classList.toggle('ready', m.canRelease);
+      // Speed bar (card 046): scooter riders plus the energy drink, scaled to both at their most.
+      const pct = Math.round(m.speedBonus * 100);
+      if (pct !== lastSpeed) {
+        lastSpeed = pct;
+        speedVal.textContent = `+${pct}%`;
+        speedRow.style.setProperty('--v', String(Math.min(1, m.speedBonus / 0.85)));
+        speedRow.classList.toggle('on', pct > 0);
+      }
 
       const cargo = `${m.zuls}|${m.poops}`;
       if (cargo !== lastCargo) {

@@ -200,7 +200,19 @@ export const BONUS_STINK = {
   controller: -20,
   parcel: 5,
   poop: 30,
+  scooter: 0,
 } as const;
+// Kukuryniarze (sim/scooter.ts, card 046): scooter riders out of the blocks, eaten for top speed.
+/** At most one rider per this many map tiles (×size², at least 2). */
+export const SCOOTER_TILES_PER_RIDER = 4000;
+/** A new rider leaves a block this often while there are fewer than the most. */
+export const SCOOTER_SPAWN_S = 20;
+/** Riding speed along the street, tiles/s. */
+export const SCOOTER_SPEED = 2.5;
+/** Top speed share each eaten rider adds, the most it can add up to, and how fast it fades (per s). */
+export const SCOOTER_BOOST = 0.04;
+export const SCOOTER_BOOST_MAX = 0.5;
+export const SCOOTER_BOOST_DECAY_PER_S = 0.0025;
 // InPost parcel lockers (sim/paczkomat.ts, card 043): no collision, driving through one rolls loot.
 /** Lockers per map tile (×size², at least 1). */
 export const PACZKOMATS_PER_TILE = 1 / 1100;

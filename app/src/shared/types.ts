@@ -171,6 +171,8 @@ export interface GameState {
   bonusRng?: number;
   /** Game time when each shop in world.zabkas lets out its next drunk (same order). */
   zabkaNextAt?: number[];
+  /** Game time when the next scooter rider may leave a block (sim/scooter.ts, card 046). */
+  scooterNextAt?: number;
   /** Game time from which each locker in world.paczkomats can drop again (same order). */
   paczkomatReadyAt?: number[];
   /** Rain / Harnaś clouds drifting over the map (sim/weather.ts). */
@@ -199,7 +201,9 @@ export interface WeatherCell {
 
 export type BonusKind =
   | 'zul' | 'kebab' | 'dog' | 'fan' | 'herring' | 'durian' | 'trash' | 'controller' | 'dropped'
-  | 'parcel' | 'poop';
+  | 'parcel' | 'poop'
+  /** Kukuryniarz: a guy on an electric scooter riding the streets (card 046), gives top speed. */
+  | 'scooter';
 
 /** How many bonuses of each kind were picked up; missing kind = 0. */
 export type BonusCounts = Partial<Record<BonusKind, number>>;
@@ -208,7 +212,9 @@ export type BonusCounts = Partial<Record<BonusKind, number>>;
  *  (a drunk let out by a shop) are one-offs. */
 export type BonusSpot = 'stop' | 'map' | 'trash' | 'controller' | 'dropped' | 'zabka'
   /** A parcel or poop knocked out of an InPost locker (sim/paczkomat.ts), one-off. */
-  | 'paczkomat';
+  | 'paczkomat'
+  /** A scooter rider out of a block of flats (card 046), one-off. */
+  | 'scooter';
 
 export interface Bonus {
   id: number;
@@ -231,7 +237,9 @@ export interface Bonus {
   walk?: { x: number; z: number; from: number; until: number };
   /** A ticket controller walking up and down the sidewalk from (ax, az) to (bx, bz) and back at
    *  `speed` tiles/s, from game time 0 (card 044). Clients compute the position from this. */
-  patrol?: { ax: number; az: number; bx: number; bz: number; speed: number };
+  patrol?: { ax: number; az: number; bx: number; bz: number; speed: number;
+    /** Distance already covered at game time 0, so a rider can join the loop anywhere. */
+    offset?: number };
 }
 
 /** What the server broadcasts every SNAPSHOT_INTERVAL_MS. The world is sent once on join. */

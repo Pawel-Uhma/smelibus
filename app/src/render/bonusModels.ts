@@ -422,8 +422,41 @@ function poop(): BonusVoxel[] {
   return b.voxels();
 }
 
+/** Kukuryniarz (card 046): a guy in an orange hoodie and a backwards cap on an electric scooter,
+ *  earbuds in, phone on the handlebar, leaning into the bar. Faces +z. */
+function scooter(): BonusVoxel[] {
+  const b = new Builder();
+  for (const z of [-4, 4]) b.box(0, 0, 0, 1, z, z, 0x1a1a1a); // wheels
+  b.box(-1, 1, 1, 1, -3, 3, 0x3c4048); // deck
+  b.set(0, 2, -4, 0xd23030); // rear light
+  b.box(0, 0, 2, 12, 4, 4, 0x8a8f96); // stem
+  b.box(-3, 3, 12, 12, 4, 4, 0x2a2d33); // handlebar
+  b.set(0, 11, 5, 0xfff2a8); // front lamp
+  b.box(-1, -1, 2, 2, 0, 1, 0xf0f0f0); // trainers, one foot ahead
+  b.box(1, 1, 2, 2, -2, -1, 0xf0f0f0);
+  b.box(-1, -1, 3, 6, 0, 0, 0x30343c);
+  b.box(1, 1, 3, 6, -1, -1, 0x30343c);
+  b.box(-1, 1, 7, 7, -1, 0, 0x30343c);
+  b.box(-2, 2, 8, 12, -1, 1, 0xf08a24); // hoodie
+  b.box(-1, 1, 12, 12, -2, -2, 0xd77418); // hood
+  b.box(-1, 1, 13, 15, -1, 1, SKIN);
+  b.set(-1, 14, 2, 0x202020);
+  b.set(1, 14, 2, 0x202020);
+  b.box(-1, 1, 16, 16, -1, 1, 0x2a5fb0); // cap, peak at the back
+  b.box(-1, 1, 16, 16, -2, -2, 0x1e4686);
+  for (const x of [-3, 3]) {
+    b.box(x, x, 11, 12, 0, 1, 0xf08a24);
+    b.box(x, x, 12, 12, 2, 3, 0xf08a24);
+    b.set(x, 12, 4, SKIN);
+  }
+  b.set(-2, 14, 0, 0xf4f4f4); // earbuds
+  b.set(2, 14, 0, 0xf4f4f4);
+  b.box(0, 0, 13, 14, 5, 5, 0x15181c); // phone on the bar
+  return b.voxels();
+}
+
 const MODELS: Record<BonusKind, () => BonusVoxel[]> = {
-  zul, kebab, dog, fan, herring, durian, trash, controller, dropped, parcel, poop,
+  zul, kebab, dog, fan, herring, durian, trash, controller, dropped, parcel, poop, scooter,
 };
 
 export function bonusVoxels(kind: BonusKind): BonusVoxel[] {

@@ -73,6 +73,7 @@ miejsce odnawia się po czasie (np. 15 s).
 | Wytrącony smród | ile wypadło | zostaje po taranowaniu |
 | Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej (odstęp 30 s → 8 s, limit przy sklepie 1 → 4). Żul wychodzi drzwiami, idzie 1–2,5 kafelka w losową stronę od sklepu i się przewraca; leżący daje **+40**. Po zebraniu znika, „siedzi” jak ten z przystanku. Trzy wersje żula (niżej, Grafika → Żul) |
 | Paczkomat | losowanie | karta 043: biały paczkomat stoi przy ulicy, najchętniej tyłem do ściany bloku, i nie ma kolizji. Przejazd przez niego losuje nagrodę: na dole ekranu kręci się taśma (2,2 s) i staje na wyniku, który wylosował serwer, a nagroda trafia od razu do kierowcy. **Kupa** +30 smrodu (40%), **energetyk** +35% prędkości maksymalnej na 6 s (20%), **bilet miesięczny** na 25 s: kontroler przepuszcza, a taranowanie nic z Ciebie nie wybija (20%), **kiszona kapusta** na 10 s: smród z bonusów ×2 (20%). Jeden power-up naraz, nowy zastępuje stary, ikona z czasem jest nad paskiem smrodu. Paczkomat po losowaniu jest pusty 15 s. Paczek już nie ma |
+| Kukuryniarz | 0 smrodu, +4% prędkości | karta 046: gość na elektrycznej hulajnodze wyjeżdża z bloku na najbliższą ulicę i jeździ jej pasem w tę i z powrotem (2,5 kafla/s). Nowy co 20 s, naraz najwyżej 1 na 4000 kafelków mapy (min. 2). Zgarnięty daje +4% prędkości maksymalnej, bonusy się sumują do +50% i zanikają o 0,25 pp/s (jeden starcza na ok. 16 s). Pod paskiem smrodu jest pasek prędkości 🛴 z sumą kukuryniarzy i energetyka |
 
 **Statystyki ładunku** (karta 039): każdy podniesiony bonus liczy się autobusowi i jego kierowcy, w jednym miejscu (`sim/cargo.ts`, wołane przy zebraniu). HUD przy pasku smrodu pokazuje 🍺 żuli, którzy **siedzą w autobusie teraz** (każdy przez 20 s od zebrania, `ZUL_SIT_SECONDS`), oraz 💩 kupy **zebrane od startu gry**. Ekran wygranej ma tabelę graczy: żule, kupy, reszta (wszystko inne, też kanar i rozsypany smród), wszystko jako suma od startu; lider kolumny jest podświetlony (remis: wszyscy), przy zerze nikt. Rewanż zeruje statystyki.
 
@@ -80,7 +81,6 @@ miejsce odnawia się po czasie (np. 15 s).
 
 Jeszcze nie w kodzie. Kto robi kartę, przenosi swoją część do tabeli i reguł wyżej. Modele i makieta losowania: artefakt „Bonusy smrodu” u Pawła.
 
-- **Kukuryniarz** na elektrycznej hulajnodze wyjeżdża z bloków i jeździ ulicami. Zgarnięty daje +4% prędkości, bonusy się sumują (do +50%) i zanikają o 0,25 pp/s. Nowy **pasek prędkości** w HUD [046].
 - Na mapie miasta ma być wyraźnie widać, czyj jest teren [047].
 
 Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),

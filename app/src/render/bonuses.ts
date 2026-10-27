@@ -46,6 +46,14 @@ export function createBonusesRender(scene: THREE.Scene) {
         mesh.visible = b.active;
         if (!b.active) continue;
         // The ticket controller walks the sidewalk (card 044), facing where he goes.
+        // A scooter rider rides out of his block and along the street lane (card 046).
+        if (b.kind === 'scooter') {
+          const at = bonusPosition(b, time);
+          const ahead = bonusPosition(b, time + 0.05);
+          mesh.position.set(at.x, 0, at.z);
+          if (ahead.x !== at.x || ahead.z !== at.z) mesh.rotation.y = Math.atan2(ahead.x - at.x, ahead.z - at.z);
+          continue;
+        }
         if (b.kind === 'controller' && b.patrol) {
           const at = bonusPosition(b, time);
           const ahead = bonusPosition(b, time + 0.05);

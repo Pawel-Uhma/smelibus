@@ -150,10 +150,11 @@ export function createBot(seed: number): Bot {
       });
     } else {
       for (const b of state.bonuses ?? []) {
-        if (!b.active || b.amount <= 0) continue;
+        // A scooter rider gives no stink but speed (card 046): worth a small detour.
+        if (!b.active || (b.amount <= 0 && b.kind !== 'scooter')) continue;
         if (b.pickableAt !== undefined && b.pickableAt > state.time + 1) continue;
         const at = bonusPosition(b, state.time);
-        consider(at.x, at.z, b.amount);
+        consider(at.x, at.z, b.kind === 'scooter' ? 8 : b.amount);
       }
       if (bus.stink < BOT_RAM_MAX_OWN_STINK) {
         for (const other of state.buses) {
