@@ -52,6 +52,8 @@ export interface HudModel {
   power: { kind: PowerKind; left: number; total: number } | null;
   /** Top speed bonus of the own bus right now, 0.35 = +35% (card 046 shows it as a bar). */
   speedBonus: number;
+  /** Share of it from scooter riders eaten (0 on foot); a rise means one was just eaten. */
+  riderBoost: number;
   /** End-of-game cargo table, one row per player in `rows` order (card 039). */
   cargo: CargoRow[];
 }
@@ -133,6 +135,7 @@ export function buildHudModel(view: HudView, me: PlayerId): HudModel {
       ? { kind: ownBus.power.kind, left: ownBus.power.until - view.time, total: ownBus.power.until - ownBus.power.from }
       : null,
     speedBonus: Math.max(0, (ownBus?.speedMult ?? 1) - 1),
+    riderBoost: ownBus?.riderBoost ?? 0,
     poops: meP?.collected?.poop ?? 0,
     cargo: buildCargoTable(view.players, rows.map((r) => r.id), me),
   };

@@ -136,6 +136,8 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
   const speedRow = $('speed');
   const speedVal = speedRow.querySelector('b')!;
   let lastSpeed = -1;
+  let lastRider = 0;
+  let lastRiderBus: number | null = null;
   if (matchMedia('(pointer: coarse)').matches) fullBox.querySelector('b')!.textContent = 'NACIŚNIJ 💨 SMRÓD';
   let lastFull = false;
   const pops = createStinkPops();
@@ -228,6 +230,18 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
     flash(delta > 0 ? 'up' : 'down');
   }
 
+  function showSpeedPop(pct: number, at: { x: number; y: number }) {
+    const el = document.createElement('div');
+    el.className = 'stink-pop speed';
+    el.style.left = `${at.x + (Math.random() - 0.5) * 50}px`;
+    el.style.top = `${at.y - 20}px`;
+    el.style.fontSize = '24px';
+    el.style.setProperty('--drift', `${(Math.random() - 0.5) * 40}px`);
+    el.textContent = `+${pct}% 🛴`;
+    el.addEventListener('animationend', () => el.remove());
+    popsBox.append(el);
+  }
+
   return {
     update(view: HudView) {
       const m = buildHudModel(view, me);
@@ -289,6 +303,12 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
         fullBox.hidden = !m.full;
       }
       stinkBox.classList.toggle('ready', m.canRelease);
+      // Eating a scooter rider: a blue "+4% 🛴" pop, so it doesn't read as stink.
+      if (m.busId === lastRiderBus && m.riderBoost > lastRider + 0.005 && view.ownScreen) {
+        showSpeedPop(Math.round((m.riderBoost - lastRider) * 100), view.ownScreen);
+      }
+      lastRider = m.riderBoost;
+      lastRiderBus = m.busId;
       // Speed bar (card 046): scooter riders plus the energy drink, scaled to both at their most.
       const pct = Math.round(m.speedBonus * 100);
       if (pct !== lastSpeed) {

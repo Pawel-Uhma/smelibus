@@ -88,6 +88,7 @@ button:hover { background: #ffb829; }
 .stink-pop { position: absolute; transform: translate(-50%, -100%); font-weight: 900; line-height: 1; white-space: nowrap; -webkit-text-stroke: 4px #1b1b1b; paint-order: stroke fill; animation: stink-pop 1.3s ease-out forwards; }
 .stink-pop.plus { color: #9be04a; }
 .stink-pop.minus { color: #a9c6e8; }
+.stink-pop.speed { color: #4fb3ff; }
 @keyframes stink-pop {
   0% { transform: translate(-50%, -100%) scale(.4); opacity: 0; }
   15% { transform: translate(-50%, -130%) scale(1.25); opacity: 1; }
