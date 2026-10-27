@@ -1,7 +1,7 @@
 # Lepiej widać, czyj jest teren na mapie miasta
 
 obszar: swiat
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: render/city.ts, render/zones.ts, render/buildings.ts
 
