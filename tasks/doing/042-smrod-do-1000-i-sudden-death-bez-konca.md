@@ -1,7 +1,7 @@
 # Smród do 1000 i sudden death bez końca
 
 obszar: strefy
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: shared/config.ts, sim/zones.ts, ui/
 
