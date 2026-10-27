@@ -243,6 +243,7 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
       </div>
       <button id="start" class="cta" hidden>Start ▶</button>
       <p id="msg" class="msg"></p>
+      <button id="leave" class="leave" type="button">Wyjdź z party</button>
       </div>
     </div>`;
   const $ = <T extends HTMLElement>(id: string) => root.querySelector<T>('#' + id)!;
@@ -264,6 +265,12 @@ function showWaitingRoom(root: HTMLElement, party: Party, backdrop: MenuBackdrop
   start.onclick = () => {
     start.disabled = true;
     party.start();
+  };
+  const leave = $<HTMLButtonElement>('leave');
+  leave.onclick = async () => {
+    leave.disabled = true;
+    await party.leave();
+    location.href = '/';
   };
   // Map pick: the host switches it, everyone sees the current one.
   const mapButtons = [...root.querySelectorAll<HTMLButtonElement>('.map-pick button')];

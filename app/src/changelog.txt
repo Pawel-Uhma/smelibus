@@ -44,3 +44,4 @@
 2026-10-19T12:53Z | Paweł | widoki kamery: dron, kabina, oczy kierowcy (klawisz C)
 2026-10-19T12:56Z | Paweł | numer wersji w rogu ekranu startowego, po kliknięciu lista zmian
 2026-10-19T13:01Z | Paweł | nowy wygląd ekranu startowego i poczekalni: wyraźny wybór publiczne/prywatne, lista graczy z autobusikami
+2026-10-27T10:48Z | Paweł | dodano przycisk wyjścia z party w poczekalni i w grze

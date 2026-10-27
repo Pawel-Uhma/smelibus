@@ -38,7 +38,7 @@ window.addEventListener('keydown', (e) => {
 const hud = createHud(ui, party.code, party.playerId, {
   isHost: () => party.lobby().hostId === party.playerId,
   request: () => party.rematch(),
-});
+}, () => party.leave());
 const minimap = createMinimap(ui, party.playerId);
 const keyboard = createKeyboard();
 const touch = createTouch();

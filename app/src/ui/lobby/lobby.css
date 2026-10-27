@@ -192,3 +192,8 @@
 @media (prefers-reduced-motion: reduce) {
   .lobby .card, .lobby .logo, .lobby .logo::before, .lobby .logo::after, .lobby .players li { animation: none; }
 }
+
+/* Leave the party: quiet text button under the main action. */
+.lobby .card .leave { background: none; box-shadow: none; border: 0; padding: 4px; font-weight: 600; color: var(--muted); text-decoration: underline; align-self: center; }
+.lobby .card .leave:hover { color: var(--ink); }
+.lobby .card .leave:not(:disabled):active { transform: none; }

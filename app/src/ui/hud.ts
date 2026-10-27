@@ -10,6 +10,9 @@ export interface HudRematch {
   request(): void;
 }
 
+/** Leaves the party for good (issue #1); the HUD then sends the player to the home screen. */
+export type HudLeave = () => Promise<void>;
+
 /** Stink cloud with three wavy fumes, colored by the pop's CSS (currentColor). */
 const STINK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="#1b1b1b" stroke-width="1.5" d="M6 20a4 4 0 0 1-.6-8 5 5 0 0 1 9.6-1.5A4 4 0 1 1 18 20z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 7c-1-1 1-2 0-4M12 6c-1-1 1-2 0-4M16 7c-1-1 1-2 0-4"/></svg>`;
 
@@ -69,10 +72,10 @@ function stinkTier(f: number): string {
  * In-game HUD over the canvas: party code, map share per player, clock with sudden death,
  * own bus stink, and the win screen. Only reads the view passed to update().
  */
-export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch?: HudRematch) {
+export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch?: HudRematch, leave?: HudLeave) {
   root.innerHTML = `
     <div class="hud">
-      <div class="party"><span class="code">Party <b>${code}</b></span><button id="copy" class="icon" title="Kopiuj link" aria-label="Kopiuj link">🔗</button><button id="help-toggle" class="icon" title="Sterowanie" aria-label="Sterowanie" aria-expanded="false">?</button></div>
+      <div class="party"><span class="code">Party <b>${code}</b></span><button id="copy" class="icon" title="Kopiuj link" aria-label="Kopiuj link">🔗</button><button id="help-toggle" class="icon" title="Sterowanie" aria-label="Sterowanie" aria-expanded="false">?</button><button id="leave" class="icon leave" title="Wyjdź z party" aria-label="Wyjdź z party">🚪</button></div>
       <ul id="players"></ul>
       <div class="help">WASD / strzałki: jazda i chodzenie · spacja: hamulec · E: wsiądź / wysiądź · H: klakson · K: kontrast</div>
       <div class="help help-touch">Prawy kciuk: wskaż, gdzie jechać albo iść · przyciski po lewej: wsiądź / wysiądź, klakson</div>
@@ -153,6 +156,24 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
     setHelp(true);
     setTimeout(() => setHelp(false), 15000);
   }
+  // Leave: the first click arms the button, a second one within 3 s leaves (no browser dialog).
+  const leaveBtn = $<HTMLButtonElement>('leave');
+  let leaveArmed: ReturnType<typeof setTimeout> | null = null;
+  leaveBtn.onclick = async () => {
+    if (!leaveArmed) {
+      leaveBtn.textContent = 'Wyjść?';
+      leaveBtn.classList.add('armed');
+      leaveArmed = setTimeout(() => {
+        leaveArmed = null;
+        leaveBtn.textContent = '🚪';
+        leaveBtn.classList.remove('armed');
+      }, 3000);
+      return;
+    }
+    leaveBtn.disabled = true;
+    await leave?.();
+    location.href = '/';
+  };
   let dismissedWinner: PlayerId | null = null;
   $<HTMLButtonElement>('win-close').onclick = () => {
     dismissedWinner = shownWinner;

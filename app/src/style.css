@@ -20,6 +20,7 @@ button:hover { background: #ffb829; }
 .hud .party .code { margin-right: auto; white-space: nowrap; }
 .hud .party button { padding: 0; width: 26px; height: 26px; font-size: 14px; line-height: 1; border-width: 1.5px; border-radius: 6px; flex: none; }
 .hud .party button.contrast[aria-pressed='true'], .hud .party button.mute[aria-pressed='true'] { background: #fff; }
+.hud .party button.leave.armed { width: auto; padding: 0 6px; font-size: 12px; font-weight: 700; background: #d23030; color: #fff; }
 .hud ul { list-style: none; margin: 4px 0 0; padding: 0; }
 .hud li { position: relative; display: flex; align-items: center; gap: 5px; padding: 1px 4px; margin: 1px 0; border-radius: 4px; overflow: hidden; }
 .hud li .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }

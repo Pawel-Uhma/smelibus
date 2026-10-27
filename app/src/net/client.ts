@@ -21,7 +21,8 @@ export interface Party {
   interpolatedBuses(now: number): Bus[];
   sendInput(input: BusInput): void;
   onClose(cb: (reason: string) => void): void;
-  leave(): void;
+  /** Leaves for good (no reconnect); resolves once the server got it or after a short timeout. */
+  leave(): Promise<void>;
   /** Host, started flag, public flag (card 016). */
   lobby(): LobbyInfo;
   onLobby(cb: (info: LobbyInfo) => void): void;
@@ -151,9 +152,9 @@ async function connect(open: () => Promise<Room>): Promise<Party> {
       room.send('input', input);
     },
     onClose: (cb) => closeCbs.push(cb),
-    leave: () => {
+    leave: async () => {
       sessionStorage.removeItem(TOKEN_KEY);
-      room.leave(true);
+      await Promise.race([room.leave(true), new Promise((r) => setTimeout(r, 1500))]).catch(() => {});
     },
     lobby: () => lobby,
     onLobby: (cb) => lobbyCbs.push(cb),
