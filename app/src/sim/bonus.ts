@@ -1,7 +1,7 @@
 import {
-  BONUS_RADIUS, BONUS_RESPAWN_S, BONUS_STINK, BONUS_WEIGHTS, BUS_RADIUS, BUS_STOPS_PER_TILE,
+  BONUS_RADIUS, BONUS_RESPAWN_S, BONUS_STINK, BUS_RADIUS, BUS_STOPS_PER_TILE,
   CONTROLLER_RESPAWN_S, CONTROLLERS_PER_TILE, DROPPED_STINK_PICKUP_DELAY_S, DROPPED_STINK_TTL_S,
-  MAP_BONUS_SPOTS_PER_TILE, STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
+  STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
   TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
 } from '../shared/config';
 import { countPickup } from './cargo';
@@ -18,18 +18,12 @@ export function rand(state: GameState): number {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
-function pickRegular(state: GameState): BonusKind {
-  const entries = Object.entries(BONUS_WEIGHTS) as [BonusKind, number][];
-  let r = rand(state) * entries.reduce((s, [, w]) => s + w, 0);
-  for (const [kind, w] of entries) if ((r -= w) < 0) return kind;
-  return entries[0][0];
-}
-
-/** What appears on a spot when it (re)spawns. */
-function kindFor(state: GameState, spot: BonusSpot): BonusKind {
+/** What appears on a spot when it (re)spawns. Regular bonuses (kebab, dog…) are gone (card 041),
+ *  so a stop only ever holds a drunk; an old 'map' spot keeps whatever it had. */
+function kindFor(spot: BonusSpot, current: BonusKind): BonusKind {
   switch (spot) {
-    case 'stop': return rand(state) < STOP_ZUL_CHANCE ? 'zul' : pickRegular(state);
-    case 'map': return pickRegular(state);
+    case 'stop': return 'zul';
+    case 'map': return current;
     case 'trash': return 'trash';
     case 'controller': return 'controller';
     case 'dropped': return 'dropped';
@@ -49,14 +43,21 @@ export function nextId(state: GameState): number {
 }
 
 function activate(state: GameState, b: Bonus): void {
-  b.kind = kindFor(state, b.spot);
+  // A stop is empty part of the time: it tries again for a drunk after BONUS_RESPAWN_S.
+  if (b.spot === 'stop' && rand(state) >= STOP_ZUL_CHANCE) {
+    b.kind = 'zul';
+    b.active = false;
+    b.respawnAt = state.time + BONUS_RESPAWN_S;
+    return;
+  }
+  b.kind = kindFor(b.spot, b.kind);
   b.amount = b.kind === 'dropped' ? b.amount : BONUS_STINK[b.kind];
   b.active = true;
   b.respawnAt = 0;
 }
 
 /**
- * Scatters bonus spots over the map: bus stops, free map spots, trash cans, ticket controllers.
+ * Scatters bonus spots over the map: bus stops (a drunk or nobody), trash cans, ticket controllers.
  * Counts scale with map area. Card 002 may later pass real stop positions instead.
  */
 export function spawnBonuses(state: GameState): void {
@@ -67,7 +68,6 @@ export function spawnBonuses(state: GameState): void {
   const margin = 2;
   const counts: [BonusSpot, number][] = [
     ['stop', BUS_STOPS_PER_TILE],
-    ['map', MAP_BONUS_SPOTS_PER_TILE],
     ['trash', TRASH_CANS_PER_TILE],
     ['controller', CONTROLLERS_PER_TILE],
   ];
@@ -80,7 +80,7 @@ export function spawnBonuses(state: GameState): void {
       const stop = spot === 'stop' ? state.world.stops?.[i] : undefined;
       const { x, z } = stop ?? nearestDrivable(state.world, rx, rz);
       const b: Bonus = {
-        id: state.bonuses.length, spot, kind: 'kebab', amount: 0, active: false, respawnAt: 0, x, z,
+        id: state.bonuses.length, spot, kind: 'zul', amount: 0, active: false, respawnAt: 0, x, z,
       };
       activate(state, b);
       state.bonuses.push(b);

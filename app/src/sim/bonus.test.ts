@@ -25,17 +25,30 @@ function place(s: GameState, spot: BonusSpot, kind: Bonus['kind'], x: number, z:
 }
 
 describe('stink bonuses', () => {
-  it('spawns stops, map spots, trash cans and controllers inside the map', () => {
+  it('spawns stops, trash cans and controllers inside the map, no regular bonuses', () => {
     const s = createGame(7);
     const spots = new Set(s.bonuses!.map((b) => b.spot));
-    expect([...spots].sort()).toEqual(['controller', 'map', 'stop', 'trash']);
+    expect([...spots].sort()).toEqual(['controller', 'stop', 'trash']);
     for (const b of s.bonuses!) {
-      expect(b.active).toBe(true);
+      expect(['zul', 'trash', 'controller']).toContain(b.kind);
+      expect(b.active || b.spot === 'stop').toBe(true);
       expect(b.x).toBeGreaterThan(0);
       expect(b.x).toBeLessThan(s.world.size);
       expect(b.z).toBeGreaterThan(0);
       expect(b.z).toBeLessThan(s.world.size);
     }
+  });
+
+  it('an empty stop keeps trying for a drunk', () => {
+    const s = createGame(7);
+    const stops = s.bonuses!.filter((b) => b.spot === 'stop');
+    expect(stops.some((b) => b.active)).toBe(true);
+    expect(stops.some((b) => !b.active)).toBe(true);
+    for (let i = 0; i < 20; i++) {
+      s.time += BONUS_RESPAWN_S;
+      updateBonuses(s, 0);
+    }
+    expect(stops.every((b) => b.kind === 'zul')).toBe(true);
   });
 
   it('spawns the same layout for the same seed', () => {

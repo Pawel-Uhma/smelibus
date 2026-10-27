@@ -155,10 +155,10 @@ export const DROPPED_STINK_TTL_S = 20;
 export const DROPPED_STINK_PICKUP_DELAY_S = 1;
 /** Spawn spots per map tile (×size², at least 1 each). */
 export const BUS_STOPS_PER_TILE = 1 / 150;
-export const MAP_BONUS_SPOTS_PER_TILE = 1 / 60;
 export const TRASH_CANS_PER_TILE = 1 / 120;
 export const CONTROLLERS_PER_TILE = 1 / 400;
-/** Bus stops hold a drunk this often, otherwise a regular bonus. */
+/** Chance a stop holds a drunk when it (re)spawns; otherwise it stays empty and tries again
+ *  after BONUS_RESPAWN_S (regular bonuses are gone, card 041). */
 export const STOP_ZUL_CHANCE = 0.5;
 // Żabka shops (sim/zabka.ts): each one lets out drunks ("żul" bonus) that wait until picked up.
 /** Shops per map tile (×size², at least 1). */
@@ -209,8 +209,6 @@ export const PACZKOMAT_DROP_SIDE = 1.8;
 /** A drop on the ground vanishes after this long and can't be picked up for the first moment. */
 export const PACZKOMAT_DROP_TTL_S = 20;
 export const PACZKOMAT_DROP_PICKUP_DELAY_S = 1;
-/** Spawn weights for regular bonuses on map spots and stops (durian is rare, kebab common). */
-export const BONUS_WEIGHTS = { kebab: 5, dog: 3, fan: 2, herring: 3, durian: 1 } as const;
 
 export const PLAYER_COLORS = [
   0x2f6bd6, 0xee7f1e, 0xc8357a, 0xe5bc1f, 0xc9a0dc, 0xa3203a, 0x5b2a6e, 0x3c3f4a,
