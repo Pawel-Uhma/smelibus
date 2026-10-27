@@ -1,7 +1,7 @@
 # Paczkomat: nowy model, przejazd i losowanie power-upów
 
 obszar: swiat
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: render/paczkomat.ts, sim/paczkomat.ts, ui/, shared/
 
