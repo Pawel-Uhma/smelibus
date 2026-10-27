@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cameraPose, initialCameraMode, nextCameraMode } from './camera';
+import { FOOT_TURN_RATE, cameraPose, footInput, initialCameraMode, nextCameraMode } from './camera';
 
 describe('camera modes', () => {
   it('cycles through all views and back', () => {
@@ -31,5 +31,24 @@ describe('cameraPose', () => {
     expect(pos.z).toBeGreaterThan(10);
     expect(pos.y).toBeLessThan(1.33);
     expect(look.z).toBeGreaterThan(pos.z);
+  });
+});
+
+describe('on foot', () => {
+  it('A/D turn the walker, W walks along the heading in the sim\'s screen directions', () => {
+    const turned = footInput(0, 1, 0, 0.5);
+    expect(turned.heading).toBeCloseTo(-FOOT_TURN_RATE * 0.5);
+    expect(turned.throttle).toBe(0);
+    // Heading +x (angle π/2): the sim walks +x when steer is -1 (right on screen is -x).
+    const f = footInput(1, 0, Math.PI / 2, 0);
+    expect(f.throttle).toBeCloseTo(0);
+    expect(f.steer).toBeCloseTo(-1);
+  });
+
+  it('keeps the close views on foot, closer than for a bus', () => {
+    const bus = cameraPose('chase', 0, 0, 0);
+    const foot = cameraPose('chase', 0, 0, 0, true);
+    expect(foot.pos.y).toBeLessThan(bus.pos.y);
+    expect(cameraPose('eyes', 0, 0, 0, true).pos.y).toBeGreaterThan(1);
   });
 });

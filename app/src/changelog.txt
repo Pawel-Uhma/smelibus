@@ -53,3 +53,4 @@
 2026-10-27T11:09Z | Paweł | kukuryniarze na hulajnogach wyjeżdżają z bloków: zgarnij ich, a autobus jedzie szybciej, nowy pasek prędkości
 2026-10-27T11:09Z | Paweł | zgarnięty kukuryniarz pokazuje niebieskie +4% nad autobusem
 2026-10-27T11:11Z | Paweł | na mapie miasta wyraźnie widać, czyj jest teren: kolor strefy leży na ulicach i chodnikach, granice są grubsze
+2026-10-27T11:13Z | Paweł | po wyjściu z autobusu kamera zostaje taka sama, a pieszego obraca się A/D

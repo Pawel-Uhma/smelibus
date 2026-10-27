@@ -161,7 +161,7 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 - Proste modele 3D w stylu voxel, **generowane w kodzie** z prostopadłościanów (bez plików
   `.vox`). Wszystkie kolory z jednej palety, kolory graczy to jej podmiana.
 - Modele z MagicaVoxel dla autobusu i ludzika — dopiero gdy pętla gry działa.
-- Kamera: pieszy z góry pod kątem, kierowca — widok z góry. Kierowca może przełączać widok klawiszem C albo przyciskiem w HUD: z góry → dron za autobusem → kokpit (szyba, słupki, deska, kierownica w kolorze gracza) → oczy kierowcy (pierwsza osoba bez elementów autobusu). Wybór zapamiętuje przeglądarka, `?kamera=chase|cockpit|eyes` w URL. W widokach innych niż z góry gałka na telefonie działa jak gaz i kierownica, nie jak celowanie na ekranie.
+- Kamera: pieszy z góry pod kątem, kierowca — widok z góry. Kierowca może przełączać widok klawiszem C albo przyciskiem w HUD: z góry → dron za autobusem → kokpit (szyba, słupki, deska, kierownica w kolorze gracza) → oczy kierowcy (pierwsza osoba bez elementów autobusu). Wybór zapamiętuje przeglądarka, `?kamera=chase|cockpit|eyes` w URL. W widokach innych niż z góry gałka na telefonie działa jak gaz i kierownica, nie jak celowanie na ekranie. Po wyjściu z autobusu widok zostaje ten sam: dron idzie za pieszym (bliżej niż za autobusem), a kokpit i oczy kierowcy stają się oczami pieszego. W tych widokach pieszy obraca się A/D i idzie W/S przed siebie (jak autobus), na telefonie tak samo gałką; z góry dalej chodzi w kierunkach ekranu.
 - Voxele renderowane przez `InstancedMesh` / merge geometrii — nie jeden `Mesh` na voxel.
 - Tryb wysokiego kontrastu: **nie w MVP** (był prośbą ze spotkania 1, odłożony).
 

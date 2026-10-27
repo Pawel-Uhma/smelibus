@@ -132,7 +132,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
      */
     render(
       buses: Bus[], players: Player[], follow: { x: number; z: number } | undefined, dt: number, time = 0,
-      view?: { mode: CameraMode; bus: Bus | null; steer: number },
+      view?: { mode: CameraMode; bus: Bus | null; steer: number; foot?: { id: PlayerId; heading: number } },
     ) {
       resize();
       const byId = new Map<PlayerId, Player>(players.map((p) => [p.id, p]));
@@ -143,22 +143,27 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       syncPedestrians(players, time, dt);
       stink.update(buses, dt);
       const own = view?.bus ?? null;
-      const mode: CameraMode = own ? view!.mode : 'top';
+      // On foot the picked view stays on too, turned by the walker's heading (main.ts keeps it).
+      const foot = !own && view?.foot && follow ? view.foot : null;
+      const mode: CameraMode = own || foot ? view!.mode : 'top';
       const inside = isFirstPerson(mode);
-      if (own && inside) {
+      const heading = own ? own.angle : foot ? foot.heading : camAngle;
+      if ((own || foot) && inside) {
         // In the driver's seat the view is glued to the bus, any lag would feel like a loose neck.
-        camTarget.set(own.x, 0, own.z);
-        camAngle = own.angle;
+        camTarget.set(own ? own.x : follow!.x, 0, own ? own.z : follow!.z);
+        camAngle = heading;
       } else if (follow) {
         const k = 1 - Math.exp(-dt * 6);
         camTarget.lerp(new THREE.Vector3(follow.x, 0, follow.z), k);
-        if (own) {
+        if (own || foot) {
           // The drone swings behind the bus a bit slower than it moves, so turns read on screen.
-          const d = Math.atan2(Math.sin(own.angle - camAngle), Math.cos(own.angle - camAngle));
-          camAngle += d * (1 - Math.exp(-dt * 4));
+          const d = Math.atan2(Math.sin(heading - camAngle), Math.cos(heading - camAngle));
+          camAngle += d * (1 - Math.exp(-dt * (foot ? 8 : 4)));
         }
       }
-      const pose = cameraPose(mode, camTarget.x, camTarget.z, camAngle);
+      // Own walker hidden behind his own eyes.
+      for (const [id, w] of walkers) w.pivot.visible = !(foot && inside && id === foot.id);
+      const pose = cameraPose(mode, camTarget.x, camTarget.z, camAngle, !!foot);
       camera.position.set(pose.pos.x, pose.pos.y, pose.pos.z);
       camera.lookAt(pose.look.x, pose.look.y, pose.look.z);
       const near = inside ? 0.03 : 0.1;
@@ -172,7 +177,7 @@ export function createScene(canvas: HTMLCanvasElement, world: World) {
       for (const [id, m] of meshes) m.group.visible = !(inside && own?.id === id);
       // Behind the bus the own nick would cover the road ahead, and it's clear whose bus it is.
       for (const [id, p] of plates) if (mode !== 'top' && own?.id === id) p.sprite.visible = false;
-      cockpit.group.visible = mode === 'cockpit';
+      cockpit.group.visible = mode === 'cockpit' && !!own;
       if (own && mode === 'cockpit') {
         cockpit.group.position.set(own.x, 0, own.z);
         cockpit.group.rotation.y = own.angle;

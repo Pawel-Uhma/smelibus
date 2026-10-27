@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 /**
- * Camera views, switched with C or the HUD button. Only a bus gets the close views;
- * on foot the camera is always the top-down one (walking goes in screen directions).
+ * Camera views, switched with C or the HUD button. On foot the same view stays on: a drone
+ * behind the walker, or his own eyes for both seat views (walking then turns with A/D).
  */
 export type CameraMode = 'top' | 'chase' | 'cockpit' | 'eyes';
 export const CAMERA_MODES: CameraMode[] = ['top', 'chase', 'cockpit', 'eyes'];
@@ -34,15 +34,34 @@ interface Vec3 {
 
 // Driver's eye in bus space (bus faces +z, its left side is +x; see render/models/bus.ts).
 const EYE = { x: 0.2, y: 0.98, z: 0.95 };
+/** Eye height of a pedestrian (the model is about 1.3 tiles tall). */
+const FOOT_EYE_Y = 1.15;
+/** On foot in the close views, A/D turn the walker this fast, radians per second. */
+export const FOOT_TURN_RATE = 2.6;
+
+/**
+ * Close views on foot (tank controls): A/D turn `heading`, W/S walk along it. Returns the new
+ * heading and the input the sim expects, which walks in screen directions of the top view
+ * (right on screen is -x, up is +z).
+ */
+export function footInput(throttle: number, steer: number, heading: number, dt: number): { heading: number; throttle: number; steer: number } {
+  const h = heading - steer * FOOT_TURN_RATE * dt;
+  return { heading: h, throttle: throttle * Math.cos(h), steer: -throttle * Math.sin(h) };
+}
 
 /**
  * Where the camera stands and what it looks at, for a target at (x, z) heading `angle`
  * (forward is (sin, cos), as in sim/bus.ts). Pure, so the views are testable.
  */
-export function cameraPose(mode: CameraMode, x: number, z: number, angle: number): { pos: Vec3; look: Vec3 } {
+export function cameraPose(mode: CameraMode, x: number, z: number, angle: number, onFoot = false): { pos: Vec3; look: Vec3 } {
   const fx = Math.sin(angle), fz = Math.cos(angle);
   // Bus space (lx to the left, lz forward) to world.
   const at = (lx: number, y: number, lz: number): Vec3 => ({ x: x + fx * lz + fz * lx, y, z: z + fz * lz - fx * lx });
+  if (onFoot && mode !== 'top') {
+    // A walker is smaller than a bus: the drone comes closer, both seat views become his eyes.
+    if (mode === 'chase') return { pos: at(0, 2.2, -3.6), look: at(0, 0.7, 3) };
+    return { pos: at(0, FOOT_EYE_Y, 0.15), look: at(0, FOOT_EYE_Y - 0.15, 1.2) };
+  }
   switch (mode) {
     case 'top':
       // Top-down view, slightly tilted so boxes read as 3D.

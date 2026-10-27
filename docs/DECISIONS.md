@@ -130,3 +130,6 @@ Paczkomat nie odpycha już autobusu (`collidePaczkomats` usunięte też z predyk
 
 ### 2026-10-27 — Kukuryniarz to bonus z trasą liczoną po stronie klienta [046]
 Kukuryniarz jest zwykłym `Bonus` (`spot`/`kind` = `scooter`, `amount` 0), żeby zbieranie, snapshoty, boty i render działały jak dla innych bonusów. Ruch to `walk` (wyjazd z bloku na pas) i `patrol` (pas ulicy w tę i z powrotem, z polem `offset`, żeby mógł dołączyć w dowolnym miejscu pętli), więc serwer nie wysyła jego pozycji co tick. Bonus do prędkości to `Bus.riderBoost`, wygaszany w `updatePowers` i doliczany do `speedMult` razem z energetykiem. Trasa jest przycięta do tej części pasa, która leży na mapie.
+
+### 2026-10-27 — Kamera pieszego zostaje taka jak w autobusie
+Wcześniej pieszy miał zawsze widok z góry, bo chodzi w kierunkach ekranu. Teraz widok zostaje po wyjściu z autobusu. Sim się nie zmienił: w widokach innych niż z góry klient trzyma kierunek pieszego (startuje z kąta autobusu, A/D go obracają) i zamienia W/S na wektor w kierunkach ekranu z góry (`footInput` w `render/camera.ts`), który `walk` już rozumie. Kamera używa tego kierunku, a własny model pieszego chowa się w widoku z oczu.
