@@ -80,6 +80,17 @@ miejsce odnawia się po czasie (np. 15 s).
 
 **Statystyki ładunku** (karta 039): każdy podniesiony bonus liczy się autobusowi i jego kierowcy, w jednym miejscu (`sim/cargo.ts`, wołane przy zebraniu). HUD przy pasku smrodu pokazuje 🍺 żuli, którzy **siedzą w autobusie teraz** (każdy przez 20 s od zebrania, `ZUL_SIT_SECONDS`), oraz 📦 paczki i 💩 kupy **zebrane od startu gry**. Ekran wygranej ma tabelę graczy: żule, paczki, kupy, reszta (wszystko inne, też kanar i rozsypany smród), wszystko jako suma od startu; lider kolumny jest podświetlony (remis: wszyscy), przy zerze nikt. Rewanż zeruje statystyki.
 
+### Zaplanowane zmiany (karty 041–047, ustalone 27.10)
+
+Jeszcze nie w kodzie. Kto robi kartę, przenosi swoją część do tabeli i reguł wyżej. Modele i makieta losowania: artefakt „Bonusy smrodu” u Pawła.
+
+- **Zwykłe bonusy znikają** (kebab, pies, śledź, kibic, durian) razem z wolnymi miejscami na mapie. Przystanek ma żula albo stoi pusty [041].
+- **Smród do 1000** zamiast 100. **Sudden death** od 4 min: ×2, potem +1 co 2 min, bez limitu [042].
+- **Paczkomat** jest większy, stoi przy bloku i nie ma kolizji. Przejazd przez niego losuje nagrodę, którą kierowca widzi na taśmie na dole ekranu, i trafia ona od razu do autobusu. Pula: kupa +30 (40%), **energetyk** +35% prędkości na 6 s (20%), **bilet miesięczny** przez 25 s chroni przed kontrolerem i taranowaniem (20%), **kiszona kapusta** daje ×2 do zbieranego smrodu przez 10 s (20%). Paczek już nie ma. Jeden power-up naraz [043].
+- **Kontroler** chodzi chodnikiem z animacją kroku [044]. **Śmietnik** jest mniejszy i stoi przy krawężniku, a po zebraniu leży przewrócony 20 s [045].
+- **Kukuryniarz** na elektrycznej hulajnodze wyjeżdża z bloków i jeździ ulicami. Zgarnięty daje +4% prędkości, bonusy się sumują (do +50%) i zanikają o 0,25 pp/s. Nowy **pasek prędkości** w HUD [046].
+- Na mapie miasta ma być wyraźnie widać, czyj jest teren [047].
+
 Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),
 widoczna zielona chmura wokół autobusu skalowana smrodem.
 
