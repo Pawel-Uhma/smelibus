@@ -236,21 +236,46 @@ function fan(): BonusVoxel[] {
   return b.voxels();
 }
 
-function controller(): BonusVoxel[] {
+/**
+ * Ticket controller mid-stride (card 044): `phase` 1 = left leg forward, -1 = right leg forward,
+ * 0 = legs together. The left arm swings against the left leg, the right one holds the reader out.
+ */
+function controllerStep(phase: number): BonusVoxel[] {
   const b = new Builder();
-  person(b, { shoes: 0x151515, legs: 0x1e2433, torso: 0x26324a });
-  b.box(-1, 1, 13, 13, -1, 1, 0x26324a); // cap
+  const navy = 0x26324a;
+  for (const [x0, x1, d] of [[-2, -1, phase], [1, 2, -phase]]) {
+    b.box(x0, x1, 3, 4, -1, 0, 0x1e2433);
+    b.box(x0, x1, 1, 2, -1 + d, d, 0x1e2433);
+    b.box(x0, x1, 0, 0, -1 + d, 1 + d, 0x151515);
+  }
+  b.box(-2, 2, 5, 9, -1, 1, navy);
+  b.box(-1, 1, 10, 12, -1, 1, SKIN);
+  b.set(-1, 11, 2, 0x202020);
+  b.set(1, 11, 2, 0x202020);
+  b.box(-1, 1, 13, 13, -1, 1, navy); // cap
   b.box(-1, 1, 13, 13, 2, 2, 0x111111); // peak
   b.box(-1, 1, 14, 14, -1, 1, 0xd23030); // red top, so it reads as the one to avoid
   b.set(-1, 8, 2, 0xffd040); // badge
-  b.box(-3, -3, 8, 8, 0, 0, 0xd23030); // armband
+  const a = -phase;
+  b.box(-3, -3, 8, 9, 0, 0, navy);
+  b.set(-3, 8, 0, 0xd23030); // armband
+  b.box(-3, -3, 6, 7, a, a, navy);
+  b.set(-3, 5, a, SKIN);
   // Arm stretched forward holding the ticket reader.
-  for (let y = 5; y <= 7; y++) b.clear(3, y, 0);
-  b.box(3, 3, 8, 8, 1, 3, 0x26324a);
+  b.box(3, 3, 9, 9, 0, 0, navy);
+  b.box(3, 3, 8, 8, 1, 3, navy);
   b.set(3, 8, 4, SKIN);
   b.box(3, 3, 9, 10, 4, 4, 0x222222);
   b.set(3, 10, 5, 0x40e060);
   return b.voxels();
+}
+
+/** Walk cycle frames: left leg, together, right leg, together. */
+export const CONTROLLER_FRAMES = 4;
+const STEP_PHASES = [1, 0, -1, 0];
+
+function controller(): BonusVoxel[] {
+  return controllerStep(0);
 }
 
 function dog(): BonusVoxel[] {
@@ -317,19 +342,34 @@ function durian(): BonusVoxel[] {
   return b.voxels();
 }
 
+/** Small street bin on the kerb (card 045): 3 × 3 wide, 6 high, rubbish poking out, flies. */
 function trash(): BonusVoxel[] {
   const b = new Builder();
-  for (let y = 0; y <= 7; y++) for (let x = -2; x <= 2; x++) for (let z = -2; z <= 2; z++) {
-    if (Math.abs(x) === 2 && Math.abs(z) === 2) continue;
-    b.set(x, y, z, y === 7 ? 0x37493a : y === 5 ? 0x6f8b6a : 0x4f6b4a);
-  }
-  // Rubbish sticking out of the top: banana, paper, a bottle and a stain.
-  b.box(-1, 0, 8, 8, -1, -1, 0xf0d040);
-  b.set(1, 8, 0, 0xf4f4f0);
-  b.set(1, 9, 0, 0xf4f4f0);
-  b.box(-1, -1, 8, 10, 1, 1, 0x2f7a3a);
-  b.set(0, 8, 1, 0x6f7a2e);
-  for (const [x, y, z] of [[2, 11, -1], [-2, 12, 0], [0, 13, 2]]) b.set(x, y, z, 0x202020); // flies
+  b.box(-1, 1, 0, 0, -1, 1, 0x2f3a2c);
+  for (let y = 1; y <= 4; y++) b.box(-1, 1, y, y, -1, 1, y === 3 ? 0x6f8b6a : 0x4f6b4a);
+  b.box(-1, 1, 5, 5, -1, 1, 0x37493a);
+  b.set(0, 5, 0, 0x1a1a1a);
+  b.set(0, 6, 0, 0xf4f4f0);
+  b.set(-1, 6, 1, 0xf0d040);
+  b.set(1, 8, -1, 0x202020); // flies
+  b.set(-1, 9, 0, 0x202020);
+  return b.voxels();
+}
+
+/** The same bin knocked over after a bus took it: on its side, rubbish spilled out of the top. */
+export function trashKnockedVoxels(): BonusVoxel[] {
+  const b = new Builder();
+  b.box(-4, -4, 0, 2, -1, 1, 0x2f3a2c);
+  for (let x = -3; x <= 0; x++) b.box(x, x, 0, 2, -1, 1, x === -1 ? 0x6f8b6a : 0x4f6b4a);
+  b.box(1, 1, 0, 2, -1, 1, 0x37493a);
+  b.set(1, 1, 0, 0x1a1a1a);
+  b.box(2, 3, 0, 0, -1, -1, 0xf0d040);
+  b.set(2, 0, 1, 0xf4f4f0);
+  b.set(3, 0, 2, 0xf4f4f0);
+  b.set(2, 0, 0, 0x6f7a2e);
+  b.box(3, 3, 0, 0, 0, 1, 0x2f7a3a);
+  b.set(2, 3, 0, 0x202020);
+  b.set(0, 4, -1, 0x202020);
   return b.voxels();
 }
 
@@ -428,6 +468,24 @@ export function bonusGeometry(kind: BonusKind): THREE.BufferGeometry {
   }
   return g;
 }
+
+const extraCache = new Map<string, THREE.BufferGeometry>();
+
+function cached(key: string, build: () => BonusVoxel[]): THREE.BufferGeometry {
+  let g = extraCache.get(key);
+  if (!g) {
+    g = buildGeometry(build());
+    extraCache.set(key, g);
+  }
+  return g;
+}
+
+/** Knocked-over trash can, shown while the can waits to stand up again. */
+export const trashKnockedGeometry = () => cached('trash:knocked', trashKnockedVoxels);
+
+/** One frame (0..CONTROLLER_FRAMES-1) of the controller's walk cycle. */
+export const controllerStepGeometry = (frame: number) =>
+  cached(`controller:${frame}`, () => controllerStep(STEP_PHASES[frame % CONTROLLER_FRAMES]));
 
 const zulCache = new Map<string, THREE.BufferGeometry>();
 

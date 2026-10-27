@@ -231,7 +231,11 @@ function blockedTiles(state: GameState): Set<number> {
       }
     }
   };
-  for (const b of state.bonuses ?? []) if (b.active && b.amount < 0) mark(b.x, b.z, 1);
+  for (const b of state.bonuses ?? []) {
+    if (!b.active || b.amount >= 0) continue;
+    const at = bonusPosition(b, state.time);
+    mark(at.x, at.z, 1);
+  }
   for (const s of world.zabkas ?? []) mark(s.x, s.z, ZABKA_TILES / 2 - 0.01);
   for (const p of world.paczkomats ?? []) mark(p.x, p.z, 0.5);
   // Parked empty buses are walls too (the bot's own bus is always driven).

@@ -213,6 +213,9 @@ export interface Bonus {
   /** A Żabka drunk walking from (x, z) here to the bonus x, z between game times `from` and
    *  `until`, then lying there. Clients compute the position from this, no per-tick updates. */
   walk?: { x: number; z: number; from: number; until: number };
+  /** A ticket controller walking up and down the sidewalk from (ax, az) to (bx, bz) and back at
+   *  `speed` tiles/s, from game time 0 (card 044). Clients compute the position from this. */
+  patrol?: { ax: number; az: number; bx: number; bz: number; speed: number };
 }
 
 /** What the server broadcasts every SNAPSHOT_INTERVAL_MS. The world is sent once on join. */

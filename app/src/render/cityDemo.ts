@@ -7,6 +7,8 @@ import type { BusInput } from '../shared/types';
 import { addPlayer, createGame, stepGame } from '../sim/game';
 import { createScene } from './scene';
 import { createCameraMode } from './camera';
+import { createBonusesRender } from './bonuses';
+import { createZulRender } from './zul';
 
 const params = new URLSearchParams(location.search);
 const seed = Number(params.get('seed') ?? 1);
@@ -18,6 +20,10 @@ if (at && mine) Object.assign(mine, { x: at[0], z: at[1], angle: Number(params.g
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const view = createScene(canvas, state.world);
 const cameraMode = createCameraMode();
+const bonuses = createBonusesRender(view.scene);
+const zuls = createZulRender(view.scene);
+// Dev handle for poking at the local sim from the console.
+(window as unknown as { demo: typeof state }).demo = state;
 
 const keys = new Set<string>();
 addEventListener('keydown', (e) => keys.add(e.code));
@@ -34,6 +40,8 @@ function frame(now: number) {
   const move = input();
   stepGame(state, new Map([['me', move]]), dt);
   const bus = state.buses.find((b) => b.id === me.busId);
+  bonuses.update(state.bonuses ?? [], dt, state.time);
+  zuls.update(state.bonuses ?? [], state.time, dt);
   view.render(state.buses, state.players, bus, dt, state.time, { mode: cameraMode.mode, bus: bus ?? null, steer: move.steer });
   requestAnimationFrame(frame);
 }

@@ -67,14 +67,9 @@ miejsce odnawia się po czasie (np. 15 s).
 
 | Bonus | Smród | Uwagi |
 |---|---|---|
-| Żul z przystanku | +25 | tylko na przystankach, „siedzi" — wolniej wietrzeje |
-| Kebab z cebulą | +10 | częsty |
-| Mokry pies | +15 | |
-| Kibic po meczu | +20 | |
-| Śledź w occie | +12 | |
-| Durian | +40 | rzadki |
-| Śmietnik | +8 | wjechanie przewraca śmietnik, wraca po czasie |
-| Kontroler biletów | −20 | bonus negatywny, trzeba go omijać |
+| Żul z przystanku | +25 | tylko na przystankach, „siedzi" — wolniej wietrzeje; przystanek bez żula stoi pusty i co 15 s losuje nowego (karta 041 usunęła kebab, psa, kibica, śledzia i duriana) |
+| Śmietnik | +8 | mały kosz na krawężniku; wjechanie go przewraca, leży z rozsypanymi śmieciami 20 s i znowu stoi (karta 045) |
+| Kontroler biletów | −20 | bonus negatywny, trzeba go omijać; chodzi chodnikiem w tę i z powrotem (ok. 18 kafelków, 0,8 kafla/s) z animacją kroku, wraca po 15 s (karta 044) |
 | Wytrącony smród | ile wypadło | zostaje po taranowaniu |
 | Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej (odstęp 30 s → 8 s, limit przy sklepie 1 → 4). Żul wychodzi drzwiami, idzie 1–2,5 kafelka w losową stronę od sklepu i się przewraca; leżący daje **+40**. Po zebraniu znika, „siedzi” jak ten z przystanku. Trzy wersje żula (niżej, Grafika → Żul) |
 | Paczka z Paczkomatu | +5 | paczkomaty InPost stoją przy ulicach; uderzenie w drzwi z prędkością ≥ 3 kafelki/s wybija przed paczkomat paczkę, a w **30%** przypadków **kupę (+30)**. Potem paczkomat jest pusty przez 6 s. Ocieranie bokiem się nie liczy. Wybite leży 20 s |
@@ -85,9 +80,7 @@ miejsce odnawia się po czasie (np. 15 s).
 
 Jeszcze nie w kodzie. Kto robi kartę, przenosi swoją część do tabeli i reguł wyżej. Modele i makieta losowania: artefakt „Bonusy smrodu” u Pawła.
 
-- **Zwykłe bonusy znikają** (kebab, pies, śledź, kibic, durian) razem z wolnymi miejscami na mapie. Przystanek ma żula albo stoi pusty [041].
 - **Paczkomat** jest większy, stoi przy bloku i nie ma kolizji. Przejazd przez niego losuje nagrodę, którą kierowca widzi na taśmie na dole ekranu, i trafia ona od razu do autobusu. Pula: kupa +30 (40%), **energetyk** +35% prędkości na 6 s (20%), **bilet miesięczny** przez 25 s chroni przed kontrolerem i taranowaniem (20%), **kiszona kapusta** daje ×2 do zbieranego smrodu przez 10 s (20%). Paczek już nie ma. Jeden power-up naraz [043].
-- **Kontroler** chodzi chodnikiem z animacją kroku [044]. **Śmietnik** jest mniejszy i stoi przy krawężniku, a po zebraniu leży przewrócony 20 s [045].
 - **Kukuryniarz** na elektrycznej hulajnodze wyjeżdża z bloków i jeździ ulicami. Zgarnięty daje +4% prędkości, bonusy się sumują (do +50%) i zanikają o 0,25 pp/s. Nowy **pasek prędkości** w HUD [046].
 - Na mapie miasta ma być wyraźnie widać, czyj jest teren [047].
 

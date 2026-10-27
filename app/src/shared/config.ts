@@ -153,6 +153,9 @@ export const BONUS_RADIUS = 0.6;
 export const BONUS_RESPAWN_S = 15;
 export const TRASH_RESPAWN_S = 20;
 export const CONTROLLER_RESPAWN_S = 15;
+/** Ticket controllers walk up and down a stretch of sidewalk this long, at this speed (card 044). */
+export const CONTROLLER_PATROL_LENGTH = 18;
+export const CONTROLLER_WALK_SPEED = 0.8;
 /** Knocked-out stink lying on the ground vanishes after this long. */
 export const DROPPED_STINK_TTL_S = 20;
 /** Knocked-out stink can't be picked up for this long, so the two buses that crashed don't

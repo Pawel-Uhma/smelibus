@@ -93,7 +93,7 @@ function frame(now: number) {
 
   const buses = shown.map((b) => (ownBus && b.id === ownBus.id ? ownBus : b));
   zones.update(party.world, snap.players, dt, contrast.on);
-  bonuses.update(snap.bonuses ?? [], dt);
+  bonuses.update(snap.bonuses ?? [], dt, snap.time);
   zuls.update(snap.bonuses ?? [], snap.time, dt);
   weather.update(snap.weather ?? [], snap.time, dt);
   night.setMaxDarkness(contrast.on ? HIGH_CONTRAST_NIGHT_MAX : 1);

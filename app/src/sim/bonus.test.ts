@@ -4,7 +4,7 @@ import {
   TRASH_RESPAWN_S, ZUL_DECAY_MULT,
 } from '../shared/config';
 import type { Bonus, BonusSpot, GameState } from '../shared/types';
-import { dropStink, spawnBonuses, updateBonuses } from './bonus';
+import { bonusPosition, dropStink, spawnBonuses, updateBonuses } from './bonus';
 import { addPlayer, createGame, stepGame } from './game';
 
 /** Game with one driven bus and no bonuses, so each test places its own. */
@@ -37,6 +37,25 @@ describe('stink bonuses', () => {
       expect(b.z).toBeGreaterThan(0);
       expect(b.z).toBeLessThan(s.world.size);
     }
+  });
+
+  it('controllers walk up and down a stretch of sidewalk, trash cans stand on the kerb', () => {
+    const s = createGame(7);
+    const ctrl = s.bonuses!.filter((b) => b.spot === 'controller');
+    expect(ctrl.length).toBeGreaterThan(0);
+    const size = s.world.size;
+    const kindAt = (x: number, z: number) => s.world.tiles[Math.floor(z) * size + Math.floor(x)].kind;
+    for (const c of ctrl) {
+      expect(c.patrol).toBeDefined();
+      const a = bonusPosition(c, 0);
+      const later = bonusPosition(c, 5);
+      expect(Math.hypot(later.x - a.x, later.z - a.z)).toBeCloseTo(5 * c.patrol!.speed, 1);
+      for (let t = 0; t < 60; t += 3) {
+        const p = bonusPosition(c, t);
+        expect(kindAt(p.x, p.z)).toBe('road');
+      }
+    }
+    for (const b of s.bonuses!.filter((x) => x.spot === 'trash')) expect(kindAt(b.x, b.z)).toBe('road');
   });
 
   it('an empty stop keeps trying for a drunk', () => {

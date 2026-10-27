@@ -1,10 +1,11 @@
 import {
   BONUS_RADIUS, BONUS_RESPAWN_S, BONUS_STINK, BUS_RADIUS, BUS_STOPS_PER_TILE,
-  CONTROLLER_RESPAWN_S, CONTROLLERS_PER_TILE, DROPPED_STINK_PICKUP_DELAY_S, DROPPED_STINK_TTL_S,
+  CONTROLLER_PATROL_LENGTH, CONTROLLER_RESPAWN_S, CONTROLLER_WALK_SPEED, CONTROLLERS_PER_TILE, DROPPED_STINK_PICKUP_DELAY_S, DROPPED_STINK_TTL_S,
   STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
   TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
 } from '../shared/config';
 import { countPickup } from './cargo';
+import { curbSpot, sidewalkPatrol } from './sidewalk';
 import { nearestDrivable } from './world';
 import type { Bonus, BonusKind, BonusSpot, Bus, GameState } from '../shared/types';
 
@@ -76,12 +77,17 @@ export function spawnBonuses(state: GameState): void {
     for (let i = 0; i < n; i++) {
       const rx = margin + rand(state) * (size - 2 * margin);
       const rz = margin + rand(state) * (size - 2 * margin);
-      // City map: stops sit at the generated bus stops, everything else off the buildings.
+      // City map: stops sit at the generated bus stops, trash cans on the kerb, controllers walk
+      // a stretch of sidewalk; the flat map (no streets) puts them anywhere drivable.
+      const r = () => rand(state);
       const stop = spot === 'stop' ? state.world.stops?.[i] : undefined;
-      const { x, z } = stop ?? nearestDrivable(state.world, rx, rz);
+      const curb = spot === 'trash' ? curbSpot(state.world, r) : null;
+      const patrol = spot === 'controller' ? sidewalkPatrol(state.world, r, CONTROLLER_PATROL_LENGTH) : null;
+      const { x, z } = stop ?? curb ?? (patrol ? { x: patrol.ax, z: patrol.az } : nearestDrivable(state.world, rx, rz));
       const b: Bonus = {
         id: state.bonuses.length, spot, kind: 'zul', amount: 0, active: false, respawnAt: 0, x, z,
       };
+      if (patrol) b.patrol = { ...patrol, speed: CONTROLLER_WALK_SPEED };
       activate(state, b);
       state.bonuses.push(b);
     }
@@ -101,8 +107,16 @@ export function dropStink(state: GameState, x: number, z: number, amount: number
   return b;
 }
 
-/** Where a bonus is at game time `time`: walking drunks move, everything else stays put. */
+/** Where a bonus is at game time `time`: walking drunks and controllers move, the rest stays put. */
 export function bonusPosition(b: Bonus, time: number): { x: number; z: number } {
+  const p = b.patrol;
+  if (p) {
+    const len = Math.hypot(p.bx - p.ax, p.bz - p.az);
+    if (len <= 0) return { x: p.ax, z: p.az };
+    const d = (p.speed * time) % (2 * len);
+    const k = (d <= len ? d : 2 * len - d) / len;
+    return { x: p.ax + (p.bx - p.ax) * k, z: p.az + (p.bz - p.az) * k };
+  }
   const w = b.walk;
   if (!w || time >= w.until) return { x: b.x, z: b.z };
   const k = Math.max(0, (time - w.from) / (w.until - w.from));
