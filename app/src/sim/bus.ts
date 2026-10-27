@@ -193,7 +193,8 @@ export function updateBus(bus: Bus, input: BusInput, dt: number, mapSize: number
     const drag = BUS_DRAG * dt;
     bus.speed = Math.abs(bus.speed) <= drag ? 0 : bus.speed - Math.sign(bus.speed) * drag;
   }
-  bus.speed = clamp(bus.speed, -BUS_MAX_REVERSE, BUS_MAX_SPEED);
+  // Energy drinks and scooter riders raise the top speed (sim/powers.ts sets speedMult).
+  bus.speed = clamp(bus.speed, -BUS_MAX_REVERSE, BUS_MAX_SPEED * (bus.speedMult ?? 1));
 
   // Steering scales with speed and flips in reverse, like a car.
   const grip = clamp(bus.speed / BUS_TURN_FULL_SPEED, -1, 1);
@@ -222,6 +223,7 @@ export interface StinkDrop {
 }
 
 function ram(victim: Bus, x: number, z: number, drops: StinkDrop[]): void {
+  if (victim.shielded) return;
   const amount = victim.stink * RAM_STINK_LOSS;
   if (amount <= 0) return;
   victim.stink -= amount;

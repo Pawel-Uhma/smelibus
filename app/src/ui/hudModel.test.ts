@@ -46,18 +46,29 @@ describe('hud model', () => {
     expect(buildHudModel(view({ winnerId: 'b' }), 'a').winner).toMatchObject({ id: 'b', name: 'B', me: false });
   });
 
-  it('shows drunks on board now and parcels and poops this game', () => {
+  it('shows drunks on board now and poops this game', () => {
     const v = view({ time: 10 });
     v.buses[0].zulsUntil = [5, 12, 30];
     v.players[0].collected = { zul: 3, parcel: 4, poop: 2, kebab: 1 };
-    expect(buildHudModel(v, 'a')).toMatchObject({ zuls: 2, parcels: 4, poops: 2 });
-    expect(buildHudModel(view(), 'a')).toMatchObject({ zuls: 0, parcels: 0, poops: 0 });
+    expect(buildHudModel(v, 'a')).toMatchObject({ zuls: 2, poops: 2 });
+    expect(buildHudModel(view(), 'a')).toMatchObject({ zuls: 0, poops: 0 });
+  });
+
+  it('shows the locker roll while the reel spins and the power-up time left', () => {
+    const v = view({ time: 10 });
+    v.buses[0].roll = { loot: 'energy', at: 9 };
+    v.buses[0].power = { kind: 'ticket', from: 5, until: 30 };
+    expect(buildHudModel(v, 'a')).toMatchObject({
+      roll: { loot: 'energy', at: 9, spinning: true }, power: { kind: 'ticket', left: 20, total: 25 },
+    });
+    v.time = 40;
+    expect(buildHudModel(v, 'a')).toMatchObject({ roll: { spinning: false }, power: null });
   });
 
   it('sums the other kinds into one cargo column', () => {
     expect(cargoCounts({ zul: 1, parcel: 2, poop: 3, kebab: 4, controller: 1, dropped: 2 }))
-      .toEqual({ zul: 1, parcel: 2, poop: 3, other: 7 });
-    expect(cargoCounts(undefined)).toEqual({ zul: 0, parcel: 0, poop: 0, other: 0 });
+      .toEqual({ zul: 1, poop: 3, other: 9 });
+    expect(cargoCounts(undefined)).toEqual({ zul: 0, poop: 0, other: 0 });
   });
 
   it('marks the leader of each cargo column, ties included, nobody at 0', () => {
@@ -67,7 +78,7 @@ describe('hud model', () => {
     const rows = buildCargoTable([a, b, c], ['c', 'a', 'b'], 'b');
     expect(rows.map((r) => [r.id, r.me, r.leads])).toEqual([
       ['c', false, []],
-      ['a', false, ['zul', 'parcel']],
+      ['a', false, ['zul', 'other']],
       ['b', true, ['zul', 'poop']],
     ]);
   });

@@ -1,29 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { BONUS_RADIUS, BONUS_STINK, BUS_RADIUS, PACZKOMAT_COOLDOWN_S, PACZKOMAT_DROP_TTL_S, PACZKOMAT_POOP_CHANCE } from '../shared/config';
-import type { Bus, GameState } from '../shared/types';
-import { updateBonuses } from './bonus';
+import {
+  BONUS_STINK, BUS_MAX_SPEED, CABBAGE_STINK_MULT, ENERGY_SPEED_BONUS, PACZKOMAT_COOLDOWN_S, PACZKOMAT_LOOT_WEIGHTS,
+  PACZKOMAT_REVEAL_S, POWER_SECONDS,
+} from '../shared/config';
+import type { Bus, GameState, LootKind } from '../shared/types';
+import { collect, updateBonuses } from './bonus';
+import { collideBuses, updateBus } from './bus';
 import { addPlayer, createGame } from './game';
-import { busVelocity, collidePaczkomats, hitPaczkomats, placePaczkomats } from './paczkomat';
+import { driveThroughPaczkomats, placePaczkomats } from './paczkomat';
+import { rollLoot, updatePowers } from './powers';
 
-const drops = (s: GameState) => s.bonuses!.filter((b) => b.spot === 'paczkomat');
-
-/** A driven bus right in front of locker 0, driving into its doors at `speed`. */
-function ram(speed: number): { s: GameState; bus: Bus } {
+/** A driven bus parked right on top of locker 0. */
+function onLocker(): { s: GameState; bus: Bus } {
   const s = createGame(5);
   addPlayer(s, 'a', 'A');
   const bus = s.buses.find((b) => b.driverId === 'a')!;
   const p = s.world.paczkomats![0];
-  bus.x = p.x + p.fx * 1.3;
-  bus.z = p.z + p.fz * 1.3;
-  bus.angle = Math.atan2(-p.fx, -p.fz);
-  bus.speed = speed;
-  bus.pushX = bus.pushZ = 0;
+  Object.assign(bus, { x: p.x, z: p.z, speed: 0, angle: 0 });
   return { s, bus };
 }
 
-function hit(s: GameState, bus: Bus) {
-  const v = busVelocity(bus);
-  hitPaczkomats(s, bus, collidePaczkomats(bus, s.world.paczkomats), v);
+/** Lands the bus's roll as `loot` (skips the reel). */
+function land(s: GameState, bus: Bus, loot: LootKind) {
+  bus.roll = { loot, at: s.time };
+  s.time += PACZKOMAT_REVEAL_S;
+  updatePowers(s);
 }
 
 describe('InPost lockers', () => {
@@ -41,91 +42,85 @@ describe('InPost lockers', () => {
     }
   });
 
-  it('a head-on ram knocks out a parcel or a poop on the bus side, then cools down', () => {
-    const { s, bus } = ram(8);
-    hit(s, bus);
-    const [d] = drops(s);
-    expect(d).toBeDefined();
-    expect(['parcel', 'poop']).toContain(d.kind);
-    expect(d.amount).toBe(BONUS_STINK[d.kind as 'parcel' | 'poop']);
-    const p = s.world.paczkomats![0];
-    expect((d.x - p.x) * p.fx + (d.z - p.z) * p.fz).toBeGreaterThan(0);
-    // Away from the bus that bounced off, so it doesn't swallow the drop unseen.
-    expect(Math.hypot(d.x - bus.x, d.z - bus.z)).toBeGreaterThan(BUS_RADIUS + BONUS_RADIUS);
-    // The bus bounced off the doors.
-    expect(Math.hypot(bus.x - p.x, bus.z - p.z)).toBeGreaterThan(0.2);
-
-    const again = ram(8);
-    again.s.paczkomatReadyAt = s.paczkomatReadyAt;
-    again.s.time = PACZKOMAT_COOLDOWN_S / 2;
-    hit(again.s, again.bus);
-    expect(drops(again.s)).toHaveLength(0);
+  it('driving through starts a roll, without blocking the bus, then cools down', () => {
+    const { s, bus } = onLocker();
+    const x = bus.x;
+    driveThroughPaczkomats(s, bus);
+    expect(bus.roll).toMatchObject({ at: 0 });
+    expect(bus.x).toBe(x);
+    const first = bus.roll;
+    s.time = PACZKOMAT_COOLDOWN_S - 1;
+    driveThroughPaczkomats(s, bus);
+    expect(bus.roll).toBe(first);
+    s.time = PACZKOMAT_COOLDOWN_S;
+    driveThroughPaczkomats(s, bus);
+    expect(bus.roll!.at).toBe(PACZKOMAT_COOLDOWN_S);
   });
 
-  it('a slow nudge drops nothing but still blocks the bus', () => {
-    const { s, bus } = ram(1);
-    const p = s.world.paczkomats![0];
-    for (let i = 0; i < 30; i++) {
-      bus.x -= p.fx * 0.05;
-      bus.z -= p.fz * 0.05;
-      hit(s, bus);
-    }
-    expect(drops(s)).toHaveLength(0);
-    expect((bus.x - p.x) * p.fx + (bus.z - p.z) * p.fz).toBeGreaterThan(0.2);
+  it('an empty bus going nowhere near does not roll', () => {
+    const { s, bus } = onLocker();
+    bus.driverId = null;
+    driveThroughPaczkomats(s, bus);
+    expect(bus.roll).toBeUndefined();
   });
 
-  it('every hard hit drops something: a parcel when it is not a poop', () => {
-    const kinds = new Set<string>();
-    const { s, bus } = ram(8);
-    const start = { x: bus.x, z: bus.z, angle: bus.angle };
-    for (let i = 0; i < 20; i++) {
-      Object.assign(bus, start, { speed: 8, pushX: 0, pushZ: 0 });
-      s.paczkomatReadyAt![0] = 0;
-      s.bonuses = [];
-      hit(s, bus);
-      expect(drops(s)).toHaveLength(1);
-      kinds.add(drops(s)[0].kind);
-      // The bus stays where it bounced: the drop is still lying there after the pickup delay.
-      s.time += 1.5;
-      updateBonuses(s, 0);
-      expect(drops(s)).toHaveLength(1);
-    }
-    expect([...kinds].sort()).toEqual(['parcel', 'poop']);
+  it('rolls loot by the weights, no parcels', () => {
+    const s = createGame(9);
+    const n: Record<string, number> = {};
+    for (let i = 0; i < 4000; i++) { const k = rollLoot(s); n[k] = (n[k] ?? 0) + 1; }
+    const total = Object.values(PACZKOMAT_LOOT_WEIGHTS).reduce((a, b) => a + b, 0);
+    for (const [k, w] of Object.entries(PACZKOMAT_LOOT_WEIGHTS)) expect(n[k] / 4000).toBeCloseTo(w / total, 1);
+    expect(n.parcel).toBeUndefined();
   });
 
-  it('about PACZKOMAT_POOP_CHANCE of the drops are poop', () => {
-    const { s, bus } = ram(8);
-    const start = { x: bus.x, z: bus.z, angle: bus.angle };
-    let poop = 0;
-    const n = 400;
-    for (let i = 0; i < n; i++) {
-      Object.assign(bus, start, { speed: 8, pushX: 0, pushZ: 0 });
-      s.paczkomatReadyAt![0] = 0;
-      s.bonuses = [];
-      hit(s, bus);
-      if (drops(s)[0].kind === 'poop') poop++;
-    }
-    expect(poop / n).toBeGreaterThan(PACZKOMAT_POOP_CHANCE - 0.08);
-    expect(poop / n).toBeLessThan(PACZKOMAT_POOP_CHANCE + 0.08);
+  it('the loot lands when the reel stops: a poop is stink', () => {
+    const { s, bus } = onLocker();
+    bus.roll = { loot: 'poop', at: 0 };
+    s.time = PACZKOMAT_REVEAL_S - 0.1;
+    updatePowers(s);
+    expect(bus.stink).toBe(0);
+    s.time = PACZKOMAT_REVEAL_S;
+    updatePowers(s);
+    expect(bus.stink).toBe(BONUS_STINK.poop);
+    updatePowers(s);
+    expect(bus.stink).toBe(BONUS_STINK.poop); // only once
   });
 
-  it('drops are one-offs: picked up once, or gone after the TTL', () => {
-    const { s, bus } = ram(8);
-    hit(s, bus);
-    const d = drops(s)[0];
-    s.bonuses = [d]; // nothing else nearby to pick up
-    s.time += 1.5;
-    bus.x = d.x;
-    bus.z = d.z;
-    const before = bus.stink;
+  it('energy drink raises the top speed for a while', () => {
+    const { s, bus } = onLocker();
+    land(s, bus, 'energy');
+    expect(bus.speedMult).toBeCloseTo(1 + ENERGY_SPEED_BONUS);
+    Object.assign(bus, { x: 50, z: 5, angle: 0, speed: 0 });
+    for (let i = 0; i < 150; i++) updateBus(bus, { throttle: 1, steer: 0 }, 1 / 60, s.world.size);
+    expect(bus.speed).toBeGreaterThan(BUS_MAX_SPEED);
+    s.time += POWER_SECONDS.energy;
+    updatePowers(s);
+    expect(bus.speedMult).toBeUndefined();
+    expect(bus.power).toBeUndefined();
+  });
+
+  it('monthly ticket: the controller lets you pass and rams knock nothing out', () => {
+    const { s, bus } = onLocker();
+    land(s, bus, 'ticket');
+    bus.stink = 100;
+    s.bonuses = [{ id: 0, spot: 'controller', kind: 'controller', amount: BONUS_STINK.controller, x: bus.x, z: bus.z, active: true, respawnAt: 0 }];
     updateBonuses(s, 0);
-    expect(bus.stink).toBe(before + d.amount);
-    expect(drops(s)).toHaveLength(0);
+    expect(bus.stink).toBe(100);
+    expect(s.bonuses[0].active).toBe(true);
+    const rammer = (): Bus => ({ id: 99, x: bus.x, z: bus.z - 2.9, angle: 0, speed: 10, driverId: 'b', stink: 0 });
+    expect(collideBuses([{ ...bus }, rammer()])).toEqual([]);
+    expect(collideBuses([{ ...bus, shielded: undefined }, rammer()]).length).toBe(1);
+  });
 
-    const other = ram(8);
-    hit(other.s, other.bus);
-    other.s.time = PACZKOMAT_DROP_TTL_S + 1;
-    updateBonuses(other.s, 0);
-    expect(drops(other.s)).toHaveLength(0);
+  it('pickled cabbage doubles bonus stink for 10 s', () => {
+    const { s, bus } = onLocker();
+    land(s, bus, 'cabbage');
+    const b = { id: 0, spot: 'stop' as const, kind: 'zul' as const, amount: BONUS_STINK.zul, x: 0, z: 0, active: true, respawnAt: 0 };
+    collect(s, bus, b);
+    expect(bus.stink).toBe(BONUS_STINK.zul * CABBAGE_STINK_MULT);
+    s.time += POWER_SECONDS.cabbage;
+    updatePowers(s);
+    collect(s, bus, { ...b });
+    expect(bus.stink).toBe(BONUS_STINK.zul * (CABBAGE_STINK_MULT + 1));
   });
 });

@@ -186,3 +186,22 @@ body.hc button:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
 .hud-full span { font-size: 14px; font-weight: 700; background: #fff; border: 2px solid #1b1b1b; border-radius: 8px; padding: 3px 8px; }
 @keyframes full-pulse { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .hud-full { animation: none; } }
+
+/* Locker roll (card 043): a reel at the bottom centre, then what you got; power-up chip with its timer. */
+.loot-reel { position: absolute; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(440px, calc(100vw - 32px)); background: #15181c; color: #f3f3ef; border: 2px solid #1b1b1b; border-radius: 14px; padding: 10px 12px; display: grid; gap: 8px; box-shadow: 3px 3px 0 #1b1b1b; pointer-events: none; }
+.loot-reel[hidden] { display: none; }
+.loot-title { font-weight: 900; letter-spacing: .5px; color: #ffcd00; }
+.loot-window { position: relative; overflow: hidden; height: 84px; border-radius: 10px; background: #20252b; }
+.loot-window::after { content: ""; position: absolute; left: 50%; top: 4px; bottom: 4px; width: 80px; transform: translateX(-50%); border: 3px solid #ffcd00; border-radius: 10px; }
+.loot-strip { display: flex; position: absolute; left: 0; top: 0; height: 100%; }
+.loot-slot { width: 84px; flex: none; display: grid; place-content: center; justify-items: center; gap: 2px; }
+.loot-slot span { font-size: 36px; line-height: 1; }
+.loot-slot small { font-size: 11px; color: #c7cbd0; }
+.loot-got { min-height: 1.2em; font-weight: 700; text-align: center; }
+.loot-reel.done .loot-window::after { box-shadow: 0 0 0 4px #ffcd0066; }
+.power-chip { --f: 1; position: absolute; left: calc(8px + env(safe-area-inset-left)); bottom: calc(96px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 6px; background: #fff; border: 2px solid #1b1b1b; border-radius: 10px; padding: 4px 8px 7px; box-shadow: 2px 2px 0 #1b1b1b; font-size: 13px; font-weight: 700; pointer-events: none; overflow: hidden; }
+.power-chip[hidden] { display: none; }
+.power-chip .ico { font-size: 18px; }
+.power-chip .left { font-variant-numeric: tabular-nums; color: #555; }
+.power-chip i { position: absolute; left: 0; bottom: 0; height: 4px; width: calc(var(--f) * 100%); background: #ffcd00; }
+body.touch-on .power-chip { left: auto; right: calc(8px + env(safe-area-inset-right)); top: calc(96px + env(safe-area-inset-top)); bottom: auto; }

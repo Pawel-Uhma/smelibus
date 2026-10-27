@@ -86,6 +86,11 @@ function frame(now: number) {
     predictor.bus.slowDecayUntil = serverBus.slowDecayUntil;
     predictor.bus.zulsUntil = serverBus.zulsUntil;
     predictor.bus.collected = serverBus.collected;
+    predictor.bus.roll = serverBus.roll;
+    predictor.bus.power = serverBus.power;
+    predictor.bus.speedMult = serverBus.speedMult;
+    predictor.bus.shielded = serverBus.shielded;
+    predictor.bus.riderBoost = serverBus.riderBoost;
     predictor.bus.driverId = serverBus.driverId;
   }
   party.sendInput(predictor ? { ...input, seq: predictor.seq } : input);

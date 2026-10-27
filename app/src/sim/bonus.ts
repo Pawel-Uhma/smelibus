@@ -5,6 +5,7 @@ import {
   TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
 } from '../shared/config';
 import { countPickup } from './cargo';
+import { stinkGain } from './powers';
 import { curbSpot, sidewalkPatrol } from './sidewalk';
 import { nearestDrivable } from './world';
 import type { Bonus, BonusKind, BonusSpot, Bus, GameState } from '../shared/types';
@@ -125,7 +126,7 @@ export function bonusPosition(b: Bonus, time: number): { x: number; z: number } 
 
 /** Applies one bonus to a bus. */
 export function collect(state: GameState, bus: Bus, b: Bonus): void {
-  bus.stink = clampStink(bus.stink + b.amount);
+  bus.stink = clampStink(bus.stink + stinkGain(bus, b.amount, state.time));
   countPickup(state, bus, b.kind);
   if (b.kind === 'zul') bus.slowDecayUntil = state.time + ZUL_SIT_SECONDS;
   b.active = false;
@@ -153,6 +154,8 @@ export function updateBonuses(state: GameState, dt: number): void {
     for (const bus of state.buses) {
       if (bus.driverId === null) continue;
       if (Math.hypot(bus.x - at.x, bus.z - at.z) > reach) continue;
+      // A monthly ticket (card 043): the controller lets you pass and stays where he is.
+      if (b.amount < 0 && bus.shielded) continue;
       collect(state, bus, b);
       break;
     }

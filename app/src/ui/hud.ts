@@ -1,5 +1,6 @@
 import type { PlayerId } from '../shared/types';
 import { buildHudModel, CARGO_COLUMNS, formatClock, type CargoColumn, type CargoRow, type HudView } from './hudModel';
+import { createLootReel } from './lootReel';
 import { createStinkPops } from './stinkPops';
 
 export type { HudView } from './hudModel';
@@ -22,7 +23,7 @@ function stinkColor(f: number): string {
 }
 
 const CARGO_HEAD: Record<CargoColumn, [icon: string, label: string]> = {
-  zul: ['🍺', 'Żule'], parcel: ['📦', 'Paczki'], poop: ['💩', 'Kupy'], other: ['➕', 'Reszta'],
+  zul: ['🍺', 'Żule'], poop: ['💩', 'Kupy'], other: ['➕', 'Reszta'],
 };
 
 /** End-of-game cargo table (card 039): totals per player, the leader of each column marked. */
@@ -87,7 +88,6 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
     <div id="stink" class="hud-stink">
       <div class="hud-cargo">
         <span title="Żule w autobusie teraz">🍺 <b id="cargo-zul">0</b></span>
-        <span title="Paczki w tej grze">📦 <b id="cargo-parcel">0</b></span>
         <span title="Kupy w tej grze">💩 <b id="cargo-poop">0</b></span>
       </div>
       <div class="stink-head">
@@ -129,12 +129,13 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
   const stinkTierEl = $('stink-tier');
   const win = $('win');
   const popsBox = $('stink-pops');
-  const cargoEls = { zul: $('cargo-zul'), parcel: $('cargo-parcel'), poop: $('cargo-poop') };
+  const cargoEls = { zul: $('cargo-zul'), poop: $('cargo-poop') };
   const winCargo = $('win-cargo');
   const fullBox = $('full');
   if (matchMedia('(pointer: coarse)').matches) fullBox.querySelector('b')!.textContent = 'NACIŚNIJ 💨 SMRÓD';
   let lastFull = false;
   const pops = createStinkPops();
+  const reel = createLootReel(root);
   let lastUpdate = performance.now();
   copy.onclick = async () => {
     try {
@@ -263,6 +264,7 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
       }
 
       const now = performance.now();
+      reel.update(m.roll, m.power, view.time);
       for (const d of pops.update(m.stink, m.busId, (now - lastUpdate) / 1000)) if (view.ownScreen) showPop(d, view.ownScreen);
       lastUpdate = now;
 
@@ -284,11 +286,10 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
       }
       stinkBox.classList.toggle('ready', m.canRelease);
 
-      const cargo = `${m.zuls}|${m.parcels}|${m.poops}`;
+      const cargo = `${m.zuls}|${m.poops}`;
       if (cargo !== lastCargo) {
         lastCargo = cargo;
         cargoEls.zul.textContent = String(m.zuls);
-        cargoEls.parcel.textContent = String(m.parcels);
         cargoEls.poop.textContent = String(m.poops);
       }
 

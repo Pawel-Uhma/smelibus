@@ -220,7 +220,7 @@ export function createBot(seed: number): Bot {
   }
 }
 
-/** Tiles a bot never plans through: next to the ticket controller, kiosks, lockers, parked buses. */
+/** Tiles a bot never plans through: next to the ticket controller, kiosks, parked buses (lockers are drive-through, card 043). */
 function blockedTiles(state: GameState): Set<number> {
   const { world } = state;
   const out = new Set<number>();
@@ -237,7 +237,6 @@ function blockedTiles(state: GameState): Set<number> {
     mark(at.x, at.z, 1);
   }
   for (const s of world.zabkas ?? []) mark(s.x, s.z, ZABKA_TILES / 2 - 0.01);
-  for (const p of world.paczkomats ?? []) mark(p.x, p.z, 0.5);
   // Parked empty buses are walls too (the bot's own bus is always driven).
   for (const b of state.buses) if (b.driverId === null) mark(b.x, b.z, BUS_LENGTH / 2);
   return out;

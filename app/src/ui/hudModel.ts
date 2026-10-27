@@ -1,5 +1,5 @@
-import { STINK_MAX, STINK_RELEASE_MIN } from '../shared/config';
-import type { BonusCounts, Bus, Player, PlayerId, Tile } from '../shared/types';
+import { PACZKOMAT_REVEAL_S, STINK_MAX, STINK_RELEASE_MIN } from '../shared/config';
+import type { BonusCounts, Bus, LootKind, Player, PlayerId, PowerKind, Tile } from '../shared/types';
 import { zulsOnBoard } from '../sim/cargo';
 import { nextSuddenDeathAt, suddenDeathMultiplier } from '../sim/zones';
 
@@ -44,15 +44,20 @@ export interface HudModel {
   winner: { id: PlayerId; name: string; color: string; me: boolean } | null;
   /** Drunks sitting in the own bus right now (0 on foot). */
   zuls: number;
-  /** Parcels and poops the player picked up this game. */
-  parcels: number;
+  /** Poops the player picked up this game. */
   poops: number;
+  /** Own bus's latest locker roll (card 043): `at` identifies it, `spinning` while the reel runs. */
+  roll: { loot: LootKind; at: number; spinning: boolean } | null;
+  /** Own active power-up: seconds left of `total`. */
+  power: { kind: PowerKind; left: number; total: number } | null;
+  /** Top speed bonus of the own bus right now, 0.35 = +35% (card 046 shows it as a bar). */
+  speedBonus: number;
   /** End-of-game cargo table, one row per player in `rows` order (card 039). */
   cargo: CargoRow[];
 }
 
-/** Columns of the cargo table: drunks, parcels, poops, everything else (totals this game). */
-export const CARGO_COLUMNS = ['zul', 'parcel', 'poop', 'other'] as const;
+/** Columns of the cargo table: drunks, poops, everything else (totals this game). */
+export const CARGO_COLUMNS = ['zul', 'poop', 'other'] as const;
 export type CargoColumn = (typeof CARGO_COLUMNS)[number];
 
 export interface CargoRow {
@@ -65,11 +70,11 @@ export interface CargoRow {
   leads: CargoColumn[];
 }
 
-/** Totals per cargo column; `other` sums every kind except drunks, parcels and poops. */
+/** Totals per cargo column; `other` sums every kind except drunks and poops. */
 export function cargoCounts(c: BonusCounts | undefined): Record<CargoColumn, number> {
   let other = 0;
-  for (const [k, n] of Object.entries(c ?? {})) if (k !== 'zul' && k !== 'parcel' && k !== 'poop') other += n ?? 0;
-  return { zul: c?.zul ?? 0, parcel: c?.parcel ?? 0, poop: c?.poop ?? 0, other };
+  for (const [k, n] of Object.entries(c ?? {})) if (k !== 'zul' && k !== 'poop') other += n ?? 0;
+  return { zul: c?.zul ?? 0, poop: c?.poop ?? 0, other };
 }
 
 export function buildCargoTable(players: Player[], order: PlayerId[], me: PlayerId): CargoRow[] {
@@ -123,7 +128,11 @@ export function buildHudModel(view: HudView, me: PlayerId): HudModel {
     canRelease: !!ownBus && ownBus.stink >= STINK_RELEASE_MIN,
     winner: winP ? { id: winP.id, name: winP.name, color: cssColor(winP.color), me: winP.id === me } : null,
     zuls: zulsOnBoard(ownBus, view.time),
-    parcels: meP?.collected?.parcel ?? 0,
+    roll: ownBus?.roll ? { loot: ownBus.roll.loot, at: ownBus.roll.at, spinning: view.time < ownBus.roll.at + PACZKOMAT_REVEAL_S } : null,
+    power: ownBus?.power && view.time >= ownBus.power.from && view.time < ownBus.power.until
+      ? { kind: ownBus.power.kind, left: ownBus.power.until - view.time, total: ownBus.power.until - ownBus.power.from }
+      : null,
+    speedBonus: Math.max(0, (ownBus?.speedMult ?? 1) - 1),
     poops: meP?.collected?.poop ?? 0,
     cargo: buildCargoTable(view.players, rows.map((r) => r.id), me),
   };

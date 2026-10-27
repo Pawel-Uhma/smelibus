@@ -1,17 +1,14 @@
-import {
-  BONUS_STINK, PACZKOMAT_COOLDOWN_S, PACZKOMAT_DROP_OUT, PACZKOMAT_DROP_PICKUP_DELAY_S, PACZKOMAT_DROP_SIDE,
-  PACZKOMAT_DROP_TTL_S, PACZKOMAT_HIT_MIN_SPEED, PACZKOMAT_POOP_CHANCE, PACZKOMATS_PER_TILE,
-} from '../shared/config';
+import { PACZKOMAT_COOLDOWN_S, PACZKOMATS_PER_TILE } from '../shared/config';
 import type { Bus, GameState, World } from '../shared/types';
-import { nextId, rand } from './bonus';
-import { bounceOff, corners } from './bus';
-import { nearestDrivable } from './world';
+import { corners } from './bus';
+import { startRoll } from './powers';
 
 export type Paczkomat = NonNullable<World['paczkomats']>[number];
 
-/** Half extents of a locker: wide along its front, shallow front to back (render/paczkomat.ts). */
-export const PACZKOMAT_HALF_WIDTH = 0.42;
-export const PACZKOMAT_HALF_DEPTH = 0.17;
+/** Half extents of a locker: wide along its front, shallow front to back (render/paczkomat.ts,
+ *  20 × 5 voxels of 0.11, card 043). */
+export const PACZKOMAT_HALF_WIDTH = 1.1;
+export const PACZKOMAT_HALF_DEPTH = 0.275;
 
 /** Lockers keep at least this far (tiles) from Żabka shops, so the two never overlap. */
 const ZABKA_GAP = 2.5;
@@ -62,6 +59,17 @@ export function placePaczkomats(world: World): Paczkomat[] {
     const j = Math.floor(rand() * (i + 1));
     [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
   }
+  // Lockers stand against a block (card 043): spots with a building right behind go first.
+  const facing = (idx: number) => [[0, 1], [1, 0], [0, -1], [-1, 0]].find(([dx, dz]) => kindAt(idx % size + dx, Math.floor(idx / size) + dz) === 'road');
+  const backed = (idx: number) => {
+    const f = facing(idx);
+    if (!f) return false;
+    const x = idx % size, z = Math.floor(idx / size);
+    // Wide along the road: the tiles to both sides must be free too, or it pokes into a wall.
+    const side = (k: number) => kindAt(x + f[1] * k, z - f[0] * k) !== 'building';
+    return kindAt(x - f[0], z - f[1]) === 'building' && side(1) && side(-1);
+  };
+  candidates.sort((a, b) => Number(backed(b)) - Number(backed(a)));
   const want = Math.max(1, Math.round(size * size * PACZKOMATS_PER_TILE));
   const gap = Math.sqrt((size * size) / want) * 0.6;
   const out: Paczkomat[] = [];
@@ -78,7 +86,9 @@ export function placePaczkomats(world: World): Paczkomat[] {
       const dx = size / 2 - x, dz = size / 2 - z;
       [fx, fz] = Math.abs(dx) > Math.abs(dz) ? [Math.sign(dx) || 1, 0] : [0, Math.sign(dz) || 1];
     }
-    out.push({ x, z, fx, fz });
+    // Back against the wall behind, when there is one.
+    const shift = kindAt(tx - fx, tz - fz) === 'building' ? 0.5 - PACZKOMAT_HALF_DEPTH : 0;
+    out.push({ x: x - fx * shift, z: z - fz * shift, fx, fz });
   }
   return out;
 }
@@ -89,82 +99,31 @@ export function spawnPaczkomats(state: GameState): void {
   state.paczkomatReadyAt = state.world.paczkomats.map(() => 0);
 }
 
-/** A locker the bus ran into: its index and the unit normal from the locker towards the bus. */
-export interface PaczkomatHit {
-  index: number;
-  nx: number;
-  nz: number;
+/** Does the bus rectangle overlap the locker box? (separating axis test; no push, card 043) */
+export function overlapsPaczkomat(bus: Bus, p: Paczkomat): boolean {
+  const { hx, hz } = paczkomatHalf(p);
+  const cs = corners(bus);
+  const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
+  for (const [nx, nz] of [[1, 0], [0, 1], [fx, fz], [fz, -fx]]) {
+    const proj = cs.map(([x, z]) => x * nx + z * nz);
+    const c = p.x * nx + p.z * nz;
+    const r = hx * Math.abs(nx) + hz * Math.abs(nz);
+    if (Math.min(Math.max(...proj), c + r) - Math.max(Math.min(...proj), c - r) <= 0) return false;
+  }
+  return true;
 }
 
 /**
- * Keeps the bus rectangle out of the lockers (axis-aligned boxes): pushes it out along the axis
- * of least overlap (separating axis test) and bounces it off, like the Żabka kiosks.
- * Runs on the server after updateBus and in the client's own-bus prediction.
+ * Lockers have no collision (card 043): a driven bus that goes through one that isn't cooling
+ * down starts a roll (sim/powers.ts). The locker is then empty for PACZKOMAT_COOLDOWN_S.
  */
-export function collidePaczkomats(bus: Bus, lockers: readonly Paczkomat[] | undefined): PaczkomatHit[] {
-  const hits: PaczkomatHit[] = [];
-  if (!lockers) return hits;
-  lockers.forEach((p, index) => {
-    const { hx, hz } = paczkomatHalf(p);
-    const cs = corners(bus);
-    const fx = Math.sin(bus.angle), fz = Math.cos(bus.angle);
-    let best: { nx: number; nz: number; depth: number } | null = null;
-    for (const [nx, nz] of [[1, 0], [0, 1], [fx, fz], [fz, -fx]]) {
-      const proj = cs.map(([x, z]) => x * nx + z * nz);
-      const c = p.x * nx + p.z * nz;
-      const r = hx * Math.abs(nx) + hz * Math.abs(nz);
-      const depth = Math.min(Math.max(...proj), c + r) - Math.max(Math.min(...proj), c - r);
-      if (depth <= 0) return;
-      if (!best || depth < best.depth) best = { nx, nz, depth };
-    }
-    if (!best) return;
-    const b: { nx: number; nz: number; depth: number } = best;
-    const away = (bus.x - p.x) * b.nx + (bus.z - p.z) * b.nz < 0 ? -1 : 1;
-    const nx = b.nx * away, nz = b.nz * away;
-    bus.x += nx * b.depth;
-    bus.z += nz * b.depth;
-    bounceOff(bus, -nx, -nz);
-    hits.push({ index, nx, nz });
-  });
-  return hits;
-}
-
-/** World velocity of a bus (tiles/s): driving plus knock-back. */
-export function busVelocity(bus: Bus): { x: number; z: number } {
-  return {
-    x: Math.sin(bus.angle) * bus.speed + (bus.pushX ?? 0),
-    z: Math.cos(bus.angle) * bus.speed + (bus.pushZ ?? 0),
-  };
-}
-
-/**
- * A driven bus moving at `v` (busVelocity before the bounce) rammed lockers: each one hit
- * head-on hard enough and not on cooldown drops a poop (PACZKOMAT_POOP_CHANCE) or else a parcel,
- * just out of the hit face and off to one side, clear of the bus. Scraping along doesn't count.
- */
-export function hitPaczkomats(
-  state: GameState, bus: Bus, hits: readonly PaczkomatHit[], v: { x: number; z: number },
-): void {
+export function driveThroughPaczkomats(state: GameState, bus: Bus): void {
   const lockers = state.world.paczkomats;
   if (!lockers || bus.driverId === null) return;
   const ready = (state.paczkomatReadyAt ??= lockers.map(() => 0));
-  for (const h of hits) {
-    if (-(v.x * h.nx + v.z * h.nz) < PACZKOMAT_HIT_MIN_SPEED) continue;
-    if (state.time < (ready[h.index] ?? 0)) continue;
-    ready[h.index] = state.time + PACZKOMAT_COOLDOWN_S;
-    const p = lockers[h.index];
-    const kind = rand(state) < PACZKOMAT_POOP_CHANCE ? 'poop' : 'parcel';
-    const size = state.world.size;
-    const clampIn = (v: number) => Math.max(0.5, Math.min(size - 0.5, v));
-    const side = rand(state) < 0.5 ? -1 : 1;
-    const out = PACZKOMAT_DROP_OUT, across = PACZKOMAT_DROP_SIDE * side;
-    const at = nearestDrivable(
-      state.world, clampIn(p.x + h.nx * out - h.nz * across), clampIn(p.z + h.nz * out + h.nx * across),
-    );
-    (state.bonuses ??= []).push({
-      id: nextId(state), spot: 'paczkomat', kind, amount: BONUS_STINK[kind], x: at.x, z: at.z,
-      active: true, respawnAt: state.time + PACZKOMAT_DROP_TTL_S,
-      pickableAt: state.time + PACZKOMAT_DROP_PICKUP_DELAY_S,
-    });
-  }
+  lockers.forEach((p, i) => {
+    if (state.time < (ready[i] ?? 0) || !overlapsPaczkomat(bus, p)) return;
+    ready[i] = state.time + PACZKOMAT_COOLDOWN_S;
+    startRoll(state, bus);
+  });
 }

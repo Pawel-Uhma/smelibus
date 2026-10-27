@@ -201,22 +201,21 @@ export const BONUS_STINK = {
   parcel: 5,
   poop: 30,
 } as const;
-// InPost parcel lockers (sim/paczkomat.ts): ramming one knocks out a parcel or, sometimes, a poop.
+// InPost parcel lockers (sim/paczkomat.ts, card 043): no collision, driving through one rolls loot.
 /** Lockers per map tile (×size², at least 1). */
 export const PACZKOMATS_PER_TILE = 1 / 1100;
-/** Chance that a hit knocks out a poop (BONUS_STINK.poop) instead of a parcel. */
-export const PACZKOMAT_POOP_CHANCE = 0.3;
-/** Slowest hit (tiles/s into the locker, before the bounce) that still knocks something out. */
-export const PACZKOMAT_HIT_MIN_SPEED = 3;
-/** After a drop the locker is empty for this long. */
-export const PACZKOMAT_COOLDOWN_S = 6;
-/** The drop lands this far (tiles) out of the hit face and this far to a random side of the
- *  locker, so it isn't under the bus that bounced off (BUS_RADIUS + BONUS_RADIUS away). */
-export const PACZKOMAT_DROP_OUT = 0.6;
-export const PACZKOMAT_DROP_SIDE = 1.8;
-/** A drop on the ground vanishes after this long and can't be picked up for the first moment. */
-export const PACZKOMAT_DROP_TTL_S = 20;
-export const PACZKOMAT_DROP_PICKUP_DELAY_S = 1;
+/** After a roll the locker is empty for this long. */
+export const PACZKOMAT_COOLDOWN_S = 15;
+/** What a roll gives, by weight: a poop (BONUS_STINK.poop) or one of the power-ups. */
+export const PACZKOMAT_LOOT_WEIGHTS = { poop: 40, energy: 20, ticket: 20, cabbage: 20 } as const;
+/** The reel in the HUD spins this long; the loot takes effect when it stops. */
+export const PACZKOMAT_REVEAL_S = 2.2;
+/** How long each power-up lasts, seconds (one at a time, a new one replaces the old). */
+export const POWER_SECONDS = { energy: 6, ticket: 25, cabbage: 10 } as const;
+/** Energy drink: top speed share added while it lasts. */
+export const ENERGY_SPEED_BONUS = 0.35;
+/** Pickled cabbage: stink from bonuses counts this many times while it lasts. */
+export const CABBAGE_STINK_MULT = 2;
 
 export const PLAYER_COLORS = [
   0x2f6bd6, 0xee7f1e, 0xc8357a, 0xe5bc1f, 0xc9a0dc, 0xa3203a, 0x5b2a6e, 0x3c3f4a,

@@ -42,7 +42,23 @@ export interface Bus {
   collected?: BonusCounts;
   /** Game time at which each drunk on board gets off (pickup + ZUL_SIT_SECONDS). */
   zulsUntil?: number[];
+  /** Last locker roll of this bus (card 043): the HUD spins its reel from `at` and the loot takes
+   *  effect PACZKOMAT_REVEAL_S later (`done` once applied). */
+  roll?: { loot: LootKind; at: number; done?: boolean };
+  /** Active power-up, from game time `from` to `until`. */
+  power?: { kind: PowerKind; from: number; until: number };
+  /** Top speed multiplier the sim sets each step from power-ups and scooter riders (missing = 1). */
+  speedMult?: number;
+  /** Monthly ticket: controllers and rams take no stink (set by the sim each step). */
+  shielded?: boolean;
+  /** Top speed share from scooter riders eaten (card 046), e.g. 0.12 = +12%; fades over time. */
+  riderBoost?: number;
 }
+
+/** Power-ups from an InPost locker (card 043). */
+export type PowerKind = 'energy' | 'ticket' | 'cabbage';
+/** What a locker roll can give. */
+export type LootKind = 'poop' | PowerKind;
 
 export interface Player {
   id: PlayerId;
