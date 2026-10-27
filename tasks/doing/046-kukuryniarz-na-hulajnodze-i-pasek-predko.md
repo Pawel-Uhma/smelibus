@@ -1,7 +1,7 @@
 # Kukuryniarz na hulajnodze i pasek prędkości
 
 obszar: smrod
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: sim/, render/, ui/, shared/
 
