@@ -1,7 +1,7 @@
 # Kontroler chodzi chodnikiem
 
 obszar: swiat
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: sim/bonus.ts, render/bonuses.ts, render/bonusModels.ts
 
