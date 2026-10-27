@@ -144,6 +144,7 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
   Kafelki są brane od punktu przekroczenia granicy na zewnątrz, najbliższe pierwsze, niezależnie
   od tego, czyje są. Smród autobusu spada do 0.
 - O tym, komu zabierasz teren, decydujesz tym, z której strony wjeżdżasz.
+- **Smród się nie marnuje:** przy skoku i przy wypuszczeniu spacją smród rozchodzi się od autobusu na najbliższe cudze albo neutralne kafelki, omijając własny teren i koniec mapy, aż przejmie całe N. Mniej może wziąć tylko wtedy, gdy na mapie nie ma już nic do przejęcia.
 - Przejęte kafelki zmieniają kolor (render podświetla granicę).
 - Na mapie miasta kolor strefy leży też półprzezroczyście na jezdniach, chodnikach i parkach, a granice stref to grube linie w kolorze gracza (karta 047), żeby z każdej kamery było widać, czyj jest teren.
 - **Minimapa** w rogu HUD (na telefonie w poziomie na dole pośrodku, między kciukami): strefy w kolorach

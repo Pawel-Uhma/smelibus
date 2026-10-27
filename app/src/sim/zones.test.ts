@@ -161,4 +161,25 @@ describe('zones', () => {
     expect(bus.stink).toBe(0);
     expect(countTiles(s.world, 'a')).toBe(before + taken);
   });
+
+  it('nothing is wasted: in a corner, inside your own zone, the stink spreads until it took it all', () => {
+    // 'a' owns a 6×6 corner block; the bus lets out 20 stink in the very corner.
+    const w = world(20, (i, j) => (i < 6 && j < 6 ? 'a' : 'b'));
+    const b = bus(0.5, 0.5, 'a', 20);
+    const s = game(w, ['a', 'b'], [b]);
+    expect(releaseStink(s, b)).toBe(20); // TILES_PER_STINK is mocked to 1 here
+    expect(countTiles(w, 'a')).toBe(36 + 20);
+    // The taken tiles touch the old zone: it grows outward from it, no island far away.
+    const grown = w.tiles.map((t, idx) => ({ t, idx })).filter(({ t, idx }) => t.ownerId === 'a' && (idx % 20 >= 6 || Math.floor(idx / 20) >= 6));
+    for (const { idx } of grown) expect(Math.hypot(idx % 20, Math.floor(idx / 20))).toBeLessThan(9);
+  });
+
+  it('only runs short when there is nothing left to take', () => {
+    const w = world(4, (i) => (i < 3 ? 'a' : 'b'));
+    const b = bus(0.5, 0.5, 'a', 100);
+    const s = game(w, ['a', 'b'], [b]);
+    expect(releaseStink(s, b)).toBe(4);
+    expect(s.winnerId).toBe('a');
+  });
 });
+
