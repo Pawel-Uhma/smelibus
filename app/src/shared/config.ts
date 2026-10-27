@@ -346,6 +346,10 @@ export const SOUND_VOLUME = 0.6;
  * Fill = player color mixed this much with the neutral ground, drawn at this opacity; the
  * border is opaque black. See-through, so buses (in their owner's color) don't vanish on it.
  */
+/** Zone tint drawn over the city ground (card 047), so owners show on asphalt and sidewalks too:
+ *  the player color at this opacity, and borders this many texels wide (of 4 per tile). */
+export const ZONE_TINT_ALPHA = 0.32;
+export const ZONE_TINT_BORDER_TEXELS = 2;
 export const HIGH_CONTRAST_FILL_MIX = 0.15;
 export const HIGH_CONTRAST_FILL_ALPHA = 0.5;
 /** Zone border width in texels per side, of SUB per tile; both owners draw it, so the line is twice this. */

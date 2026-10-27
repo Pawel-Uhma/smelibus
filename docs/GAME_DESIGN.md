@@ -77,12 +77,6 @@ miejsce odnawia się po czasie (np. 15 s).
 
 **Statystyki ładunku** (karta 039): każdy podniesiony bonus liczy się autobusowi i jego kierowcy, w jednym miejscu (`sim/cargo.ts`, wołane przy zebraniu). HUD przy pasku smrodu pokazuje 🍺 żuli, którzy **siedzą w autobusie teraz** (każdy przez 20 s od zebrania, `ZUL_SIT_SECONDS`), oraz 💩 kupy **zebrane od startu gry**. Ekran wygranej ma tabelę graczy: żule, kupy, reszta (wszystko inne, też kanar i rozsypany smród), wszystko jako suma od startu; lider kolumny jest podświetlony (remis: wszyscy), przy zerze nikt. Rewanż zeruje statystyki.
 
-### Zaplanowane zmiany (karty 041–047, ustalone 27.10)
-
-Jeszcze nie w kodzie. Kto robi kartę, przenosi swoją część do tabeli i reguł wyżej. Modele i makieta losowania: artefakt „Bonusy smrodu” u Pawła.
-
-- Na mapie miasta ma być wyraźnie widać, czyj jest teren [047].
-
 Pomysły na później: **Choinka zapachowa**, pasażerowie wysiadający gdy smród > 90 (chaos),
 widoczna zielona chmura wokół autobusu skalowana smrodem.
 
@@ -151,6 +145,7 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
   od tego, czyje są. Smród autobusu spada do 0.
 - O tym, komu zabierasz teren, decydujesz tym, z której strony wjeżdżasz.
 - Przejęte kafelki zmieniają kolor (render podświetla granicę).
+- Na mapie miasta kolor strefy leży też półprzezroczyście na jezdniach, chodnikach i parkach, a granice stref to grube linie w kolorze gracza (karta 047), żeby z każdej kamery było widać, czyj jest teren.
 - **Minimapa** w rogu HUD (na telefonie w poziomie na dole pośrodku, między kciukami): strefy w kolorach
   graczy, budynki ciemniejsze, autobusy i piesi jako kropki, chmury deszczu i Harnasia.
   **Bez bonusów**, żeby nie było za łatwo. Gdy granicy własnej strefy nie widać na ekranie,

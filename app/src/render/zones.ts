@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import { HIGH_CONTRAST_BORDER_TEXELS, HIGH_CONTRAST_FILL_ALPHA, HIGH_CONTRAST_FILL_MIX, NEUTRAL_COLOR } from '../shared/config';
+import {
+  HIGH_CONTRAST_BORDER_TEXELS, HIGH_CONTRAST_FILL_ALPHA, HIGH_CONTRAST_FILL_MIX, NEUTRAL_COLOR, ZONE_TINT_ALPHA,
+  ZONE_TINT_BORDER_TEXELS,
+} from '../shared/config';
 import type { Player, PlayerId, Tile, World } from '../shared/types';
 import { createCaptureFx } from './captureFx';
 
@@ -36,11 +39,14 @@ const WHITE: Rgb = [255, 255, 255];
  * for a layer drawn over the city ground.
  */
 export function paintZones(out: Uint8Array, tiles: readonly Tile[], size: number,
-  colorOf: (id: PlayerId) => number | undefined, flash?: Float32Array, highContrast = false): void {
+  colorOf: (id: PlayerId) => number | undefined, flash?: Float32Array, highContrast: boolean | 'tint' = false): void {
   const w = size * SUB;
-  const fillMix = highContrast ? HIGH_CONTRAST_FILL_MIX : FILL_MIX;
-  const bw = highContrast ? HIGH_CONTRAST_BORDER_TEXELS : 1;
-  const fillAlpha = highContrast ? Math.round(HIGH_CONTRAST_FILL_ALPHA * 255) : 255;
+  // 'tint' (card 047): the see-through layer over the city ground, pure player color with
+  // thick bright borders, so streets and sidewalks show whose they are.
+  const tint = highContrast === 'tint';
+  const fillMix = tint ? 0 : highContrast ? HIGH_CONTRAST_FILL_MIX : FILL_MIX;
+  const bw = tint ? ZONE_TINT_BORDER_TEXELS : highContrast ? HIGH_CONTRAST_BORDER_TEXELS : 1;
+  const fillAlpha = Math.round((tint ? ZONE_TINT_ALPHA : highContrast ? HIGH_CONTRAST_FILL_ALPHA : 1) * 255);
   const ownerAt = (i: number, j: number) => tiles[j * size + i].ownerId;
   for (let j = 0; j < size; j++) {
     for (let i = 0; i < size; i++) {
@@ -49,7 +55,7 @@ export function paintZones(out: Uint8Array, tiles: readonly Tile[], size: number
       const hex = owner ? colorOf(owner) : undefined;
       const base = hex === undefined ? NEUTRAL : rgb(hex);
       let fill = hex === undefined ? NEUTRAL : mix(base, NEUTRAL, fillMix);
-      let border: Rgb = hex === undefined ? NEUTRAL : highContrast ? [0, 0, 0] : mix(base, [0, 0, 0], 1 - BORDER_DARKEN);
+      let border: Rgb = hex === undefined ? NEUTRAL : tint ? base : highContrast ? [0, 0, 0] : mix(base, [0, 0, 0], 1 - BORDER_DARKEN);
       const f = flash ? flash[idx] : 0;
       if (f > 0) {
         fill = mix(fill, WHITE, f * FLASH_WHITE);
@@ -85,6 +91,10 @@ export function createZonesRender(scene: THREE.Scene) {
   let pixels = new Uint8Array(0);
   let texture: THREE.DataTexture | null = null;
   let mesh: THREE.Mesh | null = null;
+  // Second, see-through layer over the city ground (card 047); only on maps with streets.
+  let tintPixels = new Uint8Array(0);
+  let tintTexture: THREE.DataTexture | null = null;
+  let tintMesh: THREE.Mesh | null = null;
   let lastOwner: (PlayerId | null)[] = [];
   let flash = new Float32Array(0);
   let flashing = false;
@@ -92,37 +102,54 @@ export function createZonesRender(scene: THREE.Scene) {
   let lastContrast = false;
   const capture = createCaptureFx(scene);
 
-  function rebuild(newSize: number) {
-    if (mesh) {
-      scene.remove(mesh);
-      mesh.geometry.dispose();
-      (mesh.material as THREE.Material).dispose();
-      texture?.dispose();
-    }
-    size = newSize;
+  function layer(px: Uint8Array): { tex: THREE.DataTexture; m: THREE.Mesh } {
     const w = size * SUB;
-    pixels = new Uint8Array(w * w * 4);
-    texture = new THREE.DataTexture(pixels, w, w, THREE.RGBAFormat);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.generateMipmaps = false;
-    texture.flipY = false;
+    const tex = new THREE.DataTexture(px, w, w, THREE.RGBAFormat);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.magFilter = THREE.NearestFilter;
+    tex.minFilter = THREE.NearestFilter;
+    tex.generateMipmaps = false;
+    tex.flipY = false;
     const geo = new THREE.PlaneGeometry(size, size);
     geo.rotateX(-Math.PI / 2);
     // After rotateX(-90°) the plane's v=0 edge sits at +z; flip v so row 0 is z = 0.
     const uv = geo.attributes.uv;
     for (let k = 0; k < uv.count; k++) uv.setY(k, 1 - uv.getY(k));
-    mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texture }));
-    mesh.position.set(size / 2, Y_UNDER_CITY, size / 2);
-    scene.add(mesh);
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
+    m.position.set(size / 2, Y_UNDER_CITY, size / 2);
+    scene.add(m);
+    return { tex, m };
+  }
+
+  function rebuild(newSize: number, city: boolean) {
+    for (const m of [mesh, tintMesh]) {
+      if (!m) continue;
+      scene.remove(m);
+      m.geometry.dispose();
+      (m.material as THREE.MeshBasicMaterial).map?.dispose();
+      (m.material as THREE.Material).dispose();
+    }
+    size = newSize;
+    const w = size * SUB;
+    pixels = new Uint8Array(w * w * 4);
+    ({ tex: texture, m: mesh } = layer(pixels));
+    tintMesh = null;
+    tintTexture = null;
+    if (city) {
+      tintPixels = new Uint8Array(w * w * 4);
+      ({ tex: tintTexture, m: tintMesh } = layer(tintPixels));
+      const mat = tintMesh.material as THREE.MeshBasicMaterial;
+      mat.transparent = true;
+      mat.depthWrite = false;
+      tintMesh.position.y = Y_OVER_CITY;
+    }
     lastOwner = [];
     flash = new Float32Array(size * size);
   }
 
   return {
     update(world: World, players: readonly Player[], dt: number, highContrast = false) {
-      if (world.size !== size || !mesh) rebuild(world.size);
+      if (world.size !== size || !mesh) rebuild(world.size, !!world.streets?.length);
       const tiles = world.tiles;
       const colors = new Map<PlayerId, number>(players.map((p) => [p.id, p.color]));
       const colorKey = players.map((p) => `${p.id}:${p.color}`).join(',');
@@ -137,6 +164,8 @@ export function createZonesRender(scene: THREE.Scene) {
         mesh!.position.y = highContrast ? Y_OVER_CITY : Y_UNDER_CITY;
       }
       lastContrast = highContrast;
+      // High contrast already draws its own layer over the city; the tint would double it.
+      if (tintMesh) tintMesh.visible = !highContrast;
       const taken: number[] = [];
       for (let idx = 0; idx < tiles.length; idx++) {
         const owner = tiles[idx].ownerId;
@@ -172,6 +201,10 @@ export function createZonesRender(scene: THREE.Scene) {
       if (!changed) return;
       paintZones(pixels, tiles, size, (id) => colors.get(id), flash, highContrast);
       texture!.needsUpdate = true;
+      if (tintTexture && !highContrast) {
+        paintZones(tintPixels, tiles, size, (id) => colors.get(id), flash, 'tint');
+        tintTexture.needsUpdate = true;
+      }
     },
   };
 }
