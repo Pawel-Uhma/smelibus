@@ -8,6 +8,8 @@ import { streetHalfWidth } from './city';
 const CURB_OFFSET = 0.35;
 
 interface Side {
+  /** Street index and side, e.g. "4:-1". */
+  key: string;
   s: CityStreet;
   side: number;
   /** Usable length between the junction trims. */
@@ -17,12 +19,12 @@ interface Side {
 
 function sides(world: World): Side[] {
   const out: Side[] = [];
-  for (const s of world.streets ?? []) {
+  (world.streets ?? []).forEach((s, i) => {
     const len = Math.hypot(s.bx - s.ax, s.bz - s.az);
     const from = s.trimA + 1, to = len - s.trimB - 1;
-    if (to - from < 4) continue;
-    for (const side of [1, -1]) out.push({ s, side, from, to });
-  }
+    if (to - from < 4) return;
+    for (const side of [1, -1]) out.push({ key: `${i}:${side}`, s, side, from, to });
+  });
   return out;
 }
 
@@ -59,11 +61,17 @@ export function curbSpot(world: World, rand: () => number): { x: number; z: numb
   return null;
 }
 
-/** A stretch of sidewalk to walk up and down (a ticket controller), or null without streets. */
-export function sidewalkPatrol(world: World, rand: () => number, maxLength: number):
+/**
+ * A stretch of sidewalk to walk up and down (a ticket controller), or null without streets.
+ * `taken` collects the street sides already handed out, so walkers spread over the city
+ * instead of starting from the same corner (only once every side is taken do they share).
+ */
+export function sidewalkPatrol(world: World, rand: () => number, maxLength: number, taken = new Set<string>()):
   { ax: number; az: number; bx: number; bz: number } | null {
-  const all = sides(world);
-  for (let tries = 0; tries < 200 && all.length; tries++) {
+  const every = sides(world);
+  const free = every.filter((a) => !taken.has(a.key));
+  // Free sides first; when none of them has a usable stretch, share a taken one.
+  for (const all of [free, every]) for (let tries = 0; tries < 200 && all.length; tries++) {
     const a = pickSide(all, rand)!;
     const off = streetHalfWidth(a.s, a.side) - CITY_STREETS[a.s.kind].walk / 2;
     const length = Math.min(maxLength, a.to - a.from);
@@ -73,6 +81,7 @@ export function sidewalkPatrol(world: World, rand: () => number, maxLength: numb
     for (let d = 0; d <= length && ok; d += 0.1) ok = inside(world, at(a.s, t0 + d, a.side, off));
     if (!ok) continue;
     const p0 = at(a.s, t0, a.side, off), p1 = at(a.s, t0 + length, a.side, off);
+    taken.add(a.key);
     return { ax: p0.x, az: p0.z, bx: p1.x, bz: p1.z };
   }
   return null;

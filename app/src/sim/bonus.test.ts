@@ -47,15 +47,32 @@ describe('stink bonuses', () => {
     const kindAt = (x: number, z: number) => s.world.tiles[Math.floor(z) * size + Math.floor(x)].kind;
     for (const c of ctrl) {
       expect(c.patrol).toBeDefined();
-      const a = bonusPosition(c, 0);
-      const later = bonusPosition(c, 5);
-      expect(Math.hypot(later.x - a.x, later.z - a.z)).toBeCloseTo(5 * c.patrol!.speed, 1);
+      // Walks at his speed (the path may turn around at an end of the stretch).
+      let walked = 0;
+      for (let k = 0; k < 50; k++) {
+        const p0 = bonusPosition(c, k * 0.1), p1 = bonusPosition(c, (k + 1) * 0.1);
+        walked += Math.hypot(p1.x - p0.x, p1.z - p0.z);
+      }
+      expect(walked).toBeCloseTo(5 * c.patrol!.speed, 0);
       for (let t = 0; t < 60; t += 3) {
         const p = bonusPosition(c, t);
         expect(kindAt(p.x, p.z)).toBe('road');
       }
     }
     for (const b of s.bonuses!.filter((x) => x.spot === 'trash')) expect(kindAt(b.x, b.z)).toBe('road');
+  });
+
+  it('controllers spread out instead of marching side by side', () => {
+    const s = createGame(1);
+    const ctrl = s.bonuses!.filter((b) => b.spot === 'controller');
+    // Walking in step = close together all the time; allow a chance meeting, not a pack.
+    for (let i = 0; i < ctrl.length; i++) for (let j = i + 1; j < ctrl.length; j++) {
+      const close = [0, 7, 14, 21, 28].filter((t) => {
+        const a = bonusPosition(ctrl[i], t), b = bonusPosition(ctrl[j], t);
+        return Math.hypot(a.x - b.x, a.z - b.z) < 1;
+      });
+      expect(close.length).toBeLessThan(3);
+    }
   });
 
   it('an empty stop keeps trying for a drunk', () => {

@@ -164,7 +164,8 @@ export const DROPPED_STINK_PICKUP_DELAY_S = 1;
 /** Spawn spots per map tile (×size², at least 1 each). */
 export const BUS_STOPS_PER_TILE = 1 / 150;
 export const TRASH_CANS_PER_TILE = 1 / 120;
-export const CONTROLLERS_PER_TILE = 1 / 400;
+/** Ticket controllers per tile: about one per two street sidewalks on the city map. */
+export const CONTROLLERS_PER_TILE = 1 / 900;
 /** Chance a stop holds a drunk when it (re)spawns; otherwise it stays empty and tries again
  *  after BONUS_RESPAWN_S (regular bonuses are gone, card 041). */
 export const STOP_ZUL_CHANCE = 0.5;

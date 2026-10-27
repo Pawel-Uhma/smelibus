@@ -74,6 +74,7 @@ export function spawnBonuses(state: GameState): void {
     ['trash', TRASH_CANS_PER_TILE],
     ['controller', CONTROLLERS_PER_TILE],
   ];
+  const patrolSides = new Set<string>();
   for (const [spot, perTile] of counts) {
     const n = Math.max(1, Math.round(area * perTile));
     for (let i = 0; i < n; i++) {
@@ -84,12 +85,16 @@ export function spawnBonuses(state: GameState): void {
       const r = () => rand(state);
       const stop = spot === 'stop' ? state.world.stops?.[i] : undefined;
       const curb = spot === 'trash' ? curbSpot(state.world, r) : null;
-      const patrol = spot === 'controller' ? sidewalkPatrol(state.world, r, CONTROLLER_PATROL_LENGTH) : null;
+      const patrol = spot === 'controller' ? sidewalkPatrol(state.world, r, CONTROLLER_PATROL_LENGTH, patrolSides) : null;
       const { x, z } = stop ?? curb ?? (patrol ? { x: patrol.ax, z: patrol.az } : nearestDrivable(state.world, rx, rz));
       const b: Bonus = {
         id: state.bonuses.length, spot, kind: 'zul', amount: 0, active: false, respawnAt: 0, x, z,
       };
-      if (patrol) b.patrol = { ...patrol, speed: CONTROLLER_WALK_SPEED };
+      // Each starts at a random point of his loop, so two on one sidewalk never march in step.
+      if (patrol) {
+        const len = Math.hypot(patrol.bx - patrol.ax, patrol.bz - patrol.az);
+        b.patrol = { ...patrol, speed: CONTROLLER_WALK_SPEED, offset: rand(state) * 2 * len };
+      }
       activate(state, b);
       state.bonuses.push(b);
     }
