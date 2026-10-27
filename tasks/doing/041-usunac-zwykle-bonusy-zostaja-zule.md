@@ -1,7 +1,7 @@
 # Usunąć zwykłe bonusy, zostają żule
 
 obszar: smrod
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: sim/bonus.ts, shared/config.ts, render/bonusModels.ts, sim/bot.ts
 
