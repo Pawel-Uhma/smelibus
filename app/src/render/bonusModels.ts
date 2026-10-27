@@ -342,34 +342,49 @@ function durian(): BonusVoxel[] {
   return b.voxels();
 }
 
-/** Small street bin on the kerb (card 045): 3 × 3 wide, 6 high, rubbish poking out, flies. */
+/** Warsaw concrete street bin (card 045): speckled grey, narrow at the foot, wider up top, a
+ *  dark metal lid with a hole, rubbish poking out. Upright, x/z centred, y up. */
+function trashBin(b: Builder) {
+  const concrete = (x: number, y: number, z: number) => [0xb9b6ad, 0xa9a69d, 0xc8c5bc, 0xb3b0a6][hash(x, y, z) % 4];
+  for (let y = 0; y <= 5; y++) {
+    const r = y < 2 ? 1 : 2;
+    for (let x = -r; x <= r; x++) for (let z = -r; z <= r; z++) {
+      if (r === 2 && Math.abs(x) === 2 && Math.abs(z) === 2) continue;
+      b.set(x, y, z, concrete(x, y, z));
+    }
+  }
+  for (let x = -2; x <= 2; x++) for (let z = -2; z <= 2; z++) {
+    if (Math.abs(x) === 2 && Math.abs(z) === 2) continue;
+    b.set(x, 6, z, x === 0 && z === 0 ? 0x111214 : 0x3a3d42);
+  }
+}
+
 function trash(): BonusVoxel[] {
   const b = new Builder();
-  b.box(-1, 1, 0, 0, -1, 1, 0x2f3a2c);
-  for (let y = 1; y <= 4; y++) b.box(-1, 1, y, y, -1, 1, y === 3 ? 0x6f8b6a : 0x4f6b4a);
-  b.box(-1, 1, 5, 5, -1, 1, 0x37493a);
-  b.set(0, 5, 0, 0x1a1a1a);
-  b.set(0, 6, 0, 0xf4f4f0);
-  b.set(-1, 6, 1, 0xf0d040);
-  b.set(1, 8, -1, 0x202020); // flies
-  b.set(-1, 9, 0, 0x202020);
+  trashBin(b);
+  // Rubbish sticking out of the lid hole: a paper cup, a banana peel, flies.
+  b.set(0, 7, 0, 0xf4f4f0);
+  b.set(0, 8, 0, 0xd23a2e);
+  b.set(1, 7, 0, 0xf0d040);
+  b.set(1, 10, -1, 0x202020);
+  b.set(-1, 11, 1, 0x202020);
   return b.voxels();
 }
 
-/** The same bin knocked over after a bus took it: on its side, rubbish spilled out of the top. */
+/** The same bin knocked over after a bus took it: on its side, lid towards +x, rubbish spilled out. */
 export function trashKnockedVoxels(): BonusVoxel[] {
+  const up = new Builder();
+  trashBin(up);
   const b = new Builder();
-  b.box(-4, -4, 0, 2, -1, 1, 0x2f3a2c);
-  for (let x = -3; x <= 0; x++) b.box(x, x, 0, 2, -1, 1, x === -1 ? 0x6f8b6a : 0x4f6b4a);
-  b.box(1, 1, 0, 2, -1, 1, 0x37493a);
-  b.set(1, 1, 0, 0x1a1a1a);
-  b.box(2, 3, 0, 0, -1, -1, 0xf0d040);
-  b.set(2, 0, 1, 0xf4f4f0);
-  b.set(3, 0, 2, 0xf4f4f0);
-  b.set(2, 0, 0, 0x6f7a2e);
-  b.box(3, 3, 0, 0, 0, 1, 0x2f7a3a);
-  b.set(2, 3, 0, 0x202020);
-  b.set(0, 4, -1, 0x202020);
+  // Standing (x, y, z) → lying: height runs along +x, the old x becomes height (resting on y = 0).
+  for (const v of up.voxels()) b.set(v.y - 3, v.x + 2, v.z, v.color);
+  b.box(4, 5, 0, 0, -1, -1, 0xf0d040);
+  b.set(4, 0, 1, 0xf4f4f0);
+  b.set(5, 0, 2, 0xd23a2e);
+  b.set(4, 0, 0, 0x6f7a2e);
+  b.box(6, 6, 0, 0, 0, 1, 0x2f7a3a);
+  b.set(5, 3, 0, 0x202020);
+  b.set(2, 6, -1, 0x202020);
   return b.voxels();
 }
 

@@ -68,7 +68,7 @@ miejsce odnawia się po czasie (np. 15 s).
 | Bonus | Smród | Uwagi |
 |---|---|---|
 | Żul z przystanku | +25 | tylko na przystankach, „siedzi" — wolniej wietrzeje; przystanek bez żula stoi pusty i co 15 s losuje nowego (karta 041 usunęła kebab, psa, kibica, śledzia i duriana) |
-| Śmietnik | +8 | mały kosz na krawężniku; wjechanie go przewraca, leży z rozsypanymi śmieciami 20 s i znowu stoi (karta 045) |
+| Śmietnik | +8 | warszawski betonowy kosz z ciemną pokrywą na krawężniku, coś z niego wystaje; wjechanie go przewraca, leży z rozsypanymi śmieciami 20 s i znowu stoi (karta 045) |
 | Kontroler biletów | −20 | bonus negatywny, trzeba go omijać; chodzi chodnikiem w tę i z powrotem (ok. 18 kafelków, 0,8 kafla/s) z animacją kroku, wraca po 15 s (karta 044) |
 | Wytrącony smród | ile wypadło | zostaje po taranowaniu |
 | Żul spod Żabki | +25 | sklepy Żabka na mapie wypuszczają żuli; im dalej w grę, tym częściej i więcej (odstęp 30 s → 8 s, limit przy sklepie 1 → 4). Żul wychodzi drzwiami, idzie 1–2,5 kafelka w losową stronę od sklepu i się przewraca; leżący daje **+40**. Po zebraniu znika, „siedzi” jak ten z przystanku. Trzy wersje żula (niżej, Grafika → Żul) |
