@@ -1,7 +1,7 @@
 # Śmietnik mniejszy, na stałe przy krawężniku
 
 obszar: swiat
-kto: -
+kto: Pawel
 zależy od: -
 ścieżki: sim/bonus.ts, render/bonuses.ts, render/bonusModels.ts
 
