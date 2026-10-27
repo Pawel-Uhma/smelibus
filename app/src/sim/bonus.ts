@@ -1,12 +1,12 @@
 import {
   BONUS_RADIUS, BONUS_RESPAWN_S, BONUS_STINK, BUS_RADIUS, BUS_STOPS_PER_TILE,
   CONTROLLER_PATROL_LENGTH, CONTROLLER_RESPAWN_S, CONTROLLER_WALK_SPEED, CONTROLLERS_PER_TILE, DROPPED_STINK_PICKUP_DELAY_S, DROPPED_STINK_TTL_S,
-  SCOOTER_BOOST, SCOOTER_BOOST_MAX, STINK_DECAY_PER_S, STINK_MAX, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
+  SCOOTER_BOOST, SCOOTER_BOOST_MAX, STINK_DECAY_PER_S, STINK_MAX, TICKET_CONTROLLER_STINK, STOP_ZUL_CHANCE, TRASH_CANS_PER_TILE,
   TRASH_RESPAWN_S, ZUL_DECAY_MULT, ZUL_SIT_SECONDS,
 } from '../shared/config';
 import { countPickup } from './cargo';
 import { stinkGain } from './powers';
-import { curbSpot, sidewalkPatrol } from './sidewalk';
+import { curbSpot, openGroundPatrol, sidewalkPatrol } from './sidewalk';
 import { nearestDrivable } from './world';
 import type { Bonus, BonusKind, BonusSpot, Bus, GameState } from '../shared/types';
 
@@ -85,7 +85,10 @@ export function spawnBonuses(state: GameState): void {
       const r = () => rand(state);
       const stop = spot === 'stop' ? state.world.stops?.[i] : undefined;
       const curb = spot === 'trash' ? curbSpot(state.world, r) : null;
-      const patrol = spot === 'controller' ? sidewalkPatrol(state.world, r, CONTROLLER_PATROL_LENGTH, patrolSides) : null;
+      // On the flat map (no streets) a controller walks a straight line across open ground.
+      const patrol = spot === 'controller'
+        ? sidewalkPatrol(state.world, r, CONTROLLER_PATROL_LENGTH, patrolSides) ?? openGroundPatrol(state.world, r, CONTROLLER_PATROL_LENGTH)
+        : null;
       const { x, z } = stop ?? curb ?? (patrol ? { x: patrol.ax, z: patrol.az } : nearestDrivable(state.world, rx, rz));
       const b: Bonus = {
         id: state.bonuses.length, spot, kind: 'zul', amount: 0, active: false, respawnAt: 0, x, z,
@@ -162,8 +165,13 @@ export function updateBonuses(state: GameState, dt: number): void {
     for (const bus of state.buses) {
       if (bus.driverId === null) continue;
       if (Math.hypot(bus.x - at.x, bus.z - at.z) > reach) continue;
-      // A monthly ticket (card 043): the controller lets you pass and stays where he is.
-      if (b.amount < 0 && bus.shielded) continue;
+      // A monthly ticket (card 043): the controller checks it and you get TICKET_CONTROLLER_STINK.
+      if (b.amount < 0 && bus.shielded) {
+        collect(state, bus, { ...b, amount: TICKET_CONTROLLER_STINK });
+        b.active = false;
+        b.respawnAt = state.time + respawnTime(b.spot);
+        break;
+      }
       collect(state, bus, b);
       break;
     }

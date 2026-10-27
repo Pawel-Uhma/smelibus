@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BONUS_STINK, BUS_MAX_SPEED, CABBAGE_STINK_MULT, ENERGY_SPEED_BONUS, PACZKOMAT_COOLDOWN_S, PACZKOMAT_LOOT_WEIGHTS,
-  PACZKOMAT_REVEAL_S, POWER_SECONDS,
+  PACZKOMAT_REVEAL_S, POWER_SECONDS, TICKET_CONTROLLER_STINK,
 } from '../shared/config';
 import type { Bus, GameState, LootKind } from '../shared/types';
 import { collect, updateBonuses } from './bonus';
@@ -99,14 +99,15 @@ describe('InPost lockers', () => {
     expect(bus.power).toBeUndefined();
   });
 
-  it('monthly ticket: the controller lets you pass and rams knock nothing out', () => {
+  it('monthly ticket: a controller gives +50 instead and rams knock nothing out', () => {
     const { s, bus } = onLocker();
     land(s, bus, 'ticket');
     bus.stink = 100;
     s.bonuses = [{ id: 0, spot: 'controller', kind: 'controller', amount: BONUS_STINK.controller, x: bus.x, z: bus.z, active: true, respawnAt: 0 }];
     updateBonuses(s, 0);
-    expect(bus.stink).toBe(100);
-    expect(s.bonuses[0].active).toBe(true);
+    expect(bus.stink).toBe(100 + TICKET_CONTROLLER_STINK);
+    expect(s.bonuses[0].active).toBe(false);
+    bus.stink = 100;
     const rammer = (): Bus => ({ id: 99, x: bus.x, z: bus.z - 2.9, angle: 0, speed: 10, driverId: 'b', stink: 0 });
     expect(collideBuses([{ ...bus }, rammer()])).toEqual([]);
     expect(collideBuses([{ ...bus, shielded: undefined }, rammer()]).length).toBe(1);

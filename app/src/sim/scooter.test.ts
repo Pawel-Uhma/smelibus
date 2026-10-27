@@ -49,4 +49,14 @@ describe('kukuryniarze (scooter riders)', () => {
     expect(bus.riderBoost).toBeCloseTo(2 * SCOOTER_BOOST - SCOOTER_BOOST_DECAY_PER_S);
     expect(bus.speedMult).toBeCloseTo(1 + 2 * SCOOTER_BOOST - SCOOTER_BOOST_DECAY_PER_S);
   });
+
+  it('ride straight lines on the flat map too, and controllers walk there', () => {
+    const s = createGame(4, false);
+    s.bonuses = s.bonuses!.filter((b) => b.spot !== 'scooter');
+    const r = spawnScooter(s)!;
+    expect(r.patrol).toBeDefined();
+    const a = bonusPosition(r, 1), b = bonusPosition(r, 1.4);
+    expect(Math.hypot(b.x - a.x, b.z - a.z)).toBeCloseTo(0.4 * SCOOTER_SPEED, 1);
+    for (const c of s.bonuses!.filter((x) => x.spot === 'controller')) expect(c.patrol).toBeDefined();
+  });
 });

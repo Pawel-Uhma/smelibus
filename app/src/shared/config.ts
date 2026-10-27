@@ -227,6 +227,8 @@ export const PACZKOMAT_REVEAL_S = 2.2;
 export const POWER_SECONDS = { energy: 6, ticket: 25, cabbage: 10 } as const;
 /** Energy drink: top speed share added while it lasts. */
 export const ENERGY_SPEED_BONUS = 0.35;
+/** Monthly ticket: a controller you drive into gives this much stink instead of taking 20. */
+export const TICKET_CONTROLLER_STINK = 50;
 /** Pickled cabbage: stink from bonuses counts this many times while it lasts. */
 export const CABBAGE_STINK_MULT = 2;
 

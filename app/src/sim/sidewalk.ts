@@ -86,3 +86,16 @@ export function sidewalkPatrol(world: World, rand: () => number, maxLength: numb
   }
   return null;
 }
+
+/**
+ * A straight stretch of open ground for walkers and riders on a map without streets (the flat
+ * map): from a random point in a random direction, kept inside the map, at most `maxLength` long.
+ */
+export function openGroundPatrol(world: World, rand: () => number, maxLength: number):
+  { ax: number; az: number; bx: number; bz: number } {
+  const m = 3, size = world.size;
+  const ax = m + rand() * (size - 2 * m), az = m + rand() * (size - 2 * m);
+  const a = rand() * Math.PI * 2;
+  const clampIn = (v: number) => Math.max(m, Math.min(size - m, v));
+  return { ax, az, bx: clampIn(ax + Math.sin(a) * maxLength), bz: clampIn(az + Math.cos(a) * maxLength) };
+}

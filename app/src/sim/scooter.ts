@@ -1,6 +1,7 @@
 import { CITY_STREETS, SCOOTER_SPAWN_S, SCOOTER_SPEED, SCOOTER_TILES_PER_RIDER } from '../shared/config';
 import type { Bonus, CityStreet, GameState } from '../shared/types';
 import { nextId, rand } from './bonus';
+import { openGroundPatrol } from './sidewalk';
 
 /**
  * Kukuryniarze (card 046): guys on electric scooters. One rides out of a block of flats to the
@@ -20,12 +21,28 @@ function project(s: CityStreet, x: number, z: number): { t: number; d: number; l
 
 /** A new rider leaving a random block, or null when the map has no blocks or streets. */
 export function spawnScooter(state: GameState): Bonus | null {
+  if (!state.world.streets?.length) return flatRider(state);
   for (let i = 0; i < 10; i++) {
     const rider = tryRider(state);
     if (rider) return rider;
   }
   return null;
 }
+
+/** Flat map (no streets, no blocks): he rides a straight line across open ground and back. */
+function flatRider(state: GameState): Bonus {
+  const p = openGroundPatrol(state.world, () => rand(state), FLAT_RIDE_LENGTH);
+  const len = Math.hypot(p.bx - p.ax, p.bz - p.az);
+  const rider: Bonus = {
+    id: nextId(state), spot: 'scooter', kind: 'scooter', amount: 0, active: true, respawnAt: 0, x: p.ax, z: p.az,
+    patrol: { ...p, speed: SCOOTER_SPEED, offset: ((-SCOOTER_SPEED * state.time) % (2 * len) + 2 * len) % (2 * len) },
+  };
+  (state.bonuses ??= []).push(rider);
+  return rider;
+}
+
+/** Length of a flat-map rider's line, tiles. */
+const FLAT_RIDE_LENGTH = 25;
 
 /** One go at a random block; null when its street has no usable stretch of lane on the map. */
 function tryRider(state: GameState): Bonus | null {
