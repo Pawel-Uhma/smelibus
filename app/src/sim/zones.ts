@@ -1,4 +1,5 @@
-import { START_RING, SUDDEN_DEATH, TILES_PER_STINK } from '../shared/config';
+import { START_RING, STINK_RELEASE_MIN, SUDDEN_DEATH_START, SUDDEN_DEATH_STEP, TILES_PER_STINK } from '../shared/config';
+import type { Bus } from '../shared/types';
 import type { GameState, PlayerId, World } from '../shared/types';
 
 /** Index of the tile under world point (x, z), clamped to the map. */
@@ -14,11 +15,28 @@ export function countTiles(world: World, id: PlayerId): number {
   return n;
 }
 
-/** Jump size multiplier at game time `time` (GAME_DESIGN: x2 after 8 min, x3 after 10). */
+/** Jump size multiplier at game time `time`: 1, then ×2 at SUDDEN_DEATH_START and +1 every step. */
 export function suddenDeathMultiplier(time: number): number {
-  let m = 1;
-  for (const s of SUDDEN_DEATH) if (time >= s.after) m = Math.max(m, s.multiplier);
-  return m;
+  if (time < SUDDEN_DEATH_START) return 1;
+  return 2 + Math.floor((time - SUDDEN_DEATH_START) / SUDDEN_DEATH_STEP);
+}
+
+/** Game time of the next multiplier step after `time` (there always is one). */
+export function nextSuddenDeathAt(time: number): number {
+  if (time < SUDDEN_DEATH_START) return SUDDEN_DEATH_START;
+  return SUDDEN_DEATH_START + (Math.floor((time - SUDDEN_DEATH_START) / SUDDEN_DEATH_STEP) + 1) * SUDDEN_DEATH_STEP;
+}
+
+/**
+ * Space in a bus (card 042): the driver lets the stink out right where the bus is, a jump at the
+ * bus's tile without going home. Needs at least STINK_RELEASE_MIN. Returns tiles taken.
+ */
+export function releaseStink(state: GameState, bus: Bus): number {
+  if (!bus.driverId || bus.stink < STINK_RELEASE_MIN || state.winnerId) return 0;
+  const n = jump(state.world, bus.driverId, tileIndexAt(state.world, bus.x, bus.z), bus.stink, suddenDeathMultiplier(state.time));
+  bus.stink = 0;
+  state.winnerId = findWinner(state);
+  return n;
 }
 
 /** Start point of player `k` of `count`, evenly spaced on a ring around the center. */

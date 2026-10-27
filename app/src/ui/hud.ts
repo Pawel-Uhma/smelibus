@@ -77,7 +77,7 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
     <div class="hud">
       <div class="party"><span class="code">Party <b>${code}</b></span><button id="copy" class="icon" title="Kopiuj link" aria-label="Kopiuj link">🔗</button><button id="help-toggle" class="icon" title="Sterowanie" aria-label="Sterowanie" aria-expanded="false">?</button><button id="leave" class="icon leave" title="Wyjdź z party" aria-label="Wyjdź z party">🚪</button></div>
       <ul id="players"></ul>
-      <div class="help">WASD / strzałki: jazda i chodzenie · spacja: hamulec · E: wsiądź / wysiądź · H: klakson · K: kontrast</div>
+      <div class="help">WASD / strzałki: jazda i chodzenie · S: hamulec · spacja: wypuść smród (od 20) · E: wsiądź / wysiądź · H: klakson · K: kontrast</div>
       <div class="help help-touch">Prawy kciuk: wskaż, gdzie jechać albo iść · przyciski po lewej: wsiądź / wysiądź, klakson</div>
     </div>
     <div class="hud-clock">
@@ -102,6 +102,7 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
       <div class="stink-fumes"><i></i><i></i><i></i></div>
     </div>
     <div id="stink-pops" class="stink-pops"></div>
+    <div id="full" class="hud-full" hidden><b>NACIŚNIJ SPACJĘ</b><span>Autobus pełny smrodu. Wypuść go tutaj albo wjedź do swojej strefy.</span></div>
     <div id="win" class="win" hidden>
       <div class="card">
         <div class="swatch" id="win-swatch"></div>
@@ -130,6 +131,9 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
   const popsBox = $('stink-pops');
   const cargoEls = { zul: $('cargo-zul'), parcel: $('cargo-parcel'), poop: $('cargo-poop') };
   const winCargo = $('win-cargo');
+  const fullBox = $('full');
+  if (matchMedia('(pointer: coarse)').matches) fullBox.querySelector('b')!.textContent = 'NACIŚNIJ 💨 SMRÓD';
+  let lastFull = false;
   const pops = createStinkPops();
   let lastUpdate = performance.now();
   copy.onclick = async () => {
@@ -273,6 +277,12 @@ export function createHud(root: HTMLElement, code: string, me: PlayerId, rematch
         const tier = stinkTier(f);
         if (stinkTierEl.textContent !== tier) stinkTierEl.textContent = tier;
       }
+
+      if (m.full !== lastFull) {
+        lastFull = m.full;
+        fullBox.hidden = !m.full;
+      }
+      stinkBox.classList.toggle('ready', m.canRelease);
 
       const cargo = `${m.zuls}|${m.parcels}|${m.poops}`;
       if (cargo !== lastCargo) {

@@ -133,7 +133,12 @@ export const PEDESTRIAN_ENTER_RANGE = 1;
 export const PEDESTRIAN_HIT_SPEED = 2;
 export const STUN_SECONDS = 3;
 
-export const STINK_MAX = 100;
+/** Most stink a bus can carry (card 042: 500, was 100). */
+export const STINK_MAX = 500;
+/** Space in a bus releases the stink on the spot (a jump right where the bus is) from this much. */
+export const STINK_RELEASE_MIN = 20;
+/** Stink at which the bus looks its worst (render only: cloud, puffs, garbled nick); the old cap. */
+export const STINK_LOOK_MAX = 100;
 /** Upper bounds of the clean and smelly look stages; above the last one the bus is filthy. */
 export const STINK_STAGE_LIMITS = [30, 70] as const;
 
@@ -216,11 +221,10 @@ export const PLAYER_COLORS = [
 export const NEUTRAL_COLOR = 0xd9d4c7;
 
 // Zones (sim/zones.ts).
-/** Sudden death: from `after` seconds into the game, the jump size is multiplied by `multiplier`. */
-export const SUDDEN_DEATH = [
-  { after: 8 * 60, multiplier: 2 },
-  { after: 10 * 60, multiplier: 3 },
-];
+/** Sudden death (card 042): from SUDDEN_DEATH_START seconds the jump size is ×2, and the
+ *  multiplier grows by 1 every SUDDEN_DEATH_STEP seconds after that, without a limit. */
+export const SUDDEN_DEATH_START = 4 * 60;
+export const SUDDEN_DEATH_STEP = 2 * 60;
 /** Tiles taken per point of stink on a jump (before the sudden death multiplier). 4 since the
  *  city map grew 4× in area (card 038), so a jump takes the same share of the map. */
 export const TILES_PER_STINK = 4;

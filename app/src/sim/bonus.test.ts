@@ -78,10 +78,10 @@ describe('stink bonuses', () => {
     expect(b.active).toBe(true);
   });
 
-  it('caps stink at 100', () => {
+  it('caps stink at STINK_MAX', () => {
     const { s, busIdx } = setup();
     const bus = s.buses[busIdx];
-    bus.stink = 90;
+    bus.stink = STINK_MAX - 10;
     place(s, 'map', 'durian', bus.x, bus.z);
     updateBonuses(s, 0);
     expect(bus.stink).toBe(STINK_MAX);

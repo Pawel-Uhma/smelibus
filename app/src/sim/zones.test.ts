@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Bus, GameState, PlayerId, World } from '../shared/types';
 import {
-  assignJoinZone, assignStartZones, countTiles, findWinner, jump, suddenDeathMultiplier,
+  assignJoinZone, assignStartZones, countTiles, findWinner, jump, releaseStink, suddenDeathMultiplier,
   tileIndexAt, updateZones,
 } from './zones';
+import { STINK_RELEASE_MIN, TILES_PER_STINK } from '../shared/config';
+import { addPlayer, createGame } from './game';
 
 // The cases below count tiles on tiny maps: one tile per point of stink keeps the numbers readable.
 vi.mock('../shared/config', async (original) => ({ ...(await original<object>()), TILES_PER_STINK: 1 }));
@@ -85,16 +87,16 @@ describe('zones', () => {
     expect(b.stink).toBe(80);
   });
 
-  it('sudden death multiplies the jump: x2 after 8 min, x3 after 10', () => {
+  it('sudden death multiplies the jump: x2 after 4 min, +1 every 2 min', () => {
     expect(suddenDeathMultiplier(0)).toBe(1);
-    expect(suddenDeathMultiplier(8 * 60 - 1)).toBe(1);
-    expect(suddenDeathMultiplier(8 * 60)).toBe(2);
-    expect(suddenDeathMultiplier(10 * 60)).toBe(3);
+    expect(suddenDeathMultiplier(4 * 60 - 1)).toBe(1);
+    expect(suddenDeathMultiplier(4 * 60)).toBe(2);
+    expect(suddenDeathMultiplier(6 * 60)).toBe(3); expect(suddenDeathMultiplier(40 * 60)).toBe(20);
 
     const w = world(10, (i) => (i < 5 ? 'a' : 'b'));
     const b = bus(5.5, 5.5, 'a', 4);
     const s = game(w, ['a', 'b'], [b]);
-    s.time = 10 * 60;
+    s.time = 6 * 60;
     drive(s, b, 4.5, 5.5);
     expect(countTiles(w, 'a')).toBe(62); // 4 stink × 3
   });
@@ -142,5 +144,21 @@ describe('zones', () => {
     assignJoinZone(s, 'b');
     expect(countTiles(w, 'a')).toBe(50);
     expect(countTiles(w, 'b')).toBe(50);
+  });
+
+  it('Space in a bus lets the stink out on the spot from STINK_RELEASE_MIN', () => {
+    const s = createGame(3);
+    addPlayer(s, 'a', 'A');
+    addPlayer(s, 'b', 'B');
+    const bus = s.buses.find((b) => b.driverId === 'a')!;
+    const before = countTiles(s.world, 'a');
+    bus.stink = STINK_RELEASE_MIN - 1;
+    expect(releaseStink(s, bus)).toBe(0);
+    expect(bus.stink).toBe(STINK_RELEASE_MIN - 1);
+    bus.stink = 50;
+    const taken = releaseStink(s, bus);
+    expect(taken).toBe(50 * TILES_PER_STINK);
+    expect(bus.stink).toBe(0);
+    expect(countTiles(s.world, 'a')).toBe(before + taken);
   });
 });

@@ -219,4 +219,16 @@ describe('jumping', () => {
     jump(s2, driver, 1);
     expect(driver.jumpAt).toBeUndefined();
   });
+
+  it('Space in a bus lets the stink out on the spot', () => {
+    const tiles = Array.from({ length: 50 * 50 }, () => ({ ownerId: 'x' }));
+    const driver = player({ id: 'b', busId: 0, jumpSeen: 0 });
+    const b = bus({ driverId: 'b', stink: 30 });
+    const s = game([driver, player({ id: 'x' })], [b]);
+    s.world.tiles = tiles;
+    jump(s, driver, 1);
+    expect(b.stink).toBe(0);
+    expect(tiles.some((t) => t.ownerId === 'b')).toBe(true);
+  });
 });
+

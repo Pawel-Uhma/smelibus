@@ -46,3 +46,4 @@
 2026-10-19T13:01Z | Paweł | nowy wygląd ekranu startowego i poczekalni: wyraźny wybór publiczne/prywatne, lista graczy z autobusikami
 2026-10-27T10:48Z | Paweł | dodano przycisk wyjścia z party w poczekalni i w grze
 2026-10-27T10:49Z | Paweł | z mapy znikają kebaby, psy, śledzie, kibice i duriany, zostają żule
+2026-10-27T10:52Z | Paweł | smrodu mieści się do 500, spacja wypuszcza go tam, gdzie stoisz, a sudden death rośnie bez końca od 4 minuty

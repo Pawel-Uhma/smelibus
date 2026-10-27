@@ -178,3 +178,11 @@ body.hc .minimap { border: 3px solid #000; box-shadow: 3px 3px 0 #000; }
 body.hc .banner { background: #000; border: 3px solid #fff; }
 body.hc button { border-color: #000; }
 body.hc button:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
+
+/* Full bus (card 042): a big call to press Space in the middle of the screen. */
+.hud-full { position: absolute; top: 34%; left: 50%; transform: translateX(-50%); display: grid; gap: 4px; justify-items: center; text-align: center; pointer-events: none; animation: full-pulse .9s ease-in-out infinite alternate; }
+.hud-full[hidden] { display: none; }
+.hud-full b { font-size: clamp(26px, 6vw, 48px); font-weight: 900; color: #8cc846; letter-spacing: 1px; -webkit-text-stroke: 2px #1b1b1b; paint-order: stroke fill; text-shadow: 0 4px 0 #1b1b1b; }
+.hud-full span { font-size: 14px; font-weight: 700; background: #fff; border: 2px solid #1b1b1b; border-radius: 8px; padding: 3px 8px; }
+@keyframes full-pulse { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .hud-full { animation: none; } }

@@ -28,7 +28,7 @@ describe('weather', () => {
     const { s } = setup('harnas');
     updateWeather(s, 1);
     expect(s.buses[0].stink).toBeCloseTo(50 + HARNAS_STINK_PER_S);
-    for (let i = 0; i < 100; i++) updateWeather(s, 1);
+    for (let i = 0; i < 1000; i++) updateWeather(s, 1);
     expect(s.buses[0].stink).toBe(STINK_MAX);
   });
 

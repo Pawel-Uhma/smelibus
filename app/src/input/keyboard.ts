@@ -1,7 +1,7 @@
 import type { BusInput } from '../shared/types';
 
 /** One player per computer: WASD or arrows, E to use, H to honk. Turns key events into a BusInput. */
-export function createKeyboard(target: Window = window): { read(onFoot?: boolean): BusInput } {
+export function createKeyboard(target: Window = window): { read(): BusInput } {
   const down = new Set<string>();
   // E presses are counted, so one press can't get lost between two input messages.
   let use = 0;
@@ -19,9 +19,9 @@ export function createKeyboard(target: Window = window): { read(onFoot?: boolean
   target.addEventListener('blur', () => down.clear());
   const any = (...codes: string[]) => codes.some((c) => down.has(c));
   return {
-    // Space brakes a bus; on foot it only jumps, so it doesn't walk you backwards.
-    read: (onFoot = false) => ({
-      throttle: (any('KeyW', 'ArrowUp') ? 1 : 0) - (any('KeyS', 'ArrowDown') || (!onFoot && any('Space')) ? 1 : 0),
+    // Space is the jump counter: on foot a hop, in a bus it lets the stink out (card 042).
+    read: () => ({
+      throttle: (any('KeyW', 'ArrowUp') ? 1 : 0) - (any('KeyS', 'ArrowDown') ? 1 : 0),
       steer: (any('KeyD', 'ArrowRight') ? 1 : 0) - (any('KeyA', 'ArrowLeft') ? 1 : 0),
       use,
       jump,

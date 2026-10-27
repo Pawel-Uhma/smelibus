@@ -74,6 +74,7 @@ export function createTouch(): { read(bus?: { angle: number; speed: number } | n
     <div class="touch-buttons">
       <button class="touch-btn touch-use" type="button"><span class="ico">🚌</span><span class="txt">Wsiądź</span></button>
       <button class="touch-btn touch-horn" type="button"><span class="ico">📢</span><span class="txt">Klakson</span></button>
+      <button class="touch-btn touch-jump" type="button"><span class="ico">💨</span><span class="txt">Smród</span></button>
     </div>`;
   // Under #ui, so the HUD and the win screen stay clickable on top of it.
   document.body.insertBefore(layer, document.getElementById('ui'));
@@ -82,6 +83,9 @@ export function createTouch(): { read(bus?: { angle: number; speed: number } | n
   const knob = layer.querySelector<HTMLDivElement>('.touch-knob')!;
   const useBtn = layer.querySelector<HTMLButtonElement>('.touch-use')!;
   const hornBtn = layer.querySelector<HTMLButtonElement>('.touch-horn')!;
+  const jumpBtn = layer.querySelector<HTMLButtonElement>('.touch-jump')!;
+  const jumpIco = jumpBtn.querySelector<HTMLSpanElement>('.ico')!;
+  const jumpTxt = jumpBtn.querySelector<HTMLSpanElement>('.txt')!;
   const useIco = useBtn.querySelector<HTMLSpanElement>('.ico')!;
   const useTxt = useBtn.querySelector<HTMLSpanElement>('.txt')!;
 
@@ -95,6 +99,7 @@ export function createTouch(): { read(bus?: { angle: number; speed: number } | n
   let thumb: { dx: number; dy: number } | null = null;
   let use = 0;
   let horn = 0;
+  let jump = 0;
   let pointer: number | null = null;
   let ox = 0, oy = 0;
 
@@ -147,6 +152,7 @@ export function createTouch(): { read(bus?: { angle: number; speed: number } | n
   };
   button(useBtn, () => use++);
   button(hornBtn, () => horn++);
+  button(jumpBtn, () => jump++);
   layer.addEventListener('contextmenu', (e) => e.preventDefault());
   addEventListener('blur', release);
 
@@ -157,10 +163,12 @@ export function createTouch(): { read(bus?: { angle: number; speed: number } | n
         inBus = !!bus;
         useIco.textContent = inBus ? '🚶' : '🚌';
         useTxt.textContent = inBus ? 'Wysiądź' : 'Wsiądź';
+        jumpIco.textContent = inBus ? '💨' : '⤴️';
+        jumpTxt.textContent = inBus ? 'Smród' : 'Skok';
       }
       // `drive`: the camera turns with the bus, so screen aim makes no sense; up is gas, sideways is the wheel.
       const axes = !thumb ? { throttle: 0, steer: 0 } : bus && !drive ? aimToInput(thumb.dx, thumb.dy, bus) : stickToInput(thumb.dx, thumb.dy);
-      return { ...axes, use, horn };
+      return { ...axes, use, horn, jump };
     },
   };
 }

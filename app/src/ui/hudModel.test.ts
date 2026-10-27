@@ -34,10 +34,11 @@ describe('hud model', () => {
     expect(buildHudModel(view({ players: [player('a')] }), 'a').stink).toBe(0);
   });
 
-  it('shows the sudden death multiplier after 8 and 10 minutes', () => {
-    expect(buildHudModel(view({ time: 7 * 60 }), 'a')).toMatchObject({ multiplier: 1, nextStepIn: 60 });
-    expect(buildHudModel(view({ time: 8 * 60 }), 'a')).toMatchObject({ multiplier: 2, nextStepIn: 120 });
-    expect(buildHudModel(view({ time: 11 * 60 }), 'a')).toMatchObject({ multiplier: 3, nextStepIn: null });
+  it('sudden death: x2 at 4 min, then +1 every 2 min without end', () => {
+    expect(buildHudModel(view({ time: 3 * 60 }), 'a')).toMatchObject({ multiplier: 1, nextStepIn: 60 });
+    expect(buildHudModel(view({ time: 4 * 60 }), 'a')).toMatchObject({ multiplier: 2, nextStepIn: 120 });
+    expect(buildHudModel(view({ time: 7 * 60 }), 'a')).toMatchObject({ multiplier: 3, nextStepIn: 60 });
+    expect(buildHudModel(view({ time: 30 * 60 }), 'a')).toMatchObject({ multiplier: 15, nextStepIn: 120 });
   });
 
   it('names the winner', () => {

@@ -1,4 +1,4 @@
-import { STINK_MAX } from '../shared/config';
+import { STINK_LOOK_MAX } from '../shared/config';
 
 const DIACRITIC: Record<string, string> = {
   a: 'ą', c: 'ć', e: 'ę', l: 'ł', n: 'ń', o: 'ó', s: 'ś', z: 'ź',
@@ -20,7 +20,7 @@ function hash01(name: string, i: number, salt: number): number {
  * Stink is quantised to 10 steps so the label texture is not redrawn every frame.
  */
 export function garbleName(name: string, stink: number): string {
-  const level = Math.floor(Math.min(1, Math.max(0, stink / STINK_MAX)) * 10) / 10;
+  const level = Math.floor(Math.min(1, Math.max(0, stink / STINK_LOOK_MAX)) * 10) / 10;
   if (level <= 0) return name;
   const chars = [...name];
   let out = '';

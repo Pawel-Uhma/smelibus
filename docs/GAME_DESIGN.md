@@ -37,7 +37,7 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
   przechodzi na bota, a party znika razem z ostatnim człowiekiem. Boty zostają na rewanż.
 - Gracz jest albo **pieszym**, albo **kierowcą**.
 - Pieszy: chodzi wszędzie (WASD), `E` przy autobusie (zasięg ~2 kafelki) = wsiada, jeśli autobus jest pusty.
-- Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja dalej hamuje). Prędkość pieszego: 5,2 kafelka/s.
+- Pieszy skacze spacją (podskok ~0,8 kafelka, 0,5 s; w autobusie spacja wypuszcza smród, a hamuje się S / strzałką w dół). Prędkość pieszego: 5,2 kafelka/s.
 - Kierowca: steruje autobusem, `E` = wysiada obok autobusu.
 - `H` = klakson (pieszy i kierowca). Słyszą go gracze w pobliżu, ciszej im dalej (`SOUND_HORN_RANGE`). Na telefonie przycisk „Klakson” po lewej, pod „Wsiądź / Wysiądź”.
 - `K` = tryb wysokiego kontrastu (też przycisk „Kontrast” w HUD, `?kontrast` w URL, domyślnie wg `prefers-contrast: more`): strefy nad ulicami miasta (półprzezroczysty kolor gracza, czarna granica), nieprzezroczysty HUD, noc ciemnieje najwyżej do `HIGH_CONTRAST_NIGHT_MAX`. Wybór zostaje w przeglądarce.
@@ -53,7 +53,8 @@ Jeśli zmieniasz mechanikę, zaktualizuj ten plik w tym samym commicie.
   Autobusu z kierowcą nie da się przejąć.
 - Autobus jest wielokrotnego użytku: po skoku zostaje tam, gdzie kierowca wysiadł.
   Kradzież zabiera pojazd, nie teren.
-- Każdy autobus ma **poziom smrodu** `stink` (0–100).
+- Każdy autobus ma **poziom smrodu** `stink` (0–500, karta 042; wygląd autobusu i chmura osiągają maksimum przy 100).
+- **Wypuszczenie smrodu:** kierowca z co najmniej 20 smrodu naciska spację (na telefonie przycisk 💨 Smród) i robi skok tam, gdzie stoi autobus, bez wracania do swojej strefy: przejmuje 4 × smród kafelków najbliżej autobusu (× sudden death), a smród spada do 0. Gdy autobus jest pełny (500), na środku ekranu miga „NACIŚNIJ SPACJĘ”.
 - Smród powoli wietrzeje (np. −0.5/s), więc trzeba ciągle zbierać bonusy.
 - **Taranowanie:** uderzenie autobusem w inny autobus wytrąca mu część smrodu. Wytrącony smród
   wypada na ziemię jako bonus do zebrania.
@@ -85,7 +86,6 @@ miejsce odnawia się po czasie (np. 15 s).
 Jeszcze nie w kodzie. Kto robi kartę, przenosi swoją część do tabeli i reguł wyżej. Modele i makieta losowania: artefakt „Bonusy smrodu” u Pawła.
 
 - **Zwykłe bonusy znikają** (kebab, pies, śledź, kibic, durian) razem z wolnymi miejscami na mapie. Przystanek ma żula albo stoi pusty [041].
-- **Smród do 1000** zamiast 100. **Sudden death** od 4 min: ×2, potem +1 co 2 min, bez limitu [042].
 - **Paczkomat** jest większy, stoi przy bloku i nie ma kolizji. Przejazd przez niego losuje nagrodę, którą kierowca widzi na taśmie na dole ekranu, i trafia ona od razu do autobusu. Pula: kupa +30 (40%), **energetyk** +35% prędkości na 6 s (20%), **bilet miesięczny** przez 25 s chroni przed kontrolerem i taranowaniem (20%), **kiszona kapusta** daje ×2 do zbieranego smrodu przez 10 s (20%). Paczek już nie ma. Jeden power-up naraz [043].
 - **Kontroler** chodzi chodnikiem z animacją kroku [044]. **Śmietnik** jest mniejszy i stoi przy krawężniku, a po zebraniu leży przewrócony 20 s [045].
 - **Kukuryniarz** na elektrycznej hulajnodze wyjeżdża z bloków i jeździ ulicami. Zgarnięty daje +4% prędkości, bonusy się sumują (do +50%) i zanikają o 0,25 pp/s. Nowy **pasek prędkości** w HUD [046].
@@ -167,7 +167,7 @@ widoczna zielona chmura wokół autobusu skalowana smrodem.
 ## Warunek zwycięstwa
 
 - Gracz posiada 100% kafelków → wygrywa. Nie ma wygranej na punkty.
-- **Sudden death:** po 8 min bonusy dają ×2 smrodu, po 10 min ×3, żeby gra się rozstrzygnęła.
+- **Sudden death** (karta 042): po 4 min skok zabiera ×2 kafelków, potem mnożnik rośnie o 1 co 2 min (×3 po 6 min, ×4 po 8…) bez limitu, żeby gra się rozstrzygnęła.
 
 ## Grafika
 

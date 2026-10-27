@@ -68,7 +68,7 @@ function frame(now: number) {
   const snap = party.latest();
   const me = snap.players.find((p) => p.id === party.playerId);
   // Behind or in the bus the stick drives it like a wheel and pedals; from the top it aims on screen.
-  const input = mergeInputs(keyboard.read(me?.busId === null), touch.read(predictor?.bus, cameraMode.mode !== 'top'));
+  const input = mergeInputs(keyboard.read(), touch.read(predictor?.bus, cameraMode.mode !== 'top'));
   if ((input.horn ?? 0) > lastHorn) sounds.honk();
   lastHorn = input.horn ?? 0;
   const serverBus = snap.buses.find((b) => b.id === me?.busId);

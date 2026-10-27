@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { STINK_MAX, STINK_STAGE_LIMITS } from '../shared/config';
+import { STINK_LOOK_MAX, STINK_STAGE_LIMITS } from '../shared/config';
 import type { Bus } from '../shared/types';
 import { BUS_VOXEL_SIZE, stinkStage } from './models/bus';
 import { BUS_VOXELS_X, BUS_VOXELS_Y, BUS_VOXELS_Z } from './models/busVoxels';
@@ -28,7 +28,7 @@ const PUFF_RISE = 0.9;
 const MAX_PUFFS = 400;
 
 function progress(stink: number, limit: number) {
-  return Math.min(1, Math.max(0, (stink - limit) / (STINK_MAX - limit)));
+  return Math.min(1, Math.max(0, (stink - limit) / (STINK_LOOK_MAX - limit)));
 }
 
 /** Share of cloud cells shown: 0 below stage 2 (durian), then growing with stink. */

@@ -3,6 +3,7 @@ import {
   PEDESTRIAN_JUMP_HEIGHT, PEDESTRIAN_JUMP_S, PEDESTRIAN_SPEED, STUN_SECONDS,
 } from '../shared/config';
 import type { Bus, BusInput, GameState, Player, PlayerId, World } from '../shared/types';
+import { releaseStink } from './zones';
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
@@ -189,6 +190,11 @@ export function updatePlayers(state: GameState, inputs: ReadonlyMap<PlayerId, Bu
     if (input.jump !== undefined) player.jumpSeen = input.jump;
     if (jumped && isOnFoot(player) && !isStunned(player, state.time) && jumpHeight(player, state.time) === 0) {
       player.jumpAt = state.time;
+    }
+    // In a bus the same key lets the stink out on the spot (card 042).
+    if (jumped && player.busId !== null) {
+      const bus = state.buses.find((b) => b.id === player.busId);
+      if (bus && bus.driverId === player.id) releaseStink(state, bus);
     }
     if (player.busId === null && !isStunned(player, state.time)) walk(player, input, dt, state.world.size, state.world);
   }

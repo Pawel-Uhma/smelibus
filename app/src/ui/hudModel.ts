@@ -1,7 +1,7 @@
-import { STINK_MAX, SUDDEN_DEATH } from '../shared/config';
+import { STINK_MAX, STINK_RELEASE_MIN } from '../shared/config';
 import type { BonusCounts, Bus, Player, PlayerId, Tile } from '../shared/types';
 import { zulsOnBoard } from '../sim/cargo';
-import { suddenDeathMultiplier } from '../sim/zones';
+import { nextSuddenDeathAt, suddenDeathMultiplier } from '../sim/zones';
 
 /** What the HUD reads from the game. Plain data, the HUD never writes back. */
 export interface HudView {
@@ -37,6 +37,10 @@ export interface HudModel {
   multiplier: number;
   /** Seconds until the next multiplier step, or null when there is none left. */
   nextStepIn: number | null;
+  /** Own bus is full: the HUD tells the driver to press Space (card 042). */
+  full: boolean;
+  /** Own bus carries enough stink to let it out with Space. */
+  canRelease: boolean;
   winner: { id: PlayerId; name: string; color: string; me: boolean } | null;
   /** Drunks sitting in the own bus right now (0 on foot). */
   zuls: number;
@@ -105,7 +109,6 @@ export function buildHudModel(view: HudView, me: PlayerId): HudModel {
 
   const meP = view.players.find((p) => p.id === me);
   const ownBus = view.buses.find((b) => b.id === meP?.busId);
-  const next = SUDDEN_DEATH.filter((s) => s.after > view.time).sort((a, b) => a.after - b.after)[0];
   const winP = view.winnerId ? view.players.find((p) => p.id === view.winnerId) : undefined;
 
   return {
@@ -115,7 +118,9 @@ export function buildHudModel(view: HudView, me: PlayerId): HudModel {
     stinkMax: STINK_MAX,
     busId: ownBus?.id ?? null,
     multiplier: suddenDeathMultiplier(view.time),
-    nextStepIn: next ? next.after - view.time : null,
+    nextStepIn: nextSuddenDeathAt(view.time) - view.time,
+    full: !!ownBus && ownBus.stink >= STINK_MAX - 0.5,
+    canRelease: !!ownBus && ownBus.stink >= STINK_RELEASE_MIN,
     winner: winP ? { id: winP.id, name: winP.name, color: cssColor(winP.color), me: winP.id === me } : null,
     zuls: zulsOnBoard(ownBus, view.time),
     parcels: meP?.collected?.parcel ?? 0,
